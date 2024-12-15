@@ -1,12 +1,3 @@
-# Kodi addon for TalkTV.cz
+# Kodi doplněk pro TALK.cz (dříve TALKTV.cz, STANDASHOW)
 
-## Directory structure
-```
-# plugin.video.talktv.cz/
-# ├── addon.xml
-# ├── icon.png  # Place your icon here
-# ├── fanart.jpg  # Optional: background image
-# └── resources/
-#     └── lib/
-#         └── plugin.py
-```
+Napsáno téměř výhradně s pomocí Claude.AI.

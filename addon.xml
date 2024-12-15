@@ -1,28 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.talktv.cz"
-       version="1.0.0"
-       name="TALK TV"
-       provider-name="mikrom">
+<addon id="plugin.video.talk.cz" name="TALK" provider-name="mikrom" version="1.0.0">
     <requires>
-        <import addon="xbmc.python" version="3.0.0"/>
-        <import addon="script.module.requests" version="2.22.0"/>
-        <import addon="script.module.beautifulsoup4" version="4.6.2"/>
+        <import addon="xbmc.python" version="3.0.0" />
+        <import addon="script.module.requests" version="2.22.0" />
+        <import addon="script.module.beautifulsoup4" version="4.6.2" />
     </requires>
     <extension point="xbmc.python.pluginsource" library="resources/lib/plugin.py">
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary lang="en">Plugin for TalkTV.cz</summary>
-        <summary lang="cs">Doplněk pro TalkTV.cz</summary>
-        <description lang="en">Watch content from TalkTV.cz</description>
-        <description lang="cs">Sledujte obsah z TalkTV.cz</description>
-        <disclaimer lang="en">This is not officiall addon for TalkTV.cz</disclaimer>
-        <disclaimer lang="cs">Toto není oficiální doplněk TalkTV.cz</disclaimer>
-        <language>en cs</language>
+        <summary>Doplněk pro talk.cz / talktv.cz</summary>
+        <description>Sledujte STANDASHOW, TECH GUYS, JADRNOU VĚDU, ZA HRANICÍ, MOVIE WITCHES, DESIGN TALK a další pořady pohodlně v Kodi.</description>
+        <disclaimer>Autor není hostitelem ani nedistribuuje žádný obsah zobrazený tímto doplňkem. Autor nemá žádný vztah s poskytovateli obsahu.</disclaimer>
+        <website>https://www.talk.cz/</website>
+        <source>https://github.com/mikromcz/plugin.video.talk.cz</source>
         <platform>all</platform>
         <license>MIT</license>
-        <website>https://www.talktv.cz/</website>
-        <source>https://github.com/mikromcz/plugin.video.talktv.cz</source>
         <assets>
             <icon>icon.png</icon>
             <fanart>resources/images/fanart.jpg</fanart>
@@ -30,6 +23,7 @@
             <screenshot>resources/images/screenshot2.jpg</screenshot>
             <screenshot>resources/images/screenshot3.jpg</screenshot>
         </assets>
-        <news>První verze</news>
+        <news>První verze
+        </news>
     </extension>
 </addon>
