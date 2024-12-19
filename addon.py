@@ -1,17 +1,19 @@
+# -*- coding: utf-8 -*-
+
 import sys
 import traceback
 import requests
-from urllib.parse import parse_qsl, quote, urlencode, urlparse, parse_qs
+from urllib.parse import parse_qsl, quote, urlencode
 import xbmcgui
 import xbmcplugin
 import xbmcaddon
 import xbmc
 from bs4 import BeautifulSoup
 
-_URL = sys.argv[0]
-_HANDLE = int(sys.argv[1])
-_ADDON = xbmcaddon.Addon()
-ADDON_ID = xbmcaddon.Addon().getAddonInfo('id')
+_URL = sys.argv[0]  # Base URL of the addon
+_HANDLE = int(sys.argv[1])  # Handle for the Kodi plugin instance
+_ADDON = xbmcaddon.Addon()  # Instance of the addon
+ADDON_ID = xbmcaddon.Addon().getAddonInfo('id')  # ID of the addon
 
 def log(msg, level=xbmc.LOGDEBUG):
     # Log message to Kodi log file with proper formatting and debug control.
@@ -171,6 +173,7 @@ def get_session():
         return False
 
 def get_url(**kwargs):
+    # Constructs a URL with query parameters from the given keyword arguments
     return '{0}?{1}'.format(_URL, urlencode(kwargs))
 
 def get_image_path(image_name):
@@ -200,14 +203,37 @@ def convert_duration_to_seconds(duration_text):
         pass
     return total_seconds
 
-def add_video_quality_menu(menu, video_url):
-    # Add quality selection options to the context menu
-    qualities = ['auto', '1080p', '720p', '480p', '360p', '240p']
-    for quality in qualities:
-        menu.append((
-            f'Play in {quality}',
-            f'RunPlugin({get_url(action="play", video_url=video_url, quality=quality)})'
-        ))
+def parse_date(date_str):
+    # Parse Czech date string to ISO format
+    CZECH_MONTHS = {
+        'ledna': '1',
+        'února': '2',
+        'března': '3',
+        'dubna': '4',
+        'května': '5',
+        'června': '6',
+        'července': '7',
+        'srpna': '8',
+        'září': '9',
+        'října': '10',
+        'listopadu': '11',
+        'prosince': '12'
+    }
+
+    if not date_str:
+        return ''
+
+    try:
+        day, month, year = date_str.split(' ')
+        day = day.rstrip('.')  # Remove the dot after the day
+        month = CZECH_MONTHS.get(month.lower())
+        if not month:
+            return ''
+
+        return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+    except Exception as e:
+        log(f"Error parsing date {date_str}: {str(e)}", xbmc.LOGWARNING)
+        return ''
 
 def select_quality(video_url):
     # Handle quality selection via dialog
@@ -222,16 +248,110 @@ def select_quality(video_url):
         xbmc.Player().play(item=get_url(action='play', video_url=video_url, quality=quality), listitem=play_item)
 
 def search():
-    log("Search function called", xbmc.LOGINFO)  # Debug line
+    # Create a dialog for user input
     keyboard = xbmcgui.Dialog()
+    # Prompt the user to enter a search string
     search_string = keyboard.input('Hledat', type=xbmcgui.INPUT_ALPHANUM)
 
     if search_string:
         log(f"Searching for: {search_string}", xbmc.LOGINFO)
+        # Construct the search URL with the encoded search string
         search_url = f'https://www.talktv.cz/hledani?q={quote(search_string)}'
+        # List the search results from the constructed URL
         list_search_results(search_url)
 
+def list_search_results(search_url):
+    # Get a session for making HTTP requests
+    session = get_session()
+    if not session:
+        return
+
+    try:
+        log(f"Searching with URL: {search_url}", xbmc.LOGINFO)
+        # Make the HTTP GET request
+        response = session.get(search_url)
+        if response.status_code != 200:
+            log(f"Search request failed: {response.status_code}", xbmc.LOGERROR)
+            return
+
+        # Parse the HTML response
+        soup = BeautifulSoup(response.text, 'html.parser')
+        # Find the container with search results
+        results_container = soup.find('div', id='mainSearchListContainer')
+        if not results_container:
+            log("No search results container found", xbmc.LOGWARNING)
+            xbmcgui.Dialog().notification('Hledání', 'Žádné výsledky nenalezeny')
+            return
+
+        # Find all video items in the results container
+        video_items = results_container.find_all('a', class_='media')
+        if not video_items:
+            log("No search results found", xbmc.LOGINFO)
+            xbmcgui.Dialog().notification('Hledání', 'Žádné výsledky nenalezeny')
+            return
+
+        # Set the plugin category and content type
+        xbmcplugin.setPluginCategory(_HANDLE, 'Výsledky hledání')
+        xbmcplugin.setContent(_HANDLE, 'videos')
+
+        for item in video_items:
+            # Get the title of the video
+            title_element = item.find('div', class_='media__name')
+            if not title_element or not title_element.p:
+                continue
+
+            title = clean_text(title_element.p.text)
+            video_url = 'https://www.talktv.cz' + item['href']
+
+            # Get the duration of the video
+            duration_element = item.find('p', class_='duration')
+            duration_text = duration_element.text.strip() if duration_element else "0:00"
+
+            # Create a list item for the video
+            list_item = xbmcgui.ListItem(label=title)
+            list_item.setProperty('IsPlayable', 'true')
+            list_item.setIsFolder(False)
+
+            # Get the thumbnail image for the video
+            img_element = item.find('img')
+            thumbnail = img_element.get('data-src', '') if img_element else ''
+            if not thumbnail and img_element:
+                thumbnail = img_element.get('src', '')
+
+            list_item.setArt({
+                'thumb': thumbnail,
+                'icon': thumbnail
+            })
+
+            # Convert the duration to seconds
+            duration_seconds = convert_duration_to_seconds(duration_text)
+
+            # Set video info tags
+            info_tag = list_item.getVideoInfoTag()
+            info_tag.setTitle(title)
+            info_tag.setDuration(duration_seconds)
+            info_tag.setMediaType('video')
+
+            # Add context menu items
+            context_menu = [
+                ('Přehrát (zeptat se na kvalitu)',
+                 f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
+            ]
+            list_item.addContextMenuItems(context_menu)
+
+            # Add the directory item to the Kodi plugin
+            url = get_url(action='play', video_url=video_url)
+            xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+
+        # End the directory listing
+        xbmcplugin.endOfDirectory(_HANDLE)
+
+    except Exception as e:
+        log("Error in list_search_results", xbmc.LOGERROR)
+        xbmcgui.Dialog().notification('Error', str(e))
+
 def list_menu():
+    # Define the categories for the menu
     categories = [
         {
             'name': 'HLEDAT',
@@ -265,10 +385,12 @@ def list_menu():
         }
     ]
 
+    # Set the plugin category and content type
     xbmcplugin.setPluginCategory(_HANDLE, 'Categories')
     xbmcplugin.setContent(_HANDLE, 'files')
 
     for category in categories:
+        # Create a list item for each category
         list_item = xbmcgui.ListItem(label=category['name'])
         image_path = get_image_path(category['image'])
 
@@ -281,6 +403,7 @@ def list_menu():
         info_tag.setPlot(category['description'])
         info_tag.setTitle(category['name'])
 
+        # Determine the URL for the category action
         if category['url'] == 'search':
             url = get_url(action='search')
         elif category['url'] == 'popular':
@@ -293,89 +416,14 @@ def list_menu():
             url = get_url(action='listing', category_url=category['url'])
 
         is_folder = True
+        # Add the directory item to the Kodi plugin
         xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, is_folder)
 
+    # End the directory listing
     xbmcplugin.endOfDirectory(_HANDLE)
 
-def list_search_results(search_url):
-    session = get_session()
-    if not session:
-        return
-
-    try:
-        log(f"Searching with URL: {search_url}", xbmc.LOGINFO)
-        response = session.get(search_url)
-
-        if response.status_code != 200:
-            log(f"Search request failed: {response.status_code}", xbmc.LOGERROR)
-            return
-
-        soup = BeautifulSoup(response.text, 'html.parser')
-        results_container = soup.find('div', id='mainSearchListContainer')
-
-        if not results_container:
-            log("No search results container found", xbmc.LOGWARNING)
-            xbmcgui.Dialog().notification('Hledání', 'Žádné výsledky nenalezeny')
-            return
-
-        video_items = results_container.find_all('a', class_='media')
-
-        if not video_items:
-            log("No search results found", xbmc.LOGINFO)
-            xbmcgui.Dialog().notification('Hledání', 'Žádné výsledky nenalezeny')
-            return
-
-        xbmcplugin.setPluginCategory(_HANDLE, 'Výsledky hledání')
-        xbmcplugin.setContent(_HANDLE, 'videos')
-
-        for item in video_items:
-            title_element = item.find('div', class_='media__name')
-            if not title_element or not title_element.p:
-                continue
-
-            title = clean_text(title_element.p.text)
-            video_url = 'https://www.talktv.cz' + item['href']
-
-            duration_element = item.find('p', class_='duration')
-            duration_text = duration_element.text.strip() if duration_element else "0:00"
-
-            list_item = xbmcgui.ListItem(label=title)
-            list_item.setProperty('IsPlayable', 'true')
-            list_item.setIsFolder(False)
-
-            img_element = item.find('img')
-            thumbnail = img_element.get('data-src', '') if img_element else ''
-            if not thumbnail and img_element:
-                thumbnail = img_element.get('src', '')
-
-            list_item.setArt({
-                'thumb': thumbnail,
-                'icon': thumbnail
-            })
-
-            duration_seconds = convert_duration_to_seconds(duration_text)
-
-            info_tag = list_item.getVideoInfoTag()
-            info_tag.setTitle(title)
-            info_tag.setDuration(duration_seconds)
-            info_tag.setMediaType('video')
-
-            context_menu = [
-                ('Přehrát (zeptat se na kvalitu)',
-                 f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
-            ]
-            list_item.addContextMenuItems(context_menu)
-
-            url = get_url(action='play', video_url=video_url)
-            xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
-
-        xbmcplugin.endOfDirectory(_HANDLE)
-
-    except Exception as e:
-        log("Error in list_search_results", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Error', str(e))
-
 def list_popular(page=None):
+    # Get a session for making HTTP requests
     session = get_session()
     if not session:
         return
@@ -392,7 +440,7 @@ def list_popular(page=None):
 
         # Specifically look for the homePopular container first
         popular_container = soup.find('div', id='homePopular')
-        #log(f"popular_container: {popular_container}", xbmc.LOGINFO)
+        log(f"popular_container: {popular_container}", xbmc.LOGINFO) # <div id="homePopular" class="list__container is-visible">...</div>
         if not popular_container:
             log("Popular videos container not found", xbmc.LOGERROR)
             return
@@ -456,17 +504,18 @@ def list_popular(page=None):
             xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
         # Check for "Load More" button
-        # load_more = popular_container.find('div', id='butLoadNext')
-        # if load_more:
-        #     next_page = page + 1 if page else 1
-        #     next_item = xbmcgui.ListItem(label='Načíst další')
-        #     next_item.setArt({
-        #         'icon': get_image_path('foldernext.png'),
-        #         'thumb': get_image_path('foldernext.png')
-        #     })
-        #     url = get_url(action='popular', page=next_page)
-        #     xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
+        load_more = popular_container.find('div', id='butLoadNext')
+        if load_more:
+            next_page = page + 1 if page else 1
+            next_item = xbmcgui.ListItem(label='Načíst další')
+            next_item.setArt({
+                'icon': get_image_path('foldernext.png'),
+                'thumb': get_image_path('foldernext.png')
+            })
+            url = get_url(action='popular', page=next_page)
+            xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
 
+        # End the directory listing
         xbmcplugin.endOfDirectory(_HANDLE)
 
     except Exception as e:
@@ -474,6 +523,7 @@ def list_popular(page=None):
         xbmcgui.Dialog().notification('Error', str(e))
 
 def list_creators():
+    # Define the creators and their details
     creators = [
         {
             'name': 'STANDASHOW',
@@ -513,10 +563,12 @@ def list_creators():
         }
     ]
 
+    # Set the plugin category and content type
     xbmcplugin.setPluginCategory(_HANDLE, 'Tvůrci')
     xbmcplugin.setContent(_HANDLE, 'files')
 
     for creator in creators:
+        # Create a list item for each creator
         list_item = xbmcgui.ListItem(label=creator['name'])
         image_path = get_image_path(creator['image'])
 
@@ -529,13 +581,17 @@ def list_creators():
         info_tag.setPlot(creator['description'])
         info_tag.setTitle(creator['name'])
 
+        # Determine the URL for the creator's content
         url = get_url(action='listing', category_url=creator['url'])
         is_folder = True
+        # Add the directory item to the Kodi plugin
         xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, is_folder)
 
+    # End the directory listing
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_archive():
+    # Define the archive items and their details
     archive_items = [
         {
             'name': 'STANDASHOW SPECIÁLY',
@@ -593,52 +649,35 @@ def list_archive():
         }
     ]
 
+    # Set the plugin category and content type
     xbmcplugin.setPluginCategory(_HANDLE, 'ARCHIV')
     xbmcplugin.setContent(_HANDLE, 'files')
 
     for item in archive_items:
+        # Create a list item for each archive item
         list_item = xbmcgui.ListItem(label=item['name'])
-
-        # Get full path for the image using special protocol
         image_path = get_image_path(item['image'])
 
-        # Add debug logging
-        log(f"Setting archive image path for {item['name']}: {image_path}", xbmc.LOGDEBUG)
-
-        # Set art with special paths
         list_item.setArt({
             'thumb': image_path,
             'icon': image_path
         })
 
-        # Set info
         info_tag = list_item.getVideoInfoTag()
         info_tag.setPlot(item['description'])
         info_tag.setTitle(item['name'])
 
+        # Determine the URL for the archive item's content
         url = get_url(action='listing', category_url=item['url'])
         is_folder = True
+        # Add the directory item to the Kodi plugin
         xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, is_folder)
 
+    # End the directory listing
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_videos(category_url):
-    # Add Czech month names mapping at the beginning of the function
-    MONTH_NAMES = {
-        'ledna': '1',
-        'února': '2',
-        'března': '3',
-        'dubna': '4',
-        'května': '5',
-        'června': '6',
-        'července': '7',
-        'srpna': '8',
-        'září': '9',
-        'října': '10',
-        'listopadu': '11',
-        'prosince': '12'
-    }
-
+    # Get a session for making HTTP requests
     session = get_session()
     if not session:
         log("Failed to get valid session", xbmc.LOGERROR)
@@ -649,6 +688,7 @@ def list_videos(category_url):
         original_url = category_url
         is_paginated = 'page=' in category_url
 
+        # Make the HTTP GET request
         response = session.get(category_url)
         if response.status_code != 200:
             log(f"Failed to fetch category page: {response.status_code}", xbmc.LOGERROR)
@@ -660,6 +700,7 @@ def list_videos(category_url):
         if is_paginated:
             log("Processing paginated response", xbmc.LOGDEBUG)
             try:
+                # Parse the JSON response for paginated content
                 data = response.json()
                 if 'content' in data:
                     soup = BeautifulSoup(data['content'], 'html.parser')
@@ -674,6 +715,7 @@ def list_videos(category_url):
                 return
         else:
             log("Processing regular HTML response", xbmc.LOGDEBUG)
+            # Parse the HTML response
             soup = BeautifulSoup(response.text, 'html.parser')
             container = soup.find('div', id='videoListContainer')
             if container:
@@ -712,10 +754,12 @@ def list_videos(category_url):
 
             try:
                 log(f"Fetching details for video: {video_url}", xbmc.LOGDEBUG)
+                # Make the HTTP GET request for video details
                 video_response = session.get(video_url)
                 video_soup = BeautifulSoup(video_response.text, 'html.parser')
                 details_element = video_soup.find('div', class_='details__info')
                 if details_element:
+                    # Extract and clean the description and date
                     description = details_element.text.strip()
                     parts = description.split('                -', 1)
                     if len(parts) == 2:
@@ -734,35 +778,29 @@ def list_videos(category_url):
                 date = ''
                 log(f"Error fetching video details: {video_url}", xbmc.LOGWARNING)
 
+            # Convert the duration to seconds
             duration_seconds = convert_duration_to_seconds(duration_text)
 
+            # Set video info tags
             info_tag = list_item.getVideoInfoTag()
             info_tag.setTitle(title)
             info_tag.setPlot(description)
             info_tag.setDuration(duration_seconds)
             info_tag.setMediaType('video')
 
-            # Parse Czech date format
             if date:
-                try:
-                    # Example date: "18. prosince 2024"
-                    day, month, year = date.split(' ')
-                    day = day.rstrip('.')  # Remove the dot after the day
-                    month = MONTH_NAMES.get(month.lower())  # Convert month name to number
-                    if month:
-                        formatted_date = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
-                        info_tag.setPremiered(formatted_date)
-                except Exception as e:
-                    log(f"Error parsing date {date}: {str(e)}", xbmc.LOGWARNING)
+                info_tag.setPremiered(parse_date(date))
 
             list_item.setLabel2(duration_text)
 
+            # Add context menu items
             context_menu = [
                 ('Přehrát (zeptat se na kvalitu)',
                  f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
             ]
             list_item.addContextMenuItems(context_menu)
 
+            # Add the directory item to the Kodi plugin
             url = get_url(action='play', video_url=video_url)
             xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
@@ -784,9 +822,9 @@ def list_videos(category_url):
                 'icon': get_image_path('foldernext.png'),
                 'thumb': get_image_path('foldernext.png')
             })
-            xbmcplugin.addDirectoryItem(
-                _HANDLE, get_url(action='listing', category_url=next_url), next_item, True)
+            xbmcplugin.addDirectoryItem(_HANDLE, get_url(action='listing', category_url=next_url), next_item, True)
 
+        # Set the content type and sort method for the directory
         xbmcplugin.setContent(_HANDLE, 'videos')
         xbmcplugin.addSortMethod(_HANDLE, xbmcplugin.SORT_METHOD_NONE)
         xbmcplugin.endOfDirectory(_HANDLE)
@@ -796,6 +834,7 @@ def list_videos(category_url):
         xbmcgui.Dialog().notification('Error', str(e))
 
 def play_video(video_url, requested_quality=None):
+    # Get a session for making HTTP requests
     session = get_session()
     if not session:
         log("Failed to get valid session for video playback", xbmc.LOGERROR)
@@ -804,126 +843,98 @@ def play_video(video_url, requested_quality=None):
     try:
         log(f"Attempting to play video: {video_url}", xbmc.LOGINFO)
         response = session.get(video_url)
-
         if response.status_code != 200:
             log(f"Failed to fetch video page: {response.status_code}", xbmc.LOGERROR)
             return
 
+        # Parse the HTML response
         soup = BeautifulSoup(response.text, 'html.parser')
         video_element = soup.find('video-js')
-
         if not video_element:
             log("Video player element not found in page", xbmc.LOGERROR)
             return
 
-        # Get both MP4 and HLS sources
-        mp4_sources = [s for s in video_element.find_all('source')
-                      if s.get('type') == 'video/mp4']
-        hls_sources = [s for s in video_element.find_all('source')
-                      if s.get('type') == 'application/x-mpegURL']
-
-        # Get stream preference
-        prefer_hls = int(_ADDON.getSetting('preferred_stream')) == 1
-        log(f"Stream preference: {'HLS' if prefer_hls else 'MP4'}", xbmc.LOGINFO)
-
-        # Get quality preference
+        # Get quality preference if not specified
         if not requested_quality:
             quality_index = int(_ADDON.getSetting('video_quality'))
             qualities = ['Auto', '1080p', '720p', '480p', '360p', '240p']
             requested_quality = qualities[quality_index]
 
+        # Find the best available source
+        sources = video_element.find_all('source')
         selected_url = None
-        selected_quality = None
-        use_inputstream = False
+        use_hls = False
 
-        if prefer_hls and hls_sources:
-            # Use HLS if preferred and available
-            selected_url = hls_sources[0]['src']
-            selected_quality = 'Auto (HLS)'
-            use_inputstream = True
-            log("Using HLS stream", xbmc.LOGINFO)
-        else:
-            # Map qualities to their MP4 sources
-            quality_map = {}
-            for source in mp4_sources:
-                src = source['src']
-                if '720p' in src:
-                    quality_map['720p'] = src
-                elif '480p' in src:
-                    quality_map['480p'] = src
-                elif '360p' in src:
-                    quality_map['360p'] = src
-                elif '240p' in src:
-                    quality_map['240p'] = src
-                elif '1080p' in src:
-                    quality_map['1080p'] = src
+        # First try HLS for Auto quality
+        if requested_quality.lower() == 'auto':
+            for source in sources:
+                if source.get('type') == 'application/x-mpegURL':
+                    selected_url = source['src']
+                    use_hls = True
+                    log("Selected HLS stream for auto quality", xbmc.LOGINFO)
+                    break
 
-            # Select the appropriate quality
-            if requested_quality.lower() == 'auto':
-                # For auto, use the highest available quality
-                for quality in ['1080p', '720p', '480p', '360p', '240p']:
-                    if quality in quality_map:
-                        selected_url = quality_map[quality]
-                        selected_quality = quality
+        # If no HLS or specific quality requested, try MP4
+        if not selected_url:
+            qualities = ['1080p', '720p', '480p', '360p', '240p']
+            if requested_quality != 'Auto':
+                # Start from requested quality
+                start_idx = qualities.index(requested_quality)
+                qualities = qualities[start_idx:]
+
+            for quality in qualities:
+                for source in sources:
+                    if (source.get('type') == 'video/mp4' and
+                        quality in source.get('src', '')):
+                        selected_url = source['src']
+                        log(f"Selected {quality} MP4 stream", xbmc.LOGINFO)
                         break
-            else:
-                # Try to match requested quality or fall back to next best
-                requested_height = requested_quality.lower()
-                for quality in ['1080p', '720p', '480p', '360p', '240p']:
-                    if quality in quality_map:
-                        if quality.lower() == requested_height:
-                            selected_url = quality_map[quality]
-                            selected_quality = quality
-                            break
-                        elif not selected_url:  # Take first available as fallback
-                            selected_url = quality_map[quality]
-                            selected_quality = quality
+                if selected_url:
+                    break
+
+        # Fallback to first available source if nothing else matched
+        if not selected_url and sources:
+            selected_url = sources[0]['src']
+            log("Falling back to first available source", xbmc.LOGWARNING)
 
         if not selected_url:
-            log("No suitable stream found", xbmc.LOGERROR)
+            log("No playable source found", xbmc.LOGERROR)
             xbmcplugin.setResolvedUrl(_HANDLE, False, xbmcgui.ListItem())
             return
 
-        log(f"Selected {selected_quality} stream", xbmc.LOGINFO)
-        log(f"Final selected URL: {selected_url}", xbmc.LOGINFO)
-
+        # Setup playback
         play_item = xbmcgui.ListItem(path=selected_url)
-        #play_item.setArt({'characterart': get_image_path('clearicon.png')})
 
-        if use_inputstream:
-            log("Setting up HLS inputstream", xbmc.LOGINFO)
+        # Configure inputstream
+        if use_hls:
             play_item.setMimeType('application/x-mpegURL')
-            play_item.setContentLookup(False)
             play_item.setProperty('inputstream', 'inputstream.adaptive')
             play_item.setProperty('inputstream.adaptive.manifest_type', 'hls')
         else:
-            log("Setting up MP4 playback", xbmc.LOGINFO)
             play_item.setMimeType('video/mp4')
-            play_item.setContentLookup(False)
 
-        # Add video info
+        play_item.setContentLookup(False)
+
+        # Add metadata if available
         try:
-            details_element = soup.find('div', class_='details__info')
-            if details_element:
-                description = details_element.text.strip()
-                parts = description.split('                -', 1)  # Split on the dash with spaces
-                if len(parts) == 2:
-                    #date = parts[0].strip()
-                    content = parts[1].strip()
-                    description = content  # Use only the content part
-
-                title_element = soup.find('h1', class_='details__header')
-                title = title_element.text.strip() if title_element else ''
+            details = soup.find('div', class_='details__info')
+            if details:
+                description = details.text.strip().split('                -', 1)[-1].strip()
+                title = soup.find('h1', class_='details__header')
+                if title:
+                    title = title.text.strip()
 
                 info_tag = play_item.getVideoInfoTag()
+                info_tag.setMediaType('video')
                 info_tag.setPlot(description)
+
                 if title:
                     info_tag.setTitle(title)
-                info_tag.setMediaType('video')
+
         except Exception as e:
             log(f"Failed to set video metadata: {str(e)}", xbmc.LOGWARNING)
 
-        # Resolve the URL for playback
+        # Start playback
         xbmcplugin.setResolvedUrl(_HANDLE, True, listitem=play_item)
 
     except Exception as e:
@@ -931,13 +942,16 @@ def play_video(video_url, requested_quality=None):
         xbmcplugin.setResolvedUrl(_HANDLE, False, xbmcgui.ListItem())
 
 def router(paramstring):
+    # Parse the query parameters from the URL
     params = dict(parse_qsl(paramstring[1:]))
     log(f"Router received params: {params}", xbmc.LOGINFO)
 
     if not params:
+        # If no parameters, list the main menu
         list_menu()
         return
 
+    # Route to the appropriate function based on the 'action' parameter
     if params['action'] == 'search':
         search()
     elif params['action'] == 'popular':
@@ -956,4 +970,5 @@ def router(paramstring):
         select_quality(params['video_url'])
 
 if __name__ == '__main__':
+    # Entry point for the addon, route the request based on the parameters
     router(sys.argv[2])
