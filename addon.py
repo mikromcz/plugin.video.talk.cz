@@ -175,7 +175,7 @@ def get_url(**kwargs):
 
 def get_image_path(image_name):
     # Convert image name to special Kodi path for addon resources
-    return f'special://home/addons/{ADDON_ID}/resources/images/{image_name}'
+    return f'special://home/addons/{ADDON_ID}/resources/media/{image_name}'
 
 def clean_text(text):
     # Clean text from null characters and handle encoding
