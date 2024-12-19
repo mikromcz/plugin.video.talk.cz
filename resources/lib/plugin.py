@@ -459,7 +459,7 @@ def list_popular(page=None):
         if load_more:
             next_page = page + 1 if page else 1
             next_item = xbmcgui.ListItem(label='Načíst další')
-            next_item.setArt({'icon': get_image_path('foldernext.png')})
+            next_item.setArt({'icon': get_image_path('foldernext.png'), 'thumb': get_image_path('foldernext.png')})
             url = get_url(action='popular', page=next_page)
             xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
 
@@ -776,7 +776,7 @@ def list_videos(category_url):
 
             log(f"Adding next page item: page {next_page}", xbmc.LOGDEBUG)
             next_item = xbmcgui.ListItem(label='Další strana')
-            next_item.setArt({'icon': get_image_path('foldernext.png')})
+            next_item.setArt({'icon': get_image_path('foldernext.png'), 'thumb': get_image_path('foldernext.png')})
             xbmcplugin.addDirectoryItem(
                 _HANDLE, get_url(action='listing', category_url=next_url), next_item, True)
 
