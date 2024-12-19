@@ -213,7 +213,7 @@ def select_quality(video_url):
     # Handle quality selection via dialog
     qualities = ['Auto', '1080p', '720p', '480p', '360p', '240p']
     dialog = xbmcgui.Dialog()
-    selected = dialog.select('Select Quality', qualities)
+    selected = dialog.select('Vyberte kvalitu', qualities)
 
     if selected >= 0:  # If user didn't cancel
         quality = qualities[selected]
@@ -236,31 +236,31 @@ def list_menu():
         {
             'name': 'HLEDAT',
             'url': 'search',
-            'description': 'Vyhledávání v obsahu TALK TV',
+            'description': 'Vyhledávání v obsahu [COLOR green]TALK TV[/COLOR]',
             'image': 'search.png'
         },
         {
             'name': 'POSLEDNÍ VIDEA',
             'url': 'https://www.talktv.cz/videa',
-            'description': 'Nejnovější videa na TALK TV',
+            'description': 'Nejnovější videa na [COLOR green]TALK TV[/COLOR]',
             'image': 'latest.png'
         },
         {
             'name': 'POPULÁRNÍ VIDEA',
             'url': 'popular',
-            'description': 'Nejsledovanější videa na TALK TV',
+            'description': 'Nejsledovanější videa na [COLOR green]TALK TV[/COLOR]\n\n[I](Zatím moc nefunguje, protože plugin dostává z nějakého důvodu špatná data v HTML.)[/I]',
             'image': 'popular.png'
         },
         {
             'name': 'TVŮRCI',
             'url': 'creators',
-            'description': 'Všichni tvůrci a jejich pořady',
+            'description': 'Všichni tvůrci na [COLOR green]TALK TV[/COLOR] a jejich pořady',
             'image': 'creators.png'
         },
         {
             'name': 'ARCHIV',
             'url': 'archive',
-            'description': 'Archiv pořadů a speciálních sérií',
+            'description': 'Archiv pořadů [COLOR green]TALK TV[/COLOR] a speciálních sérií',
             'image': 'archive.png'
         }
     ]
@@ -361,7 +361,7 @@ def list_search_results(search_url):
             info_tag.setMediaType('video')
 
             context_menu = [
-                ('Play with different quality...',
+                ('Přehrát (zeptat se na kvalitu)',
                  f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
             ]
             list_item.addContextMenuItems(context_menu)
@@ -383,7 +383,7 @@ def list_popular(page=None):
     try:
         if page:
             # Handle paginated request
-            response = session.get(f'https://www.talktv.cz/?page={page}')
+            response = session.get(f'https://www.talktv.cz/?pages={page}')
         else:
             # Initial request
             response = session.get('https://www.talktv.cz/')
@@ -392,6 +392,7 @@ def list_popular(page=None):
 
         # Specifically look for the homePopular container first
         popular_container = soup.find('div', id='homePopular')
+        #log(f"popular_container: {popular_container}", xbmc.LOGINFO)
         if not popular_container:
             log("Popular videos container not found", xbmc.LOGERROR)
             return
@@ -446,7 +447,7 @@ def list_popular(page=None):
             info_tag.setMediaType('video')
 
             context_menu = [
-                ('Play with different quality...',
+                ('Přehrát (zeptat se na kvalitu)',
                  f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
             ]
             list_item.addContextMenuItems(context_menu)
@@ -455,13 +456,16 @@ def list_popular(page=None):
             xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
         # Check for "Load More" button
-        load_more = popular_container.find('div', id='butLoadNext')
-        if load_more:
-            next_page = page + 1 if page else 1
-            next_item = xbmcgui.ListItem(label='Načíst další')
-            next_item.setArt({'icon': get_image_path('foldernext.png'), 'thumb': get_image_path('foldernext.png')})
-            url = get_url(action='popular', page=next_page)
-            xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
+        # load_more = popular_container.find('div', id='butLoadNext')
+        # if load_more:
+        #     next_page = page + 1 if page else 1
+        #     next_item = xbmcgui.ListItem(label='Načíst další')
+        #     next_item.setArt({
+        #         'icon': get_image_path('foldernext.png'),
+        #         'thumb': get_image_path('foldernext.png')
+        #     })
+        #     url = get_url(action='popular', page=next_page)
+        #     xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
 
         xbmcplugin.endOfDirectory(_HANDLE)
 
@@ -474,37 +478,37 @@ def list_creators():
         {
             'name': 'STANDASHOW',
             'url': 'https://www.talktv.cz/standashow',
-            'description': 'Výstup z vaší názorové bubliny. Politika, společnost, kauzy a Bruntál. Obsahují minimálně jednoho Standu.',
+            'description': 'Výstup z vaší názorové bubliny. Politika, společnost, kauzy a Bruntál. Obsahují minimálně jednoho [COLOR green]Standu[/COLOR].',
             'image': 'show-standashow.jpg'
         },
         {
             'name': 'TECH GUYS',
             'url': 'https://www.talktv.cz/techguys',
-            'description': 'Kde unboxingy končí, my začínáme. Apple, kryptoměny, umělá inteligence a pak zase Apple. Každý týden s Honzou Březinou, Kicomem a Davidem Grudlem.',
+            'description': 'Kde unboxingy končí, my začínáme. Apple, kryptoměny, umělá inteligence a pak zase Apple. Každý týden s [COLOR green]Honzou Březinou[/COLOR], [COLOR green]Kicomem[/COLOR] a [COLOR green]Davidem Grudlem[/COLOR].',
             'image': 'show-tech-guys.jpg'
         },
         {
             'name': 'JADRNÁ VĚDA',
             'url': 'https://www.talktv.cz/jadrna-veda',
-            'description': 'Pořad, který 9 z 10 diváků nepochopí (a ten desátý je Leoš Kyša, který to moderuje). Diskuse se skutečnými vědci o skutečné vědě. Pyramidy, kvantová fyzika nebo objevování vesmíru.',
+            'description': 'Pořad, který 9 z 10 diváků nepochopí (a ten desátý je [COLOR green]Leoš Kyša[/COLOR], který to moderuje). Diskuse se skutečnými vědci o skutečné vědě. Pyramidy, kvantová fyzika nebo objevování vesmíru.',
             'image': 'show-jadrna-veda.jpg'
         },
         {
             'name': 'ZA HRANICÍ',
             'url': 'https://www.talktv.cz/za-hranici',
-            'description': 'Popelář v Londýně, letuška v Kataru nebo podnikatel v Gambii. Češi žijící v zahraničí a cestovatel Vladimír Váchal, který ví o cestování (skoro) vše. A na zbytek se nebojí zeptat.',
+            'description': 'Popelář v Londýně, letuška v Kataru nebo podnikatel v Gambii. Češi žijící v zahraničí a cestovatel [COLOR green]Vladimír Váchal[/COLOR], který ví o cestování (skoro) vše. A na zbytek se nebojí zeptat.',
             'image': 'show-za-hranici.jpg'
         },
         {
             'name': 'MOVIE WITCHES',
             'url': 'https://www.talktv.cz/moviewitches',
-            'description': 'Tři holky Bety + Baty + Shial si povídají o filmech, které si to zaslouží. Od vzpomínek přes zajímavosti a shrnutí děje.',
+            'description': 'Tři holky [COLOR green]Bety[/COLOR] + [COLOR green]Baty[/COLOR] + [COLOR green]Shial[/COLOR] si povídají o filmech, které si to zaslouží. Od vzpomínek přes zajímavosti a shrnutí děje.',
             'image': 'show-movie-witches.jpg'
         },
         {
             'name': 'DESIGN TALK',
             'url': 'https://www.talktv.cz/design-talk',
-            'description': 'Lukáš Veverka a jeho hosté diskutují o věcech, kterým většina diváků vůbec nevěnuje pozornost. Filmy, grafika, motion design i největší faily v dějinách designu a kinematografie.',
+            'description': '[COLOR green]Lukáš Veverka[/COLOR] a jeho hosté diskutují o věcech, kterým většina diváků vůbec nevěnuje pozornost. Filmy, grafika, motion design i největší faily v dějinách designu a kinematografie.',
             'image': 'show-design-talk.jpg'
         }
     ]
@@ -536,7 +540,7 @@ def list_archive():
         {
             'name': 'STANDASHOW SPECIÁLY',
             'url': 'https://www.talktv.cz/seznam-videi/seznam-hejktqzt',
-            'description': 'Minutu po minutě. Den po dni. Důležité události a exkluzívní hosté ve speciálech STANDASHOW. Unikátní formát, který kombinuje prvky podcastu, dokumentu a časové reality show.',
+            'description': 'Minutu po minutě. Den po dni. Důležité události a exkluzívní hosté ve speciálech [COLOR green]STANDASHOW[/COLOR]. Unikátní formát, který kombinuje prvky podcastu, dokumentu a časové reality show.',
             'image': 'archiv-standashow-specialy.jpg'
         },
         {
@@ -548,13 +552,13 @@ def list_archive():
         {
             'name': 'HODNOCENÍ HOSTŮ',
             'url': 'https://www.talktv.cz/seznam-videi/hodnoceni-hostu',
-            'description': 'Nezapomenutelnou atmosféru a komornější povídání, jak na veřejném vysílání. Takový virtuální sraz STANDASHOW. Většinou prozradíme spoustu zajímavostí z backstage.',
+            'description': 'Nezapomenutelnou atmosféru a komornější povídání, jak na veřejném vysílání. Takový virtuální sraz [COLOR green]STANDASHOW[/COLOR]. Většinou prozradíme spoustu zajímavostí z backstage.',
             'image': 'archiv-hodnoceni-hostu.jpg'
         },
         {
             'name': 'CHARITA',
             'url': 'https://www.talktv.cz/seznam-videi/charita',
-            'description': 'Pomáháme. Podcast má být především zábava, ale někde je třeba probrat i vážné téma. A díky skvělé komunitě, která se kolem STANDASHOW vytvořila, můžeme pomoct dobré věci.',
+            'description': 'Pomáháme. Podcast má být především zábava, ale někde je třeba probrat i vážné téma. A díky skvělé komunitě, která se kolem [COLOR green]STANDASHOW[/COLOR] vytvořila, můžeme pomoct dobré věci.',
             'image': 'archiv-charita.jpg'
         },
         {
@@ -578,13 +582,13 @@ def list_archive():
         {
             'name': 'JARDA VS. NAOMI',
             'url': 'https://www.talktv.cz/jarda-a-naomi',
-            'description': 'Herní novinář Jarda Möwald a fanynka japonské popkultury Naomi Adachi. Diskuse o zajímavostech ze světa her, filmů a seriálů. Celé záznamy pro předplatitele na talktv.cz.',
+            'description': 'Herní novinář [COLOR green]Jarda Möwald[/COLOR] a fanynka japonské popkultury [COLOR green]Naomi Adachi[/COLOR]. Diskuse o zajímavostech ze světa her, filmů a seriálů. Celé záznamy pro předplatitele na talktv.cz.',
             'image': 'show-jarda-vs-naomi.jpg'
         },
         {
             'name': 'ZÁKULISÍ TALKU',
             'url': 'https://www.talktv.cz/seznam-videi/zakulisi-talk-tv',
-            'description': 'Toto jsme my. Váš/náš :D TALK. A toto jsou všechna videa ze zákulisí.',
+            'description': 'Toto jsme my. Váš/náš :D [COLOR green]TALK[/COLOR]. A toto jsou všechna videa ze zákulisí.',
             'image': 'archiv-zakulisi-talku.jpg'
         }
     ]
@@ -776,7 +780,10 @@ def list_videos(category_url):
 
             log(f"Adding next page item: page {next_page}", xbmc.LOGDEBUG)
             next_item = xbmcgui.ListItem(label='Další strana')
-            next_item.setArt({'icon': get_image_path('foldernext.png'), 'thumb': get_image_path('foldernext.png')})
+            next_item.setArt({
+                'icon': get_image_path('foldernext.png'),
+                'thumb': get_image_path('foldernext.png')
+            })
             xbmcplugin.addDirectoryItem(
                 _HANDLE, get_url(action='listing', category_url=next_url), next_item, True)
 

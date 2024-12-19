@@ -4,13 +4,14 @@
         <setting label="Přihlášení na talk.cz" type="lsep" />
         <setting id="email" type="text" label="E-mail" default="" />
         <setting id="password" type="text" option="hidden" label="Heslo" default="" />
+        <setting type="sep" />
         <setting id="session_cookie" type="text" label="Session Cookie" default="" />
 
         <setting label="Přehrávání" type="lsep" />
         <setting id="video_quality" type="enum" label="Preferovaná kvalita" values="Auto|1080p|720p|480p|360p|240p" default="0" />
         <setting id="preferred_stream" type="enum" label="Preferovaný typ streamu" values="MP4|HLS (Adaptive)" default="0"/>
 
-        <setting label="Pokročilé" type="lsep" />
+        <setting label="Pokročilé" type="lsep"/>
         <setting id="debug" type="bool" label="Povolit detailní logování" default="false" />
     </category>
 </settings>
