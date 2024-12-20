@@ -36,140 +36,220 @@ def log(msg, level=xbmc.LOGDEBUG):
         xbmc.log(formatted_msg, level)
 
 def login():
-    # Login to talktv.cz with browser-like request
+    # Main login function that tries available login methods
+
+    # First try direct login
+    if try_direct_login():
+        return True
+
+    # If direct login failed, try Patreon
+    #if try_patreon_login():
+    #    return True
+
+    # Both methods failed
+    return False
+
+def try_direct_login():
+    # Attempt direct login with form submission
     email = _ADDON.getSetting('email')
     password = _ADDON.getSetting('password')
 
     if not email or not password:
-        log("Missing login credentials", xbmc.LOGERROR)
-        xbmcgui.Dialog().ok('Login Required', 'Please configure your login credentials in the addon settings.')
         return False
 
     session = requests.Session()
 
     try:
-        # Initial headers for the first request
-        headers = {
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'accept-language': 'cs-CZ,cs;q=0.5',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-            'sec-ch-ua': '"Brave";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
-            'sec-fetch-dest': 'document',
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'none',
-            'sec-fetch-user': '?1',
-            'sec-gpc': '1',
-            'upgrade-insecure-requests': '1'
-        }
+        # Get login page and CSRF token
+        login_page = session.get('https://www.talktv.cz/prihlasit')
+        soup = BeautifulSoup(login_page.text, 'html.parser')
 
-        log("Attempting login...", xbmc.LOGINFO)
+        csrf_token = soup.find('input', {'name': 'csrf'})['value']
+        recaptcha_div = soup.find('div', {'class': 'g-recaptcha'})
+        site_key = recaptcha_div['data-sitekey']
 
-        # Get login page
-        login_page_response = session.get('https://www.talktv.cz/prihlasit', headers=headers)
-        log(f"Login page status code: {login_page_response.status_code}", xbmc.LOGINFO)
-
-        if login_page_response.status_code != 200:
-            log(f"Failed to load login page: {login_page_response.status_code}", xbmc.LOGERROR)
+        # Get reCAPTCHA token
+        recaptcha_token = get_recaptcha_token(site_key)
+        if not recaptcha_token:
             return False
 
-        # Parse login page
-        soup = BeautifulSoup(login_page_response.text, 'html.parser')
-        csrf_input = soup.find('input', {'name': 'csrf'})
-
-        if not csrf_input or not csrf_input.get('value'):
-            log("CSRF token not found", xbmc.LOGERROR)
-            return False
-
-        csrf_token = csrf_input['value']
-        log(f"Found CSRF token: {csrf_token[:10]}...", xbmc.LOGDEBUG)
-
-        # Update headers for POST request
-        headers.update({
-            'content-type': 'application/x-www-form-urlencoded',
-            'origin': 'https://www.talktv.cz',
-            'referer': 'https://www.talktv.cz/prihlasit',
-            'sec-fetch-site': 'same-origin',
-            'cache-control': 'max-age=0'
-        })
-
+        # Submit login
         login_data = {
-            'csrf': csrf_token,
             'email': email,
-            'password': password
+            'password': password,
+            'csrf': csrf_token,
+            'g-recaptcha-response': recaptcha_token
         }
 
-        # Perform login
-        log("Submitting login credentials...", xbmc.LOGDEBUG)
-        login_response = session.post(
-            'https://www.talktv.cz/prihlasit',
-            data=login_data,
-            headers=headers,
-            allow_redirects=True
-        )
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Origin': 'https://www.talktv.cz',
+            'Referer': 'https://www.talktv.cz/prihlasit'
+        }
 
-        log(f"Login response status code: {login_response.status_code}", xbmc.LOGINFO)
-        log(f"Login response URL: {login_response.url}", xbmc.LOGDEBUG)
+        response = session.post('https://www.talktv.cz/prihlasit',
+                              data=login_data,
+                              headers=headers)
 
-        # Check if login was successful
-        soup = BeautifulSoup(login_response.text, 'html.parser')
-        user_menu = soup.find('div', class_='popup-account__header-email')
-
-        if user_menu and email in user_menu.text:
-            log("Login successful!", xbmc.LOGINFO)
-            return session
-
-        log("Login validation failed - checking for error messages", xbmc.LOGERROR)
-        # Try to find error message if any
-        error_msg = soup.find('div', class_='error-message')
-        if error_msg:
-            error_text = error_msg.text.strip()
-            log(f"Error message found: {error_text}", xbmc.LOGERROR)
-            xbmcgui.Dialog().notification('Login Failed', error_text)
-        else:
-            log("No specific error message found", xbmc.LOGERROR)
-            xbmcgui.Dialog().notification('Login Failed', 'Invalid credentials or reCAPTCHA required')
-
-        return False
+        if 'popup-account__header-email' in response.text:
+            # Store session cookie
+            session_cookie = session.cookies.get('PHPSESSID')
+            if session_cookie:
+                _ADDON.setSetting('session_cookie', session_cookie)
+                return True
 
     except Exception as e:
-        log(f"Login process failed", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Login Error', str(e))
-        return False
+        log(f"Direct login failed: {str(e)}", xbmc.LOGERROR)
+
+    return False
+
+def try_patreon_login():
+    # Attempt login via Patreon OAuth
+    session = requests.Session()
+
+    try:
+        # Start Patreon OAuth flow
+        response = session.get('https://www.talktv.cz/srv/patreon-login')
+
+        # This should redirect to Patreon's OAuth page
+        if 'patreon.com/oauth2/authorize' in response.url:
+            dialog = xbmcgui.Dialog()
+            dialog.ok('Patreon Login',
+                     'Pro přihlášení přes Patreon prosím:\n'
+                     '1. Přihlaste se na talktv.cz přes Patreon ve webovém prohlížeči\n'
+                     '2. Zkopírujte cookie PHPSESSID do nastavení doplňku')
+            return False
+
+    except Exception as e:
+        log(f"Patreon login failed: {str(e)}", xbmc.LOGERROR)
+
+    return False
+
+def get_recaptcha_token(site_key):
+    # Get reCAPTCHA token via Kodi GUI.
+    dialog = xbmcgui.Dialog()
+    dialog.ok('reCAPTCHA Required',
+              'Pro přihlášení je potřeba vyřešit reCAPTCHA.\n'
+              'Prosím navštivte stránku talktv.cz ve webovém prohlížeči,\n'
+              'přihlaste se tam a pak zkopírujte cookie PHPSESSID do nastavení doplňku.')
+    return None
 
 def get_session():
-    # Get a requests session with authentication cookie
+    # Get a requests session with authentication cookie.
+    # Attempts login if no valid session exists.
     session_cookie = _ADDON.getSetting('session_cookie')
 
     if not session_cookie:
-        log("No session cookie configured", xbmc.LOGERROR)
-        xbmcgui.Dialog().ok('Session Required', 'Please configure your session cookie in the addon settings.')
-        return False
+        # No session cookie - try to login
+        if not login():
+            return False
+        session_cookie = _ADDON.getSetting('session_cookie')
 
     session = requests.Session()
-    log("Creating new session with cookie", xbmc.LOGDEBUG)
-
-    # Set the session cookie
     session.cookies.set('PHPSESSID', session_cookie, domain='www.talktv.cz')
 
     try:
-        # Test the session by requesting the main page
-        log("Testing session validity...", xbmc.LOGDEBUG)
+        # Test the session
         response = session.get('https://www.talktv.cz/videa')
 
-        # Check if we're properly authenticated
         if 'popup-account__header-email' in response.text:
             log("Session cookie valid", xbmc.LOGINFO)
             return session
         else:
-            log("Session cookie invalid - authentication failed", xbmc.LOGERROR)
-            xbmcgui.Dialog().notification('Auth Error', 'Session cookie is invalid or expired')
+            # Session invalid - try to login again
+            log("Session cookie invalid - attempting new login", xbmc.LOGWARNING)
+            if login():
+                # Recreate session with new cookie
+                session = requests.Session()
+                session.cookies.set('PHPSESSID', _ADDON.getSetting('session_cookie'), domain='www.talktv.cz')
+                return session
+            else:
+                return False
+
+    except Exception as e:
+        log(f"Session validation failed: {str(e)}", xbmc.LOGERROR)
+        xbmcgui.Dialog().notification('Session Error', str(e))
+        return False
+
+def test_credentials():
+    # Temporary function to test login credentials
+    email = _ADDON.getSetting('email')
+    password = _ADDON.getSetting('password')
+
+    log(f"Testing credentials - Email length: {len(email) if email else 0}", xbmc.LOGINFO)
+    log(f"Testing credentials - Password length: {len(password) if password else 0}", xbmc.LOGINFO)
+
+    if not email or not password:
+        xbmcgui.Dialog().ok('Test', 'Missing credentials in settings')
+        return
+
+    try:
+        session = requests.Session()
+
+        # Test basic connectivity
+        response = session.get('https://www.talktv.cz/')
+        log(f"Basic request status: {response.status_code}", xbmc.LOGINFO)
+
+        # Get login page and CSRF token
+        login_response = session.get('https://www.talktv.cz/prihlasit')
+        login_soup = BeautifulSoup(login_response.text, 'html.parser')
+        csrf_input = login_soup.find('input', {'name': 'csrf'})
+
+        if csrf_input and csrf_input.get('value'):
+            log(f"Found CSRF token: {csrf_input['value'][:10]}...", xbmc.LOGINFO)
+        else:
+            log("No CSRF token found", xbmc.LOGERROR)
+
+        # Test XHR request
+        headers = {'X-Requested-With': 'XMLHttpRequest'}
+        xhr_response = session.get('https://www.talktv.cz/srv/getLoginStatus', headers=headers)
+        log(f"XHR test response: {xhr_response.status_code}", xbmc.LOGINFO)
+
+        xbmcgui.Dialog().ok('Test Results',
+                           #f'email: {email}\n'
+                           #f'password: {password}\n'
+                           f'Basic request: {response.status_code}\n'
+                           f'Login page: {login_response.status_code}\n'
+                           f'CSRF token: {"Found" if csrf_input else "Not found"}\n'
+                           f'XHR test: {xhr_response.status_code}')
+
+    except Exception as e:
+        log(f"Test failed: {str(e)}", xbmc.LOGERROR)
+        xbmcgui.Dialog().ok('Test Error', str(e))
+
+def test_session():
+    # Test if the current session cookie is valid
+    session_cookie = _ADDON.getSetting('session_cookie')
+
+    if not session_cookie:
+        xbmcgui.Dialog().ok('Test Session', 'No session cookie configured. Please enter your session cookie in settings.')
+        return False
+
+    session = requests.Session()
+    log("Testing session cookie...", xbmc.LOGINFO)
+
+    try:
+        # Set up the session cookie
+        session.cookies.set('PHPSESSID', session_cookie, domain='www.talktv.cz')
+
+        # Test the session by requesting the videos page
+        response = session.get('https://www.talktv.cz/videa')
+
+        # Check if we're properly authenticated
+        if 'popup-account__header-email' in response.text:
+            log("Session cookie is valid", xbmc.LOGINFO)
+            xbmcgui.Dialog().ok('Test Session', 'Session cookie is valid! You are logged in.')
+            return True
+        else:
+            log("Session cookie is invalid", xbmc.LOGERROR)
+            xbmcgui.Dialog().ok('Test Session', 'Session cookie is invalid or expired. Please get a new cookie from your browser.')
             return False
 
     except Exception as e:
-        log("Session validation failed", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Session Error', str(e))
+        log(f"Session test failed: {str(e)}", xbmc.LOGERROR)
+        xbmcgui.Dialog().ok('Test Session Error', str(e))
         return False
 
 def get_url(**kwargs):
@@ -970,6 +1050,10 @@ def router(paramstring):
         play_video(params['video_url'], quality)
     elif params['action'] == 'select_quality':
         select_quality(params['video_url'])
+    elif params['action'] == 'test_credentials':
+        test_credentials()
+    elif params['action'] == 'test_session':
+        test_session()
 
 if __name__ == '__main__':
     # Entry point for the addon, route the request based on the parameters
