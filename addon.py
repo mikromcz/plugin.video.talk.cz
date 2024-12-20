@@ -436,31 +436,43 @@ def list_menu():
         {
             'name': 'HLEDAT',
             'url': 'search',
-            'description': 'Vyhledávání v obsahu [COLOR springgreen]TALK TV[/COLOR]',
+            'description': 'Vyhledávání v obsahu [COLOR springgreen]TALK TV[/COLOR].',
             'image': 'search.png'
         },
         {
             'name': 'POSLEDNÍ VIDEA',
             'url': 'https://www.talktv.cz/videa',
-            'description': 'Nejnovější videa na [COLOR springgreen]TALK TV[/COLOR]',
+            'description': 'Nejnovější videa na [COLOR springgreen]TALK TV[/COLOR].',
             'image': 'latest.png'
         },
         {
             'name': 'POPULÁRNÍ VIDEA',
             'url': 'popular',
-            'description': 'Nejsledovanější videa na [COLOR springgreen]TALK TV[/COLOR]\n\n[I](Zatím moc nefunguje, protože plugin dostává z nějakého důvodu špatná data v HTML.)[/I]',
+            'description': 'Trendující videa na [COLOR springgreen]TALK TV[/COLOR].',
             'image': 'popular.png'
+        },
+        {
+            'name': 'NEJLEPŠÍ VIDEA',
+            'url': 'top',
+            'description': 'Nejsledovanější videa na [COLOR springgreen]TALK TV[/COLOR].\n\n[COLOR slategrey]Poznámka: Tato kategorie není dostupná ve webovém rozhraní.[/COLOR]',
+            'image': 'top.png'
+        },
+        {
+            'name': 'POKRAČOVAT V PŘEHRÁVÁNÍ',
+            'url': 'continue',
+            'description': 'Rozkoukaná videa na [COLOR springgreen]TALK TV[/COLOR].\n\n[COLOR slategrey]Poznámka: Tato kategorie se neaktualizuje při přehrávání přes Kodi.[/COLOR]',
+            'image': 'continue-watching.png'
         },
         {
             'name': 'TVŮRCI',
             'url': 'creators',
-            'description': 'Všichni tvůrci na [COLOR springgreen]TALK TV[/COLOR] a jejich pořady',
+            'description': 'Všichni tvůrci na [COLOR springgreen]TALK TV[/COLOR] a jejich pořady.\n\n[COLOR springgreen]STANDASHOW[/COLOR],\n[COLOR springgreen]TECH GUYS[/COLOR],\n[COLOR springgreen]JADRNÁ VĚDA[/COLOR],\n[COLOR springgreen]ZA HRANICÍ[/COLOR],\n[COLOR springgreen]MOVIE WITCHES[/COLOR],\n[COLOR springgreen]DESIGN TALK[/COLOR]',
             'image': 'creators.png'
         },
         {
             'name': 'ARCHIV',
             'url': 'archive',
-            'description': 'Archiv pořadů [COLOR springgreen]TALK TV[/COLOR] a speciálních sérií',
+            'description': 'Archiv pořadů [COLOR springgreen]TALK TV[/COLOR] a speciálních sérií.\n\n[COLOR springgreen]IRL STREAMY[/COLOR],\n[COLOR springgreen]HODNOCENÍ HOSTŮ[/COLOR],\n[COLOR springgreen]JARDA VS. NAOMI[/COLOR],\n...',
             'image': 'archive.png'
         }
     ]
@@ -502,45 +514,46 @@ def list_menu():
     # End the directory listing
     xbmcplugin.endOfDirectory(_HANDLE)
 
-def list_popular(page=None):
+def list_popular(page=1):
     # Get a session for making HTTP requests
     session = get_session()
     if not session:
         return
 
     try:
-        if page:
-            # Handle paginated request
-            response = session.get(f'https://www.talktv.cz/?pages={page}')
-            log(f"Listing popular videos: https://www.talktv.cz/?pages={page}", xbmc.LOGINFO)
-        else:
-            # Initial request
-            response = session.get('https://www.talktv.cz/')
-            log("Listing popular videos: https://www.talktv.cz/", xbmc.LOGINFO)
+        # Always include pages parameter
+        api_url = f'https://www.talktv.cz/srv/videos/home?pages={page}'
 
-        soup = BeautifulSoup(response.text, 'html.parser')
+        log(f"Fetching popular videos from API: {api_url}", xbmc.LOGINFO)
 
-        # Specifically look for the homePopular container first
-        popular_container = soup.find('div', id='homePopular')
-        log(f"popular_container: {popular_container}", xbmc.LOGINFO) # <div id="homePopular" class="list__container is-visible">...</div>
-        if not popular_container:
-            log("Popular videos container not found", xbmc.LOGERROR)
+        # Add necessary headers for AJAX request
+        headers = {
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Referer': 'https://www.talktv.cz/'
+        }
+
+        response = session.get(api_url, headers=headers)
+        if response.status_code != 200:
+            log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
             return
 
-        # Then find the videoListContainer within homePopular
-        video_container = popular_container.find('div', id='videoListContainer')
-        if not video_container:
-            log("Video list container not found", xbmc.LOGERROR)
+        # Parse JSON response
+        data = response.json()
+        if 'c2' not in data:
+            log("No popular videos section in response", xbmc.LOGERROR)
             return
+
+        # Parse the HTML content from c2 section
+        soup = BeautifulSoup(data['c2'], 'html.parser')
 
         xbmcplugin.setPluginCategory(_HANDLE, 'Populární videa')
         xbmcplugin.setContent(_HANDLE, 'videos')
 
-        # Get all list items in order
-        list_items = video_container.find_all('div', class_='list__item')
+        # Find all video items
+        list_items = soup.find_all('div', class_='list__item')
 
         for list_item_div in list_items:
-            # Get the media link element
             item = list_item_div.find('a', class_='media')
             if not item:
                 continue
@@ -598,12 +611,14 @@ def list_popular(page=None):
             # Convert the duration to seconds
             duration_seconds = convert_duration_to_seconds(duration_text)
 
+            # Set video info tags
             info_tag = list_item.getVideoInfoTag()
             info_tag.setTitle(title)
             info_tag.setPlot(description)
             info_tag.setDuration(duration_seconds)
             info_tag.setMediaType('video')
 
+            # Add context menu items
             context_menu = [
                 ('Přehrát (zeptat se na kvalitu)',
                  f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
@@ -613,23 +628,282 @@ def list_popular(page=None):
             url = get_url(action='play', video_url=video_url)
             xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
-        # Check for "Load More" button
-        load_more = popular_container.find('div', id='butLoadNext')
-        if load_more:
-            next_page = page + 1 if page else 1
-            next_item = xbmcgui.ListItem(label='Načíst další')
-            next_item.setArt({
-                'icon': get_image_path('foldernext.png'),
-                'thumb': get_image_path('foldernext.png')
-            })
-            url = get_url(action='popular', page=next_page)
-            xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
+        # Add 'Next Page' item
+        next_page = page + 1
+        next_item = xbmcgui.ListItem(label='Další stránka')
+        next_item.setArt({
+            'icon': get_image_path('foldernext.png'),
+            'thumb': get_image_path('foldernext.png')
+        })
+        url = get_url(action='popular', page=next_page)
+        xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
 
-        # End the directory listing
         xbmcplugin.endOfDirectory(_HANDLE)
 
     except Exception as e:
         log("Error in list_popular", xbmc.LOGERROR)
+        xbmcgui.Dialog().notification('Error', str(e))
+
+def list_top(page=1):
+    # Get a session for making HTTP requests
+    session = get_session()
+    if not session:
+        return
+
+    try:
+        # Always include pages parameter
+        api_url = f'https://www.talktv.cz/srv/videos/home?pages={page}'
+
+        log(f"Fetching top videos from API: {api_url}", xbmc.LOGINFO)
+
+        # Add necessary headers for AJAX request
+        headers = {
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Referer': 'https://www.talktv.cz/'
+        }
+
+        response = session.get(api_url, headers=headers)
+        if response.status_code != 200:
+            log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
+            return
+
+        # Parse JSON response
+        data = response.json()
+        if 'c3' not in data:
+            log("No top videos section in response", xbmc.LOGERROR)
+            return
+
+        # Parse the HTML content from c3 section
+        soup = BeautifulSoup(data['c3'], 'html.parser')
+
+        xbmcplugin.setPluginCategory(_HANDLE, 'Nejlepší videa')
+        xbmcplugin.setContent(_HANDLE, 'videos')
+
+        # Find all video items
+        list_items = soup.find_all('div', class_='list__item')
+
+        for list_item_div in list_items:
+            item = list_item_div.find('a', class_='media')
+            if not item:
+                continue
+
+            title_element = item.find('div', class_='media__name')
+            if not title_element or not title_element.p:
+                continue
+
+            title = clean_text(title_element.p.text)
+            video_url = 'https://www.talktv.cz' + item['href']
+
+            duration_element = item.find('p', class_='duration')
+            duration_text = duration_element.text.strip() if duration_element else "0:00"
+
+            list_item = xbmcgui.ListItem(label=title)
+            list_item.setProperty('IsPlayable', 'true')
+            list_item.setIsFolder(False)
+
+            img_element = item.find('img')
+            thumbnail = img_element.get('data-src', '') if img_element else ''
+            if not thumbnail and img_element:
+                thumbnail = img_element.get('src', '')
+
+            list_item.setArt({
+                'thumb': thumbnail,
+                'icon': thumbnail
+            })
+
+            try:
+                log(f"Fetching details for video: {video_url}", xbmc.LOGDEBUG)
+                # Make the HTTP GET request for video details
+                video_response = session.get(video_url)
+                video_soup = BeautifulSoup(video_response.text, 'html.parser')
+                details_element = video_soup.find('div', class_='details__info')
+                if details_element:
+                    # Extract and clean the description and date
+                    description = details_element.text.strip()
+                    parts = description.split('                -', 1)
+                    if len(parts) == 2:
+                        date = parts[0].strip()
+                        content = parts[1].strip()
+                        description = content  # Only content without date
+                    else:
+                        date = ''
+                        content = description
+                else:
+                    description = ''
+                    date = ''
+                    log(f"No details found for video: {video_url}", xbmc.LOGWARNING)
+            except Exception as e:
+                description = ''
+                date = ''
+                log(f"Error fetching video details: {video_url}", xbmc.LOGWARNING)
+
+            # Convert the duration to seconds
+            duration_seconds = convert_duration_to_seconds(duration_text)
+
+            # Set video info tags
+            info_tag = list_item.getVideoInfoTag()
+            info_tag.setTitle(title)
+            info_tag.setPlot(description)
+            info_tag.setDuration(duration_seconds)
+            info_tag.setMediaType('video')
+
+            # Add context menu items
+            context_menu = [
+                ('Přehrát (zeptat se na kvalitu)',
+                 f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
+            ]
+            list_item.addContextMenuItems(context_menu)
+
+            url = get_url(action='play', video_url=video_url)
+            xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+
+        # Add 'Next Page' item if there are more items
+        if list_items:  # Only add next page if we have items on current page
+            next_page = page + 1
+            next_item = xbmcgui.ListItem(label='Další stránka')
+            next_item.setArt({
+                'icon': get_image_path('foldernext.png'),
+                'thumb': get_image_path('foldernext.png')
+            })
+            url = get_url(action='top', page=next_page)
+            xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
+
+        xbmcplugin.endOfDirectory(_HANDLE)
+
+    except Exception as e:
+        log("Error in list_top", xbmc.LOGERROR)
+        xbmcgui.Dialog().notification('Error', str(e))
+
+def list_continue(page=1):
+    # Get a session for making HTTP requests
+    session = get_session()
+    if not session:
+        return
+
+    try:
+        # Always include pages parameter
+        api_url = f'https://www.talktv.cz/srv/videos/home?pages={page}'
+
+        log(f"Fetching continue watching videos from API: {api_url}", xbmc.LOGINFO)
+
+        # Add necessary headers for AJAX request
+        headers = {
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Referer': 'https://www.talktv.cz/'
+        }
+
+        response = session.get(api_url, headers=headers)
+        if response.status_code != 200:
+            log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
+            return
+
+        # Parse JSON response
+        data = response.json()
+        if 'c1' not in data:
+            log("No continue watching section in response", xbmc.LOGERROR)
+            return
+
+        # Parse the HTML content from c1 section
+        soup = BeautifulSoup(data['c1'], 'html.parser')
+
+        xbmcplugin.setPluginCategory(_HANDLE, 'Pokračovat v přehrávání')
+        xbmcplugin.setContent(_HANDLE, 'videos')
+
+        # Find all video items
+        list_items = soup.find_all('div', class_='list__item')
+
+        for list_item_div in list_items:
+            item = list_item_div.find('a', class_='media')
+            if not item:
+                continue
+
+            title_element = item.find('div', class_='media__name')
+            if not title_element or not title_element.p:
+                continue
+
+            title = clean_text(title_element.p.text)
+            video_url = 'https://www.talktv.cz' + item['href']
+
+            duration_element = item.find('p', class_='duration')
+            duration_text = duration_element.text.strip() if duration_element else "0:00"
+
+            list_item = xbmcgui.ListItem(label=title)
+            list_item.setProperty('IsPlayable', 'true')
+            list_item.setIsFolder(False)
+
+            img_element = item.find('img')
+            thumbnail = img_element.get('data-src', '') if img_element else ''
+            if not thumbnail and img_element:
+                thumbnail = img_element.get('src', '')
+
+            list_item.setArt({
+                'thumb': thumbnail,
+                'icon': thumbnail
+            })
+
+            try:
+                log(f"Fetching details for video: {video_url}", xbmc.LOGDEBUG)
+                # Make the HTTP GET request for video details
+                video_response = session.get(video_url)
+                video_soup = BeautifulSoup(video_response.text, 'html.parser')
+                details_element = video_soup.find('div', class_='details__info')
+                if details_element:
+                    # Extract and clean the description and date
+                    description = details_element.text.strip()
+                    parts = description.split('                -', 1)
+                    if len(parts) == 2:
+                        date = parts[0].strip()
+                        content = parts[1].strip()
+                        description = content  # Only content without date
+                    else:
+                        date = ''
+                        content = description
+                else:
+                    description = ''
+                    date = ''
+                    log(f"No details found for video: {video_url}", xbmc.LOGWARNING)
+            except Exception as e:
+                description = ''
+                date = ''
+                log(f"Error fetching video details: {video_url}", xbmc.LOGWARNING)
+
+            # Convert the duration to seconds
+            duration_seconds = convert_duration_to_seconds(duration_text)
+
+            # Set video info tags
+            info_tag = list_item.getVideoInfoTag()
+            info_tag.setTitle(title)
+            info_tag.setPlot(description)
+            info_tag.setDuration(duration_seconds)
+            info_tag.setMediaType('video')
+
+            # Add context menu items
+            context_menu = [
+                ('Přehrát (zeptat se na kvalitu)',
+                 f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
+            ]
+            list_item.addContextMenuItems(context_menu)
+
+            url = get_url(action='play', video_url=video_url)
+            xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+
+        # Add 'Next Page' item if there are more items
+        if list_items:  # Only add next page if we have items on current page
+            next_page = page + 1
+            next_item = xbmcgui.ListItem(label='Další stránka')
+            next_item.setArt({
+                'icon': get_image_path('foldernext.png'),
+                'thumb': get_image_path('foldernext.png')
+            })
+            url = get_url(action='continue', page=next_page)
+            xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
+
+        xbmcplugin.endOfDirectory(_HANDLE)
+
+    except Exception as e:
+        log("Error in list_continue", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Error', str(e))
 
 def list_creators():
@@ -1065,12 +1339,32 @@ def router(paramstring):
     if params['action'] == 'search':
         search()
     elif params['action'] == 'popular':
-        page = int(params.get('page', 0)) if 'page' in params else None
+        # Always pass a page number, default to 1 if not specified
+        page = int(params.get('page', 1))
         list_popular(page)
+    elif params['action'] == 'top':
+        # Handle top videos listing
+        page = int(params.get('page', 1))
+        list_top(page)
+    elif params['action'] == 'continue':
+        # Handle continue watching listing
+        page = int(params.get('page', 1))
+        list_continue(page)
     elif params['action'] == 'creators':
         list_creators()
     elif params['action'] == 'listing':
-        list_videos(params['category_url'])
+        # If it's a regular URL, use list_videos
+        if params['category_url'].startswith('http'):
+            list_videos(params['category_url'])
+        # If it's 'top', use list_top
+        elif params['category_url'] == 'top':
+            list_top(1)
+        # If it's 'continue', use list_continue
+        elif params['category_url'] == 'continue':
+            list_continue(1)
+        else:
+            log(f"Invalid category URL: {params['category_url']}", xbmc.LOGERROR)
+            return
     elif params['action'] == 'archive':
         list_archive()
     elif params['action'] == 'play':

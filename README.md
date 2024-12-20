@@ -14,9 +14,12 @@ V nastavení je tak záložní varianta se zkopírováním session cookie, což 
     * Přihlášení přes PHPSESSID (cookie vykopírované z prohlížeče)
 
 * **Menu**
-    * **Hledání** - To zdá se funguje dobře. (Ve výsledcích hledání nejsou popisky epizod, jen název a délka, proto, nejsou ani v Kodi)
-    * **Poslední videa** - Také zdá se, že fungují dobře.
-    * **Tvůrci** - V podmenu jsou všechny aktuální pořady od STANDASHOW po DESIGN TALK. Zde fungují i popisy epizod a data přidání.
+    * **Hledání** - To zdá se funguje dobře. (Ve výsledcích hledání nejsou popisky epizod, jen název a délka.)
+    * **Poslední videa** - Scrapuje se z webu.
+    * **Populární videa** - Tahají se přes API 😉
+    * **Nejlepší videa** - Tahají se přes API 😉. Tahle kategorie není ani na webu 😀.
+    * **Pokračovat v přehrávání** - Tahají se přes API 😉. Neaktualizuje se ale při sledování přes Kodi 😌.
+    * **Tvůrci** - V podmenu jsou všechny aktuální pořady od STANDASHOW po DESIGN TALK.
     * **Archiv** - V podmenu jsou seznamy videí (IRL, HODNOCENÍ HOSTŮ, VOLBY, ...) a archivované pořady (JARDA VS NAOMI)
 
 ## Co nefunguje
@@ -24,9 +27,6 @@ V nastavení je tak záložní varianta se zkopírováním session cookie, což 
 * **Funkce**
     * Přihlášení přes talktv.cz jméno a heslo - reCaptcha
     * Přihlášení přes Patreon
-
-* **Menu**
-    * **Populární videa** - Jako fungují, ale ```<div id='homePopular'>``` v pluginu dostává jiné HTML než je na webu.
 
 ## Co přidat
 
