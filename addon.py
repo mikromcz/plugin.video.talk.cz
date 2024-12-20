@@ -432,9 +432,11 @@ def list_popular(page=None):
         if page:
             # Handle paginated request
             response = session.get(f'https://www.talktv.cz/?pages={page}')
+            log(f"Listing popular videos: https://www.talktv.cz/?pages={page}", xbmc.LOGINFO)
         else:
             # Initial request
             response = session.get('https://www.talktv.cz/')
+            log("Listing popular videos: https://www.talktv.cz/", xbmc.LOGINFO)
 
         soup = BeautifulSoup(response.text, 'html.parser')
 
