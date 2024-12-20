@@ -569,10 +569,38 @@ def list_popular(page=None):
                 'icon': thumbnail
             })
 
+            try:
+                log(f"Fetching details for video: {video_url}", xbmc.LOGDEBUG)
+                # Make the HTTP GET request for video details
+                video_response = session.get(video_url)
+                video_soup = BeautifulSoup(video_response.text, 'html.parser')
+                details_element = video_soup.find('div', class_='details__info')
+                if details_element:
+                    # Extract and clean the description and date
+                    description = details_element.text.strip()
+                    parts = description.split('                -', 1)
+                    if len(parts) == 2:
+                        date = parts[0].strip()
+                        content = parts[1].strip()
+                        description = content  # Only content without date
+                    else:
+                        date = ''
+                        content = description
+                else:
+                    description = ''
+                    date = ''
+                    log(f"No details found for video: {video_url}", xbmc.LOGWARNING)
+            except Exception as e:
+                description = ''
+                date = ''
+                log(f"Error fetching video details: {video_url}", xbmc.LOGWARNING)
+
+            # Convert the duration to seconds
             duration_seconds = convert_duration_to_seconds(duration_text)
 
             info_tag = list_item.getVideoInfoTag()
             info_tag.setTitle(title)
+            info_tag.setPlot(description)
             info_tag.setDuration(duration_seconds)
             info_tag.setMediaType('video')
 
