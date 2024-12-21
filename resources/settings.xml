@@ -19,5 +19,7 @@
     </category>
     <category label="Pokročilé">
         <setting label="Povolit detailní logování" type="bool" id="debug" default="false" />
+        <setting label="Ukládat data pořadů do mezipaměti" type="bool" id="use_cache" default="true"/>
+        <setting label="Vymazat mezipaměť" type="action" id="clear_cache" action="RunPlugin(plugin://plugin.video.talk.cz/?action=clear_cache)"/>
     </category>
 </settings>
