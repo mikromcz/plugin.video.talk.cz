@@ -4,23 +4,20 @@
         <setting label="Přihlášení na talktv.cz (zatím nefunguje)" type="lsep" />
         <setting label="E-mail" type="text" id="email" default="" />
         <setting label="Heslo" type="text" id="password" default="" option="hidden" />
-        <setting label="Test přihlášení" type="action" action="RunPlugin(plugin://plugin.video.talk.cz/?action=test_credentials)" option=""/>
-
+        <setting label="Test přihlášení" type="action" action="RunPlugin(plugin://plugin.video.talk.cz/?action=test_credentials)" option="" />
         <setting label="Session (po měsíci je třeba obnovit)" type="lsep" />
-        <setting label="1. Přihlašte se na talktv.cz" type="text" id="" default="" enable="false"/>
-        <setting label="2. Otevřete DevTools (F12) a najděte cookie PHPSESSID" type="text" id="" default="" enable="false"/>
-        <setting label="3. Zkopírujte hodnotu cookie sem:" type="text" id="" default="" enable="false"/>
-        <setting label="Session Cookie" type="text" id="session_cookie" default="" option="hidden"/>
-        <setting label="Test přihlášení" type="action" action="RunPlugin(plugin://plugin.video.talk.cz/?action=test_session)" option=""/>
+        <setting label="1. Přihlašte se na talktv.cz" type="text" id="" default="" enable="false" />
+        <setting label="2. Otevřete DevTools (F12) a najděte cookie PHPSESSID" type="text" id="" default="" enable="false" />
+        <setting label="3. Zkopírujte hodnotu cookie sem:" type="text" id="" default="" enable="false" />
+        <setting label="Session Cookie" type="text" id="session_cookie" default="" option="hidden" />
+        <setting label="Test přihlášení" type="action" action="RunPlugin(plugin://plugin.video.talk.cz/?action=test_session)" option="" />
     </category>
     <category label="Přehrávání">
-        <setting label="Přehrávání" type="lsep" />
-        <setting label="Preferovaná kvalita" type="enum" id="video_quality" values="Auto|1080p|720p|480p|360p|240p" default="0" />
-        <setting label="Preferovaný typ streamu" type="enum" id="preferred_stream" values="HLS (Adaptive)|MP4" default="0"/>
-        <setting label="Nastavení InputStream Adaptive" type="action" action="Addon.OpenSettings(inputstream.adaptive)" option="close" enable="eq(-1,0)"/>
+        <setting label="Preferovaný typ streamu" type="enum" id="preferred_stream" values="HLS (Adaptive)|MP4" default="0" />
+        <setting label="Preferovaná kvalita" type="enum" id="video_quality" values="Auto|1080p|720p|480p|360p|240p" default="0" enable="eq(-1,1)" />
+        <setting label="Nastavení InputStream Adaptive" type="action" action="Addon.OpenSettings(inputstream.adaptive)" option="close" enable="eq(-2,0)" />
     </category>
     <category label="Pokročilé">
-        <setting label="Pokročilé" type="lsep"/>
         <setting label="Povolit detailní logování" type="bool" id="debug" default="false" />
     </category>
 </settings>
