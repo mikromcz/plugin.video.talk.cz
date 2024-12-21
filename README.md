@@ -12,15 +12,16 @@ V nastavení je tak záložní varianta se zkopírováním session cookie, což 
 
 * **Funkce**
     * Přihlášení přes PHPSESSID (cookie vykopírované z prohlížeče)
+    * Kešování popisů epizod a datumů - menší zátěž pro server Talku
 
 * **Menu**
-    * **Hledání** - To zdá se funguje dobře. (Ve výsledcích hledání nejsou popisky epizod, jen název a délka.)
-    * **Poslední videa** - Scrapuje se z webu.
-    * **Populární videa** - Tahají se přes API 😉
-    * **Nejlepší videa** - Tahají se přes API 😉. Tahle kategorie není ani na webu 😀.
-    * **Pokračovat v přehrávání** - Tahají se přes API 😉. Neaktualizuje se ale při sledování přes Kodi 😌.
+    * **Hledání**
+    * **Poslední videa**
+    * **Populární videa**
+    * **Nejlepší videa** - Tahle kategorie není ani na webu 😀.
+    * **Pokračovat v přehrávání** - Neaktualizuje se ale při sledování přes Kodi 😌. (Zatím? 🤔)
     * **Tvůrci** - V podmenu jsou všechny aktuální pořady od STANDASHOW po DESIGN TALK.
-    * **Archiv** - V podmenu jsou seznamy videí (IRL, HODNOCENÍ HOSTŮ, VOLBY, ...) a archivované pořady (JARDA VS NAOMI)
+    * **Archiv** - V podmenu jsou seznamy videí (IRL, HODNOCENÍ HOSTŮ, VOLBY, ...) a archivované pořady (JARDA VS. NAOMI 🪦)
 
 ## Co nefunguje
 
@@ -34,5 +35,4 @@ V nastavení je tak záložní varianta se zkopírováním session cookie, což 
 * Skok na čas, kdy skončila YT část videa - by bylo fajn, ale netuším jak.
 * V **Poslední videa** by bylo hezké přidat před název epizody ještě název pořadu, <br>ale i přes to, že se popis dohledává na stránce videa, tak ani tam nelze určit název pořadu. Ani z URL.
     * To by pak šlo dát do kontextového menu "Přejít na pořad"
-* Kešovat data pořadů
 * Přidat logo TALKu, nebo přímo pořadu k titulku videa při přehrávání. Ale to už je frajeřinka.

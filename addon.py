@@ -9,7 +9,6 @@ import traceback
 import requests
 
 import xbmc
-import xbmcvfs
 import xbmcgui
 import xbmcplugin
 import xbmcaddon
@@ -511,14 +510,21 @@ def list_search_results(search_url):
                 'icon': thumbnail
             })
 
+            # Get video details from cache or fetch them
+            description, date = get_video_details(session, video_url)
+
             # Convert the duration to seconds
             duration_seconds = convert_duration_to_seconds(duration_text)
 
             # Set video info tags
             info_tag = list_item.getVideoInfoTag()
             info_tag.setTitle(title)
+            info_tag.setPlot(description)
             info_tag.setDuration(duration_seconds)
             info_tag.setMediaType('video')
+
+            if date:
+                info_tag.setPremiered(parse_date(date))
 
             # Add context menu items
             context_menu = [
@@ -574,13 +580,13 @@ def list_menu():
         {
             'name': 'TVŮRCI',
             'url': 'creators',
-            'description': 'Všichni tvůrci na [COLOR springgreen]TALK TV[/COLOR] a jejich pořady.\n\n[COLOR springgreen]STANDASHOW[/COLOR],\n[COLOR springgreen]TECH GUYS[/COLOR],\n[COLOR springgreen]JADRNÁ VĚDA[/COLOR],\n[COLOR springgreen]ZA HRANICÍ[/COLOR],\n[COLOR springgreen]MOVIE WITCHES[/COLOR],\n[COLOR springgreen]DESIGN TALK[/COLOR]',
+            'description': 'Všichni tvůrci na [COLOR springgreen]TALK TV[/COLOR] a jejich pořady.\n\n• [COLOR springgreen]STANDASHOW[/COLOR]\n• [COLOR springgreen]TECH GUYS[/COLOR]\n• [COLOR springgreen]JADRNÁ VĚDA[/COLOR]\n• [COLOR springgreen]ZA HRANICÍ[/COLOR]\n• [COLOR springgreen]MOVIE WITCHES[/COLOR]\n• [COLOR springgreen]DESIGN TALK[/COLOR]',
             'image': 'creators.png'
         },
         {
             'name': 'ARCHIV',
             'url': 'archive',
-            'description': 'Archiv pořadů [COLOR springgreen]TALK TV[/COLOR] a speciálních sérií.\n\n[COLOR springgreen]IRL STREAMY[/COLOR],\n[COLOR springgreen]HODNOCENÍ HOSTŮ[/COLOR],\n[COLOR springgreen]JARDA VS. NAOMI[/COLOR],\n...',
+            'description': 'Archiv pořadů [COLOR springgreen]TALK TV[/COLOR] a speciálních sérií.\n\n• [COLOR springgreen]IRL STREAMY[/COLOR]\n• [COLOR springgreen]HODNOCENÍ HOSTŮ[/COLOR]\n• [COLOR springgreen]JARDA VS. NAOMI[/COLOR]\na další...',
             'image': 'archive.png'
         }
     ]
