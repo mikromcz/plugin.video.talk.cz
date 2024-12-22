@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <settings>
     <category label="Přihlášení">
-        <setting label="Přihlášení na talktv.cz (zatím nefunguje)" type="lsep" />
-        <setting label="E-mail" type="text" id="email" default="" />
-        <setting label="Heslo" type="text" id="password" default="" option="hidden" />
-        <setting label="Test přihlášení" type="action" action="RunPlugin(plugin://plugin.video.talk.cz/?action=test_credentials)" />
-
         <setting label="Session (po měsíci je třeba obnovit)" type="lsep" />
         <setting label="1. Přihlašte se na talktv.cz" type="text" id="" default="" enable="false" />
         <setting label="2. Otevřete DevTools (F12) a najděte cookie PHPSESSID" type="text" id="" default="" enable="false" />
         <setting label="3. Zkopírujte hodnotu cookie sem:" type="text" id="" default="" enable="false" />
         <setting label="Session Cookie" type="text" id="session_cookie" default="" option="hidden" />
         <setting label="Test přihlášení" type="action" action="RunPlugin(plugin://plugin.video.talk.cz/?action=test_session)" />
+
+        <setting label="[COLOR dimgrey]Přihlášení na talktv.cz (zatím nefunguje)[/COLOR]" type="lsep" />
+        <setting label="[COLOR dimgrey]E-mail[/COLOR]" type="text" id="email" default="" />
+        <setting label="[COLOR dimgrey]Heslo[/COLOR]" type="text" id="password" default="" option="hidden" />
+        <setting label="[COLOR dimgrey]Test přihlášení[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.talk.cz/?action=test_credentials)" />
     </category>
     <category label="Přehrávání">
         <setting label="Preferovaný typ streamu" type="enum" id="preferred_stream" values="HLS (Adaptive)|MP4" default="0" />
@@ -20,7 +20,7 @@
     </category>
     <category label="Pokročilé">
         <setting label="Ukládat data pořadů do mezipaměti" type="bool" id="use_cache" default="true"/>
-        <setting label="Vymazat mezipaměť" type="action" id="clear_cache" action="RunPlugin(plugin://plugin.video.talk.cz/?action=clear_cache)"/>
+        <setting label="[COLOR red]Vymazat mezipaměť[/COLOR]" type="action" id="clear_cache" action="RunPlugin(plugin://plugin.video.talk.cz/?action=clear_cache)"/>
         <setting type="sep"/>
         <setting label="Povolit detailní logování" type="bool" id="debug" default="false" />
     </category>
