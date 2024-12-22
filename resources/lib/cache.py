@@ -3,7 +3,7 @@ import json
 import time
 import xbmc
 import xbmcgui
-#import xbmcvfs # type: ignore[unused-import]
+#import xbmcvfs
 from bs4 import BeautifulSoup
 from .constants import _ADDON
 from .utils import log

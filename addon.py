@@ -3,7 +3,7 @@ from urllib.parse import parse_qsl
 import xbmc
 from resources.lib.auth import test_credentials, test_session
 from resources.lib.cache import clear_cache
-from resources.lib.constants import _HANDLE # type: ignore[unused-import]
+from resources.lib.constants import _HANDLE
 from resources.lib.menu import list_menu, list_videos, list_popular, list_top, list_continue, list_creators, list_archive
 from resources.lib.search import search
 from resources.lib.utils import log

@@ -2,7 +2,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
-from .constants import _HANDLE, _ADDON, ADDON_ID  # type: ignore[unused-import]
+from .constants import _HANDLE, _ADDON, ADDON_ID
 from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date
 from .auth import get_session
 from .cache import get_video_details
