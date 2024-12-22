@@ -11,10 +11,10 @@ def list_menu():
     # Define the categories for the menu
     categories = [
         {
-            'name': 'HLEDAT',
-            'url': 'search',
-            'description': 'Vyhledávání v obsahu [COLOR springgreen]TALK TV[/COLOR].',
-            'image': 'search.png'
+            'name': 'TVŮRCI',
+            'url': 'creators',
+            'description': 'Všichni tvůrci na [COLOR springgreen]TALK TV[/COLOR] a jejich pořady.\n\n[COLOR springgreen]STANDASHOW[/COLOR]\n[COLOR springgreen]TECH GUYS[/COLOR]\n[COLOR springgreen]JADRNÁ VĚDA[/COLOR]\n[COLOR springgreen]ZA HRANICÍ[/COLOR]\n[COLOR springgreen]MOVIE WITCHES[/COLOR]\n[COLOR springgreen]DESIGN TALK[/COLOR]',
+            'image': 'creators.png'
         },
         {
             'name': 'POSLEDNÍ VIDEA',
@@ -41,16 +41,16 @@ def list_menu():
             'image': 'continue-watching.png'
         },
         {
-            'name': 'TVŮRCI',
-            'url': 'creators',
-            'description': 'Všichni tvůrci na [COLOR springgreen]TALK TV[/COLOR] a jejich pořady.\n\n[COLOR springgreen]STANDASHOW[/COLOR]\n[COLOR springgreen]TECH GUYS[/COLOR]\n[COLOR springgreen]JADRNÁ VĚDA[/COLOR]\n[COLOR springgreen]ZA HRANICÍ[/COLOR]\n[COLOR springgreen]MOVIE WITCHES[/COLOR]\n[COLOR springgreen]DESIGN TALK[/COLOR]',
-            'image': 'creators.png'
-        },
-        {
             'name': 'ARCHIV',
             'url': 'archive',
             'description': 'Archiv pořadů [COLOR springgreen]TALK TV[/COLOR] a speciálních sérií.\n\n[COLOR springgreen]IRL STREAMY[/COLOR]\n[COLOR springgreen]HODNOCENÍ HOSTŮ[/COLOR]\n[COLOR springgreen]JARDA VS. NAOMI[/COLOR]\na další...',
             'image': 'archive.png'
+        },
+        {
+            'name': 'HLEDAT',
+            'url': 'search',
+            'description': 'Vyhledávání v obsahu [COLOR springgreen]TALK TV[/COLOR].',
+            'image': 'search.png'
         }
     ]
 
