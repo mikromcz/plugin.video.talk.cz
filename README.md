@@ -12,7 +12,8 @@ V nastavení je tak záložní varianta se zkopírováním session cookie, což 
 
 * **Funkce**
     * Přihlášení přes PHPSESSID (cookie vykopírované z prohlížeče)
-    * Kešování popisů epizod a datumů - menší zátěž pro server Talku
+    * Kešování popisů epizod a datumů - menší zátěž pro server Talku, značné zrychlení doplňku
+    * Skok na čas, kdy skončila YouTube část videa (Tak trochu. Jen spustí video od času nastaveného v nastavení - průměrná délka YouTube části je cca 22 minut)
 
 * **Menu**
     * **Hledání**
@@ -26,13 +27,12 @@ V nastavení je tak záložní varianta se zkopírováním session cookie, což 
 ## Co nefunguje
 
 * **Funkce**
-    * Přihlášení přes talktv.cz jméno a heslo - reCaptcha
+    * Přihlášení přes talktv.cz jméno a heslo (Přes reCaptcha se mi zatím nepodařilo proniknout)
     * Přihlášení přes Patreon
 
 ## Co přidat
 
 * Živé streamy?
-* Skok na čas, kdy skončila YT část videa - by bylo fajn, ale netuším jak.
 * V **Poslední videa** by bylo hezké přidat před název epizody ještě název pořadu, <br>ale i přes to, že se popis dohledává na stránce videa, tak ani tam nelze určit název pořadu. Ani z URL.
     * To by pak šlo dát do kontextového menu "Přejít na pořad"
 * Přidat logo TALKu, nebo přímo pořadu k titulku videa při přehrávání. Ale to už je frajeřinka.

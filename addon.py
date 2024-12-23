@@ -7,7 +7,7 @@ from resources.lib.constants import _HANDLE
 from resources.lib.menu import list_menu, list_videos, list_popular, list_top, list_continue, list_creators, list_archive
 from resources.lib.search import search
 from resources.lib.utils import log
-from resources.lib.video import play_video, select_quality
+from resources.lib.video import play_video, select_quality, skip_yt_part
 
 def router(paramstring):
     # Parse the query parameters from the URL
@@ -63,6 +63,8 @@ def router(paramstring):
         play_video(params['video_url'], quality)
     elif params['action'] == 'select_quality':
         select_quality(params['video_url'])
+    elif params['action'] == 'skip_yt_part':
+        skip_yt_part(params['video_url'])
     elif params['action'] == 'test_credentials':
         test_credentials()
     elif params['action'] == 'test_session':

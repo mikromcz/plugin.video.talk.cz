@@ -17,6 +17,8 @@
         <setting label="Preferovaný typ streamu" type="enum" id="preferred_stream" values="HLS (Adaptive)|MP4" default="0" />
         <setting label="Preferovaná kvalita" type="enum" id="video_quality" values="Auto|1080p|720p|480p|360p|240p" default="0" enable="eq(-1,1)" />
         <setting label="Nastavení InputStream Adaptive" type="action" action="Addon.OpenSettings(inputstream.adaptive)" option="close" enable="eq(-2,0)" />
+        <label type="sep"/>
+        <setting label="Čas přeskočení YouTube části (minuty)" type="slider" id="skip_yt_time" default="22" range="15,1,30" option="int" />
     </category>
     <category label="Pokročilé">
         <setting label="Ukládat data pořadů do mezipaměti" type="bool" id="use_cache" default="true"/>

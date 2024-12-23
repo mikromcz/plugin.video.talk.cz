@@ -18,6 +18,26 @@ def select_quality(video_url):
         play_item = xbmcgui.ListItem(path=get_url(action='play', video_url=video_url, quality=quality))
         xbmc.Player().play(item=get_url(action='play', video_url=video_url, quality=quality), listitem=play_item)
 
+def skip_yt_part(video_url):
+    try:
+        # Get the skip time from settings (in minutes)
+        skip_time = int(_ADDON.getSetting('skip_yt_time'))
+
+        # Convert minutes to seconds for the seek parameter
+        seek_time = skip_time * 60
+
+        # Create a new list item and play it with the seek time
+        play_item = xbmcgui.ListItem(path=get_url(action='play', video_url=video_url))
+        play_item.setProperty('StartOffset', str(seek_time))
+
+        # Start playback from the specified time
+        xbmc.Player().play(item=get_url(action='play', video_url=video_url), listitem=play_item)
+
+        return True
+    except Exception as e:
+        log(f'Error in skip_yt_part: {str(e)}', xbmc.LOGERROR)
+        return False
+
 def play_video(video_url, requested_quality=None):
     # Get a session for making HTTP requests
     session = get_session()

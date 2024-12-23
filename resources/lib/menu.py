@@ -344,8 +344,8 @@ def list_videos(category_url):
 
             # Add context menu items
             context_menu = [
-                ('Přehrát (zeptat se na kvalitu)',
-                 f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
+                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
+                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})')
             ]
             list_item.addContextMenuItems(context_menu)
 
@@ -468,8 +468,8 @@ def list_popular(page=1):
 
             # Add context menu items
             context_menu = [
-                ('Přehrát (zeptat se na kvalitu)',
-                 f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
+                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
+                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})')
             ]
             list_item.addContextMenuItems(context_menu)
 
@@ -578,8 +578,8 @@ def list_top(page=1):
 
             # Add context menu items
             context_menu = [
-                ('Přehrát (zeptat se na kvalitu)',
-                 f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
+                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
+                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})')
             ]
             list_item.addContextMenuItems(context_menu)
 
@@ -689,8 +689,8 @@ def list_continue(page=1):
 
             # Add context menu items
             context_menu = [
-                ('Přehrát (zeptat se na kvalitu)',
-                 f'RunPlugin({get_url(action="select_quality", video_url=video_url)})')
+                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
+                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})')
             ]
             list_item.addContextMenuItems(context_menu)
 
