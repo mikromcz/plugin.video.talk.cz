@@ -10,6 +10,8 @@ from resources.lib.utils import log
 from resources.lib.video import play_video, select_quality, skip_yt_part
 
 def router(paramstring):
+    # Routes the request based on the provided query parameters
+
     # Parse the query parameters from the URL
     params = dict(parse_qsl(paramstring[1:]))
     log(f"Router received params: {params}", xbmc.LOGINFO)
@@ -49,10 +51,10 @@ def router(paramstring):
             list_videos(params['category_url'])
         # If it's 'top', use list_top
         elif params['category_url'] == 'top':
-            list_top(1)
+            list_top()
         # If it's 'continue', use list_continue
         elif params['category_url'] == 'continue':
-            list_continue(1)
+            list_continue()
         else:
             log(f"Invalid category URL: {params['category_url']}", xbmc.LOGERROR)
             return
@@ -74,4 +76,5 @@ def router(paramstring):
 
 if __name__ == '__main__':
     # Entry point for the addon, route the request based on the parameters
+
     router(sys.argv[2])

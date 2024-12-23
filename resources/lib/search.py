@@ -9,6 +9,8 @@ from .auth import get_session
 from .cache import get_video_details
 
 def search():
+    # Prompts the user to enter a search string and lists the search results
+
     # Create a dialog for user input
     keyboard = xbmcgui.Dialog()
     # Prompt the user to enter a search string
@@ -26,6 +28,8 @@ def search():
         list_menu()
 
 def list_search_results(search_url):
+    # Lists the search results from the given search URL
+
     # Get a session for making HTTP requests
     session = get_session()
     if not session:

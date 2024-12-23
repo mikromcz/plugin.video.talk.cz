@@ -23,6 +23,7 @@ def login():
 
 def get_session():
     # Get a requests session with authentication cookie.
+
     # Attempts login if no valid session exists.
     session_cookie = _ADDON.getSetting('session_cookie')
 
@@ -59,7 +60,8 @@ def get_session():
         return False
 
 def get_recaptcha_token(site_key):
-    """Get reCAPTCHA token using approach that matches browser flow."""
+    # Get reCAPTCHA token using approach that matches browser flow.
+
     try:
         session = requests.Session()
 
@@ -151,7 +153,8 @@ def get_recaptcha_token(site_key):
         return None
 
 def try_direct_login():
-    """Attempt direct login with form submission and reCAPTCHA bypass."""
+    # Attempt direct login with form submission and reCAPTCHA bypass.
+
     email = _ADDON.getSetting('email')
     password = _ADDON.getSetting('password')
 
@@ -279,6 +282,7 @@ def try_direct_login():
 
 def try_patreon_login():
     # Attempt login via Patreon OAuth
+
     session = requests.Session()
 
     try:
@@ -300,7 +304,8 @@ def try_patreon_login():
     return False
 
 def test_credentials():
-    """Test login credentials with full debug output."""
+    # Test login credentials with full debug output.
+
     email = _ADDON.getSetting('email')
     password = _ADDON.getSetting('password')
 
@@ -591,6 +596,7 @@ def test_credentials():
 
 def test_session():
     # Test if the current session cookie is valid
+
     session_cookie = _ADDON.getSetting('session_cookie')
 
     if not session_cookie:

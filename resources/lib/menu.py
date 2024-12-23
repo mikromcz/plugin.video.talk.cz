@@ -8,6 +8,8 @@ from .auth import get_session
 from .cache import get_video_details
 
 def list_menu():
+    # Lists the main menu categories available in the addon
+
     # Define the categories for the menu
     categories = [
         {
@@ -92,6 +94,8 @@ def list_menu():
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_creators():
+    # Lists the creators and their content available in the addon
+
     # Define the creators and their details
     creators = [
         {
@@ -160,6 +164,8 @@ def list_creators():
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_archive():
+    # Lists the archive items available in the addon
+
     # Define the archive items and their details
     archive_items = [
         {
@@ -246,6 +252,8 @@ def list_archive():
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_videos(category_url):
+    # Lists videos from the given category URL
+
     # Get a session for making HTTP requests
     session = get_session()
     if not session:
@@ -266,8 +274,17 @@ def list_videos(category_url):
         video_items = []
         has_next = False
 
+        # Extract current page number from URL if present
+        page_number = 1
         if is_paginated:
-            log("Processing paginated response", xbmc.LOGDEBUG)
+            try:
+                page_param = category_url.split('page=')[1].split('&')[0]
+                page_number = int(page_param)
+            except (IndexError, ValueError):
+                page_number = 1
+
+        if is_paginated:
+            log(f"Processing paginated response for page {page_number}", xbmc.LOGDEBUG)
             try:
                 # Parse the JSON response for paginated content
                 data = response.json()
@@ -337,9 +354,6 @@ def list_videos(category_url):
             if date:
                 info_tag.setPremiered(parse_date(date))
 
-            if date:
-                info_tag.setPremiered(parse_date(date))
-
             list_item.setLabel2(duration_text)
 
             # Add context menu items
@@ -354,16 +368,12 @@ def list_videos(category_url):
             xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
         if has_next:
-            if is_paginated:
-                current_page = int(category_url.split('page=')[1].split('&')[0])
-                next_page = current_page + 1
-            else:
-                next_page = 1
+            # Get base URL without any query parameters
+            base_url = original_url.split('?')[0]
 
-            if '?' in original_url:
-                next_url = f"{original_url}&page={next_page}"
-            else:
-                next_url = f"{original_url}?page={next_page}"
+            # Calculate next page and construct clean URL
+            next_page = page_number + 1 if is_paginated else 1
+            next_url = f"{base_url}?page={next_page}"
 
             log(f"Adding next page item: page {next_page}", xbmc.LOGDEBUG)
             next_item = xbmcgui.ListItem(label='Další strana')
@@ -383,18 +393,19 @@ def list_videos(category_url):
         xbmcgui.Dialog().notification('Error', str(e))
 
 def list_popular(page=1):
+    # Lists the most popular videos, paginated with 24 items per page (24, 48, 72, ...)
+    # C2 in https://www.talktv.cz/srv/videos/home
+
     # Get a session for making HTTP requests
     session = get_session()
     if not session:
         return
 
     try:
-        # Always include pages parameter
+        # Construct API URL with page parameter
         api_url = f'https://www.talktv.cz/srv/videos/home?pages={page}'
-
         log(f"Fetching popular videos from API: {api_url}", xbmc.LOGINFO)
 
-        # Add necessary headers for AJAX request
         headers = {
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'X-Requested-With': 'XMLHttpRequest',
@@ -406,20 +417,33 @@ def list_popular(page=1):
             log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
             return
 
-        # Parse JSON response
         data = response.json()
         if 'c2' not in data:
             log("No popular videos section in response", xbmc.LOGERROR)
             return
 
-        # Parse the HTML content from c2 section
         soup = BeautifulSoup(data['c2'], 'html.parser')
-
         xbmcplugin.setPluginCategory(_HANDLE, 'Populární videa')
         xbmcplugin.setContent(_HANDLE, 'videos')
 
-        # Find all video items
-        list_items = soup.find_all('div', class_='list__item')
+        # Get all items
+        all_items = soup.find_all('div', class_='list__item')
+        total_items = len(all_items)
+
+        # Calculate slice indices for current page
+        ITEMS_PER_PAGE = 24
+        start_idx = (page - 1) * ITEMS_PER_PAGE
+        end_idx = start_idx + ITEMS_PER_PAGE
+
+        # Get only items for current page
+        list_items = all_items[start_idx:end_idx]
+
+        # We have a next page if we have any items beyond our current slice
+        has_next_page = total_items > start_idx + len(list_items) - 1 # -1 otherwise there is no "Next page"
+
+        log(f"Page {page}: Processing items {start_idx} to {end_idx}, total items: {total_items}, has next: {has_next_page}", xbmc.LOGDEBUG)
+
+        log(f"Page {page}: Processing items {start_idx} to {end_idx} out of {len(all_items)}", xbmc.LOGDEBUG)
 
         for list_item_div in list_items:
             item = list_item_div.find('a', class_='media')
@@ -450,13 +474,9 @@ def list_popular(page=1):
                 'icon': thumbnail
             })
 
-            # Get video details from cache or fetch them
             description, date = get_video_details(session, video_url)
-
-            # Convert the duration to seconds
             duration_seconds = convert_duration_to_seconds(duration_text)
 
-            # Set video info tags
             info_tag = list_item.getVideoInfoTag()
             info_tag.setTitle(title)
             info_tag.setPlot(description)
@@ -466,7 +486,6 @@ def list_popular(page=1):
             if date:
                 info_tag.setPremiered(parse_date(date))
 
-            # Add context menu items
             context_menu = [
                 ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
                 ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})')
@@ -476,15 +495,15 @@ def list_popular(page=1):
             url = get_url(action='play', video_url=video_url)
             xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
-        # Add 'Next Page' item
-        next_page = page + 1
-        next_item = xbmcgui.ListItem(label='Další stránka')
-        next_item.setArt({
-            'icon': get_image_path('foldernext.png'),
-            'thumb': get_image_path('foldernext.png')
-        })
-        url = get_url(action='popular', page=next_page)
-        xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
+        if has_next_page:  # Add next page only if there are more items available
+            next_page = page + 1
+            next_item = xbmcgui.ListItem(label='Další stránka')
+            next_item.setArt({
+                'icon': get_image_path('foldernext.png'),
+                'thumb': get_image_path('foldernext.png')
+            })
+            url = get_url(action='popular', page=next_page)
+            xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
 
         xbmcplugin.endOfDirectory(_HANDLE)
 
@@ -492,19 +511,19 @@ def list_popular(page=1):
         log("Error in list_popular", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Error', str(e))
 
-def list_top(page=1):
+def list_top():
+    # Lists the top videos (no pagination as there are only 16 items)
+    # C3 in https://www.talktv.cz/srv/videos/home
+
     # Get a session for making HTTP requests
     session = get_session()
     if not session:
         return
 
     try:
-        # Always include pages parameter
-        api_url = f'https://www.talktv.cz/srv/videos/home?pages={page}'
-
+        api_url = 'https://www.talktv.cz/srv/videos/home'
         log(f"Fetching top videos from API: {api_url}", xbmc.LOGINFO)
 
-        # Add necessary headers for AJAX request
         headers = {
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'X-Requested-With': 'XMLHttpRequest',
@@ -516,21 +535,16 @@ def list_top(page=1):
             log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
             return
 
-        # Parse JSON response
         data = response.json()
         if 'c3' not in data:
             log("No top videos section in response", xbmc.LOGERROR)
             return
 
-        # Parse the HTML content from c3 section
         soup = BeautifulSoup(data['c3'], 'html.parser')
-
         xbmcplugin.setPluginCategory(_HANDLE, 'Nejlepší videa')
         xbmcplugin.setContent(_HANDLE, 'videos')
 
-        # Find all video items
         list_items = soup.find_all('div', class_='list__item')
-
         for list_item_div in list_items:
             item = list_item_div.find('a', class_='media')
             if not item:
@@ -560,13 +574,9 @@ def list_top(page=1):
                 'icon': thumbnail
             })
 
-            # Get video details from cache or fetch them
             description, date = get_video_details(session, video_url)
-
-            # Convert the duration to seconds
             duration_seconds = convert_duration_to_seconds(duration_text)
 
-            # Set video info tags
             info_tag = list_item.getVideoInfoTag()
             info_tag.setTitle(title)
             info_tag.setPlot(description)
@@ -576,7 +586,6 @@ def list_top(page=1):
             if date:
                 info_tag.setPremiered(parse_date(date))
 
-            # Add context menu items
             context_menu = [
                 ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
                 ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})')
@@ -585,17 +594,6 @@ def list_top(page=1):
 
             url = get_url(action='play', video_url=video_url)
             xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
-
-        # Add 'Next Page' item if there are more items
-        if list_items:  # Only add next page if we have items on current page
-            next_page = page + 1
-            next_item = xbmcgui.ListItem(label='Další stránka')
-            next_item.setArt({
-                'icon': get_image_path('foldernext.png'),
-                'thumb': get_image_path('foldernext.png')
-            })
-            url = get_url(action='top', page=next_page)
-            xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
 
         xbmcplugin.endOfDirectory(_HANDLE)
 
@@ -603,19 +601,19 @@ def list_top(page=1):
         log("Error in list_top", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Error', str(e))
 
-def list_continue(page=1):
+def list_continue():
+    # Lists the videos that the user can continue watching (no pagination)
+    # C1 in https://www.talktv.cz/srv/videos/home
+
     # Get a session for making HTTP requests
     session = get_session()
     if not session:
         return
 
     try:
-        # Always include pages parameter
-        api_url = f'https://www.talktv.cz/srv/videos/home?pages={page}'
-
+        api_url = 'https://www.talktv.cz/srv/videos/home'
         log(f"Fetching continue watching videos from API: {api_url}", xbmc.LOGINFO)
 
-        # Add necessary headers for AJAX request
         headers = {
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'X-Requested-With': 'XMLHttpRequest',
@@ -627,21 +625,16 @@ def list_continue(page=1):
             log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
             return
 
-        # Parse JSON response
         data = response.json()
         if 'c1' not in data:
             log("No continue watching section in response", xbmc.LOGERROR)
             return
 
-        # Parse the HTML content from c1 section
         soup = BeautifulSoup(data['c1'], 'html.parser')
-
         xbmcplugin.setPluginCategory(_HANDLE, 'Pokračovat v přehrávání')
         xbmcplugin.setContent(_HANDLE, 'videos')
 
-        # Find all video items
         list_items = soup.find_all('div', class_='list__item')
-
         for list_item_div in list_items:
             item = list_item_div.find('a', class_='media')
             if not item:
@@ -671,13 +664,9 @@ def list_continue(page=1):
                 'icon': thumbnail
             })
 
-            # Get video details from cache or fetch them
             description, date = get_video_details(session, video_url)
-
-            # Convert the duration to seconds
             duration_seconds = convert_duration_to_seconds(duration_text)
 
-            # Set video info tags
             info_tag = list_item.getVideoInfoTag()
             info_tag.setTitle(title)
             info_tag.setPlot(description)
@@ -687,7 +676,6 @@ def list_continue(page=1):
             if date:
                 info_tag.setPremiered(parse_date(date))
 
-            # Add context menu items
             context_menu = [
                 ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
                 ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})')
@@ -696,17 +684,6 @@ def list_continue(page=1):
 
             url = get_url(action='play', video_url=video_url)
             xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
-
-        # Add 'Next Page' item if there are more items
-        if list_items:  # Only add next page if we have items on current page
-            next_page = page + 1
-            next_item = xbmcgui.ListItem(label='Další stránka')
-            next_item.setArt({
-                'icon': get_image_path('foldernext.png'),
-                'thumb': get_image_path('foldernext.png')
-            })
-            url = get_url(action='continue', page=next_page)
-            xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
 
         xbmcplugin.endOfDirectory(_HANDLE)
 

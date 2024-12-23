@@ -10,6 +10,7 @@ from .utils import log
 
 def get_cache_path():
     # Get the path to the cache file.
+
     try:
         # For Kodi 19+ use xbmcvfs.translatePath
         import xbmcvfs
@@ -24,6 +25,7 @@ def get_cache_path():
 
 def load_cache():
     # Load the cache from file.
+
     cache_path = get_cache_path()
     if os.path.exists(cache_path):
         try:
@@ -35,6 +37,7 @@ def load_cache():
 
 def save_cache(cache_data):
     # Save the cache to file.
+
     cache_path = get_cache_path()
     try:
         with open(cache_path, 'w', encoding='utf-8') as f:
@@ -44,6 +47,7 @@ def save_cache(cache_data):
 
 def clear_cache():
     # Clear the video description cache.
+
     cache_path = get_cache_path()
     if os.path.exists(cache_path):
         try:
@@ -59,6 +63,7 @@ def clear_cache():
 
 def get_video_details(session, video_url):
     # Get video details with caching support.
+
     # Check if caching is enabled in settings
     use_cache = _ADDON.getSettingBool('use_cache')
 

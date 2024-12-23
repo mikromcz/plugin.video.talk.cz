@@ -7,6 +7,8 @@ from .utils import get_url, log
 from .auth import get_session
 
 def select_quality(video_url):
+    # Allows the user to select the quality of the video to play from the given URL
+
     # Handle quality selection via dialog
     qualities = ['Auto', '1080p', '720p', '480p', '360p', '240p']
     dialog = xbmcgui.Dialog()
@@ -19,6 +21,8 @@ def select_quality(video_url):
         xbmc.Player().play(item=get_url(action='play', video_url=video_url, quality=quality), listitem=play_item)
 
 def skip_yt_part(video_url):
+    # Skips a specific part of a YouTube video based on the provided URL
+
     try:
         # Get the skip time from settings (in minutes)
         skip_time = int(_ADDON.getSetting('skip_yt_time'))
@@ -39,6 +43,8 @@ def skip_yt_part(video_url):
         return False
 
 def play_video(video_url, requested_quality=None):
+    # Plays a video from the given URL, optionally selecting the requested quality
+
     # Get a session for making HTTP requests
     session = get_session()
     if not session:

@@ -6,6 +6,7 @@ from .constants import _URL, _ADDON, ADDON_ID
 
 def log(msg, level=xbmc.LOGDEBUG):
     # Log message to Kodi log file with proper formatting and debug control.
+
     if (level in [xbmc.LOGERROR, xbmc.LOGWARNING] or
         (_ADDON.getSetting('debug') == 'true')):
 
@@ -26,20 +27,24 @@ def log(msg, level=xbmc.LOGDEBUG):
 
 def get_url(**kwargs):
     # Constructs a URL with query parameters from the given keyword arguments
+
     return '{0}?{1}'.format(_URL, urlencode(kwargs))
 
 def get_image_path(image_name):
     # Convert image name to special Kodi path for addon resources
+
     return f'special://home/addons/{ADDON_ID}/resources/media/{image_name}'
 
 def clean_text(text):
     # Clean text from null characters and handle encoding
+
     if text is None:
         return ''
     return text.replace('\x00', '').strip()
 
 def convert_duration_to_seconds(duration_text):
     # Convert duration string (e.g., "1h42m" or "42m") to seconds
+
     total_seconds = 0
     try:
         if 'h' in duration_text:
@@ -57,6 +62,7 @@ def convert_duration_to_seconds(duration_text):
 
 def parse_date(date_str):
     # Parse Czech date string to ISO format
+
     CZECH_MONTHS = {
         'ledna': '1',
         'února': '2',
