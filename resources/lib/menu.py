@@ -3,7 +3,7 @@ import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
 from .constants import _HANDLE, _ADDON, ADDON_ID, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
-from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name
+from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name, clean_url
 from .auth import get_session
 from .cache import get_video_details
 
@@ -169,7 +169,7 @@ def list_videos(category_url):
                 continue
 
             title = clean_text(title_element.p.text)
-            video_url = 'https://www.talktv.cz' + item['href']
+            video_url = clean_url('https://www.talktv.cz' + item['href'])
 
             duration_element = item.find('p', class_='duration')
             duration_text = duration_element.text.strip() if duration_element else "0:00"
@@ -302,7 +302,7 @@ def list_popular(page=1):
                 continue
 
             title = clean_text(title_element.p.text)
-            video_url = 'https://www.talktv.cz' + item['href']
+            video_url = clean_url('https://www.talktv.cz' + item['href'])
 
             duration_element = item.find('p', class_='duration')
             duration_text = duration_element.text.strip() if duration_element else "0:00"
@@ -403,7 +403,7 @@ def list_top():
                 continue
 
             title = clean_text(title_element.p.text)
-            video_url = 'https://www.talktv.cz' + item['href']
+            video_url = clean_url('https://www.talktv.cz' + item['href'])
 
             duration_element = item.find('p', class_='duration')
             duration_text = duration_element.text.strip() if duration_element else "0:00"
@@ -494,7 +494,7 @@ def list_continue():
                 continue
 
             title = clean_text(title_element.p.text)
-            video_url = 'https://www.talktv.cz' + item['href']
+            video_url = clean_url('https://www.talktv.cz' + item['href'])
 
             duration_element = item.find('p', class_='duration')
             duration_text = duration_element.text.strip() if duration_element else "0:00"

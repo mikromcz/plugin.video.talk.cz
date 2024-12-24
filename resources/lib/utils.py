@@ -47,6 +47,17 @@ def get_url(**kwargs):
 
     return '{0}?{1}'.format(_URL, urlencode(kwargs))
 
+def clean_url(url):
+    # Clean URL by removing unnecessary query parameters
+    # Links from JSON API contain unnecessary query parameters that mess up the watched status in Kodi
+    # https://www.talktv.cz/video/byvala-letuska-marika-mikusova-indove-na-palube-nejhorsi-zazitky-z-letadla-sex-s-piloty-obezita-v-letadle-instagram-keGzpmtA?tc=r-4f5d6302f489bb45edc0e7d6eb4e5ad1
+    # "?tc=r-4f5d6302f489bb45edc0e7d6eb4e5ad1" is not needed
+
+    if '?' in url:
+        base_url = url.split('?')[0]
+        return base_url
+    return url
+
 def get_image_path(image_name):
     # Convert image name to special Kodi path for addon resources
 
