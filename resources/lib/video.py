@@ -157,3 +157,44 @@ def play_video(video_url, requested_quality=None):
     except Exception as e:
         log(f"Error during video playback setup: {str(e)}", xbmc.LOGERROR)
         xbmcplugin.setResolvedUrl(_HANDLE, False, xbmcgui.ListItem())
+
+def yt_live():
+    # Create directory item for YouTube live streams
+
+    try:
+        # Check if YouTube addon is installed
+        import xbmcaddon
+        try:
+            youtube_addon = xbmcaddon.Addon('plugin.video.youtube')
+        except:
+            log("YouTube addon not installed", xbmc.LOGERROR)
+            xbmcgui.Dialog().ok('Error', 'YouTube addon is not installed. Please install it first.')
+            return False
+
+        # TALK TV YouTube channel ID
+        channel_id = 'UCeBKhwWQ5M1ZPBs-sZtsQtQ'  # @StandaShow channel ID
+
+        # Construct the URL for the live streams page
+        youtube_url = f'plugin://plugin.video.youtube/channel/{channel_id}/live/'
+
+        log(f"Creating directory item for YouTube URL: {youtube_url}", xbmc.LOGINFO)
+
+        # Create a list item for the live streams
+        list_item = xbmcgui.ListItem(label='Live Streams')
+        list_item.setInfo('video', {'Title': 'Live Streams', 'Plot': 'TALK TV Live Streams on YouTube'})
+
+        # Add the directory item
+        xbmcplugin.addDirectoryItem(
+            handle=_HANDLE,
+            url=youtube_url,
+            listitem=list_item,
+            isFolder=True
+        )
+
+        xbmcplugin.endOfDirectory(_HANDLE)
+        return True
+
+    except Exception as e:
+        log(f'Error in yt_live: {str(e)}', xbmc.LOGERROR)
+        xbmcgui.Dialog().notification('Error', str(e))
+        return False

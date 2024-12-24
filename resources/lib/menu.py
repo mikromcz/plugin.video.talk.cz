@@ -33,7 +33,7 @@ def list_menu():
         {
             'name': 'NEJLEPŠÍ VIDEA',
             'url': 'top',
-            'description': 'Nejsledovanější videa na [COLOR springgreen]TALK TV[/COLOR].\n\n[COLOR slategrey]Poznámka: Tato kategorie není dostupná ve webovém rozhraní.[/COLOR]',
+            'description': 'Nejsledovanější videa na [COLOR springgreen]TALK TV[/COLOR].\n\n[COLOR slategrey]Poznámka: Tato kategorie není dostupná ve webovém rozhraní.\n16 "top" videí.[/COLOR]',
             'image': 'top.png'
         },
         {
@@ -53,6 +53,12 @@ def list_menu():
             'url': 'search',
             'description': 'Vyhledávání v obsahu [COLOR springgreen]TALK TV[/COLOR].',
             'image': 'search.png'
+        },
+        {
+            'name': 'ŽIVĚ',
+            'url': 'live',
+            'description': '[COLOR springgreen]STANDASHOW[/COLOR] živě!\n\n[COLOR slategrey]Poznámka: Otevře doplněk YouTube.\nA samozřejmě dává smysl pouze v době živého vysílání.[/COLOR]',
+            'image': 'live.png'
         }
     ]
 

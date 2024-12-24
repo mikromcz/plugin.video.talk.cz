@@ -1,78 +1,128 @@
 import sys
 from urllib.parse import parse_qsl
 import xbmc
+import xbmcgui
 from resources.lib.auth import test_credentials, test_session
 from resources.lib.cache import clear_cache
 from resources.lib.constants import _HANDLE
 from resources.lib.menu import list_menu, list_videos, list_popular, list_top, list_continue, list_creators, list_archive
 from resources.lib.search import search
 from resources.lib.utils import log
-from resources.lib.video import play_video, select_quality, skip_yt_part
+from resources.lib.video import play_video, select_quality, skip_yt_part, yt_live
 
 def router(paramstring):
     # Routes the request based on the provided query parameters
 
-    # Parse the query parameters from the URL
-    params = dict(parse_qsl(paramstring[1:]))
-    log(f"Router received params: {params}", xbmc.LOGINFO)
+    # Import search functionality at the module level
+    from resources.lib.search import search, list_search_results
 
-    if not params:
-        # If no parameters, list the main menu
-        list_menu()
-        return
+    try:
+        # Parse the query parameters from the URL
+        params = dict(parse_qsl(paramstring[1:]))
+        log(f"Router received params: {params}", xbmc.LOGINFO)
 
-    # Route to the appropriate function based on the 'action' parameter
-    if params['action'] == 'search':
-        if 'search_url' in params:
-            # If search_url is provided, show previous results
-            from resources.lib.search import list_search_results
-            list_search_results(params['search_url'])
-        else:
-            # If no search_url, start new search
-            from resources.lib.search import search
-            search()
-    elif params['action'] == 'popular':
-        # Always pass a page number, default to 1 if not specified
-        page = int(params.get('page', 1))
-        list_popular(page)
-    elif params['action'] == 'top':
-        # Handle top videos listing
-        page = int(params.get('page', 1))
-        list_top(page)
-    elif params['action'] == 'continue':
-        # Handle continue watching listing
-        page = int(params.get('page', 1))
-        list_continue(page)
-    elif params['action'] == 'creators':
-        list_creators()
-    elif params['action'] == 'listing':
-        # If it's a regular URL, use list_videos
-        if params['category_url'].startswith('http'):
-            list_videos(params['category_url'])
-        # If it's 'top', use list_top
-        elif params['category_url'] == 'top':
-            list_top()
-        # If it's 'continue', use list_continue
-        elif params['category_url'] == 'continue':
-            list_continue()
-        else:
-            log(f"Invalid category URL: {params['category_url']}", xbmc.LOGERROR)
+        if not params:
+            # If no parameters, list the main menu
+            list_menu()
             return
-    elif params['action'] == 'archive':
-        list_archive()
-    elif params['action'] == 'play':
-        quality = params.get('quality', None)
-        play_video(params['video_url'], quality)
-    elif params['action'] == 'select_quality':
-        select_quality(params['video_url'])
-    elif params['action'] == 'skip_yt_part':
-        skip_yt_part(params['video_url'])
-    elif params['action'] == 'test_credentials':
-        test_credentials()
-    elif params['action'] == 'test_session':
-        test_session()
-    elif params['action'] == 'clear_cache':
-        clear_cache()
+
+        # Get the action from params
+        action = params.get('action', '')
+
+        # Simple actions that don't require additional parameters
+        if action in ['creators', 'archive', 'test_credentials', 'test_session', 'clear_cache']:
+            action_map = {
+                'creators': list_creators,
+                'archive': list_archive,
+                'test_credentials': test_credentials,
+                'test_session': test_session,
+                'clear_cache': clear_cache
+            }
+            action_map[action]()
+            return
+
+        # Actions that might use page parameter
+        if action in ['popular']:
+            page = int(params.get('page', 1))
+            list_popular(page)
+            return
+
+        # Actions that don't use page parameter anymore
+        if action in ['top', 'continue']:
+            action_map = {
+                'top': list_top,
+                'continue': list_continue
+            }
+            action_map[action]()
+            return
+
+        # Handle search functionality
+        if action == 'search':
+            if 'search_url' in params:
+                list_search_results(params['search_url'])
+            else:
+                search()
+            return
+
+        # Handle video listing
+        if action == 'listing':
+            category_url = params.get('category_url', '')
+            if not category_url:
+                log("Missing category_url parameter", xbmc.LOGERROR)
+                return
+
+            # Handle special category URLs
+            if category_url == 'top':
+                list_top()
+                return
+            elif category_url == 'continue':
+                list_continue()
+                return
+            elif category_url == 'live':
+                yt_live()
+                return
+            elif category_url.startswith('http'):
+                list_videos(category_url)
+                return
+            else:
+                log(f"Invalid category URL: {category_url}", xbmc.LOGERROR)
+                xbmcgui.Dialog().notification('Error', f'Invalid category URL: {category_url}')
+                return
+
+        # Handle video playback
+        if action == 'play':
+            video_url = params.get('video_url')
+            if not video_url:
+                log("Missing video_url parameter", xbmc.LOGERROR)
+                return
+            quality = params.get('quality')
+            play_video(video_url, quality)
+            return
+
+        # Handle video quality selection
+        if action == 'select_quality':
+            video_url = params.get('video_url')
+            if not video_url:
+                log("Missing video_url parameter", xbmc.LOGERROR)
+                return
+            select_quality(video_url)
+            return
+
+        # Handle YouTube part skipping
+        if action == 'skip_yt_part':
+            video_url = params.get('video_url')
+            if not video_url:
+                log("Missing video_url parameter", xbmc.LOGERROR)
+                return
+            skip_yt_part(video_url)
+            return
+
+        # If we get here, the action was not recognized
+        log(f"Unrecognized action: {action}", xbmc.LOGERROR)
+
+    except Exception as e:
+        log(f"Error in router: {str(e)}", xbmc.LOGERROR)
+        xbmcgui.Dialog().notification('Error', str(e))
 
 if __name__ == '__main__':
     # Entry point for the addon, route the request based on the parameters
