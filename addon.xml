@@ -9,8 +9,8 @@
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary lang="cs_CZ">Doplněk pro talk.cz / talktv.cz</summary>
-        <description lang="cs_CZ">Sledujte [COLOR springgreen]STANDASHOW[/COLOR], [COLOR springgreen]TECH GUYS[/COLOR], [COLOR springgreen]JADRNOU VĚDU[/COLOR], [COLOR springgreen]ZA HRANICÍ[/COLOR], [COLOR springgreen]MOVIE WITCHES[/COLOR], [COLOR springgreen]DESIGN TALK[/COLOR] a další pořady pohodlně v Kodi.</description>
+        <summary lang="cs_CZ">[COLOR limegreen]TALK[/COLOR] | Nejlepší české podcasty</summary>
+        <description lang="cs_CZ">Sledujte [COLOR limegreen]STANDASHOW[/COLOR], [COLOR limegreen]TECH GUYS[/COLOR], [COLOR limegreen]JADRNOU VĚDU[/COLOR], [COLOR limegreen]ZA HRANICÍ[/COLOR], [COLOR limegreen]MOVIE WITCHES[/COLOR], [COLOR limegreen]DESIGN TALK[/COLOR] a další pořady z talk.cz pohodlně v Kodi.</description>
         <disclaimer lang="cs_CZ">Autor není hostitelem ani nedistribuuje žádný obsah zobrazený tímto doplňkem. Autor nemá žádný vztah s poskytovateli obsahu.</disclaimer>
         <website>https://www.talk.cz/</website>
         <source>https://github.com/mikromcz/plugin.video.talk.cz</source>

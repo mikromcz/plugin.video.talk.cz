@@ -8,10 +8,10 @@
         <setting label="Session Cookie" type="text" id="session_cookie" default="" option="hidden" />
         <setting label="Test přihlášení" type="action" action="RunPlugin(plugin://plugin.video.talk.cz/?action=test_session)" />
 
-        <setting label="[COLOR dimgrey]Přihlášení na talktv.cz (zatím nefunguje)[/COLOR]" type="lsep" />
-        <setting label="[COLOR dimgrey]E-mail[/COLOR]" type="text" id="email" default="" />
-        <setting label="[COLOR dimgrey]Heslo[/COLOR]" type="text" id="password" default="" option="hidden" />
-        <setting label="[COLOR dimgrey]Test přihlášení[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.talk.cz/?action=test_credentials)" />
+        <setting label="[COLOR maroon]Přihlášení na talktv.cz (zatím nefunguje)[/COLOR]" type="lsep" />
+        <setting label="[COLOR maroon]E-mail[/COLOR]" type="text" id="email" default="" />
+        <setting label="[COLOR maroon]Heslo[/COLOR]" type="text" id="password" default="" option="hidden" />
+        <setting label="[COLOR maroon]Test přihlášení[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.talk.cz/?action=test_credentials)" />
     </category>
     <category label="Přehrávání">
         <setting label="Preferovaný typ streamu" type="enum" id="preferred_stream" values="HLS (Adaptive)|MP4" default="0" />
@@ -21,9 +21,10 @@
         <setting label="Čas přeskočení YouTube části (minuty)" type="slider" id="skip_yt_time" default="22" range="15,1,30" option="int" />
     </category>
     <category label="Pokročilé">
+        <setting label="Mezipaměť" type="lsep" />
         <setting label="Ukládat data pořadů do mezipaměti" type="bool" id="use_cache" default="true"/>
         <setting label="[COLOR red]Vymazat mezipaměť[/COLOR]" type="action" id="clear_cache" action="RunPlugin(plugin://plugin.video.talk.cz/?action=clear_cache)"/>
-        <setting type="sep"/>
+        <setting label="Logování" type="lsep" />
         <setting label="Povolit detailní logování" type="bool" id="debug" default="false" />
     </category>
 </settings>

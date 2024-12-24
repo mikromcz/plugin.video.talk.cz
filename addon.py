@@ -86,7 +86,7 @@ def router(paramstring):
                 return
             else:
                 log(f"Invalid category URL: {category_url}", xbmc.LOGERROR)
-                xbmcgui.Dialog().notification('Error', f'Invalid category URL: {category_url}')
+                xbmcgui.Dialog().notification('Chyba', f'Neplatné URL kategorie: {category_url}')
                 return
 
         # Handle video playback
@@ -122,7 +122,7 @@ def router(paramstring):
 
     except Exception as e:
         log(f"Error in router: {str(e)}", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Error', str(e))
+        xbmcgui.Dialog().notification('Chyba', str(e))
 
 if __name__ == '__main__':
     # Entry point for the addon, route the request based on the parameters

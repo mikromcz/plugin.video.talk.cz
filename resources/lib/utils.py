@@ -2,7 +2,7 @@ import sys
 import traceback
 from urllib.parse import urlencode
 import xbmc
-from .constants import _URL, _ADDON, ADDON_ID
+from .constants import _URL, _ADDON, ADDON_ID, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
 
 def log(msg, level=xbmc.LOGDEBUG):
     # Log message to Kodi log file with proper formatting and debug control.
@@ -24,6 +24,23 @@ def log(msg, level=xbmc.LOGDEBUG):
                 formatted_msg += f"\nTraceback:\n{''.join(traceback.format_exception(exc_type, exc_value, exc_tb))}"
 
         xbmc.log(formatted_msg, level)
+
+def get_category_name(url):
+    # Extract a meaningful category name from the URL or page content
+
+    # Go through all defined categories
+    all_categories = MENU_CATEGORIES + CREATOR_CATEGORIES + ARCHIVE_CATEGORIES
+    for category in all_categories:
+        if category['url'] in url:
+            log(f"category url: {category['url']}, category name: {category['name']}", xbmc.LOGINFO)
+
+            if '/videa' in category['url']:
+                return category['name'].capitalize() # POSLEDNÍ VIDEA -> Poslední videa
+
+            return category['name']  # Categories already in uppercase
+
+    # If no category found, return 'Videa' as a fallback
+    return 'Videa'
 
 def get_url(**kwargs):
     # Constructs a URL with query parameters from the given keyword arguments

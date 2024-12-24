@@ -168,7 +168,7 @@ def yt_live():
             youtube_addon = xbmcaddon.Addon('plugin.video.youtube')
         except:
             log("YouTube addon not installed", xbmc.LOGERROR)
-            xbmcgui.Dialog().ok('Error', 'YouTube addon is not installed. Please install it first.')
+            xbmcgui.Dialog().ok('Chyba', 'Doplněk YouTube není nainstalován, nainstalujte jej pro zobrazení živých streamů.')
             return False
 
         # TALK TV YouTube channel ID
@@ -180,8 +180,8 @@ def yt_live():
         log(f"Creating directory item for YouTube URL: {youtube_url}", xbmc.LOGINFO)
 
         # Create a list item for the live streams
-        list_item = xbmcgui.ListItem(label='Live Streams')
-        list_item.setInfo('video', {'Title': 'Live Streams', 'Plot': 'TALK TV Live Streams on YouTube'})
+        list_item = xbmcgui.ListItem(label='Živé vysílání')
+        list_item.setInfo('video', {'Title': 'Živé vysílání', 'Plot': 'Živé streamy na YouTube kanálu [COLOR limegreen]STANDASHOW[/COLOR].'})
 
         # Add the directory item
         xbmcplugin.addDirectoryItem(
@@ -196,5 +196,5 @@ def yt_live():
 
     except Exception as e:
         log(f'Error in yt_live: {str(e)}', xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Error', str(e))
+        xbmcgui.Dialog().notification('Chyba', str(e))
         return False

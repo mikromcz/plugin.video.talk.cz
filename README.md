@@ -41,4 +41,3 @@ V nastavení je tak záložní varianta se zkopírováním session cookie, což 
 
 * V **Poslední, Populární, Nejlepší videa** by bylo hezké přidat před název epizody ještě název pořadu. Bohužel jsem zatím neobjevil způsob, jak by se ho dalo jednoduše získat.
     * To by pak šlo dát do kontextového menu "Přejít na pořad"
-* Přidat logo TALKu, nebo přímo pořadu k titulku videa při přehrávání. Ale to už je frajeřinka.

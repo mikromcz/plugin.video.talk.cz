@@ -124,4 +124,4 @@ def list_search_results(search_url):
 
     except Exception as e:
         log("Error in list_search_results", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Error', str(e))
+        xbmcgui.Dialog().notification('Chyba', str(e))

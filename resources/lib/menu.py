@@ -2,71 +2,15 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
-from .constants import _HANDLE, _ADDON, ADDON_ID
-from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date
+from .constants import _HANDLE, _ADDON, ADDON_ID, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
+from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name
 from .auth import get_session
 from .cache import get_video_details
 
 def list_menu():
     # Lists the main menu categories available in the addon
 
-    # Define the categories for the menu
-    categories = [
-        {
-            'name': 'TVŮRCI',
-            'url': 'creators',
-            'description': 'Všichni tvůrci na [COLOR springgreen]TALK TV[/COLOR] a jejich pořady.\n\n[COLOR springgreen]STANDASHOW[/COLOR]\n[COLOR springgreen]TECH GUYS[/COLOR]\n[COLOR springgreen]JADRNÁ VĚDA[/COLOR]\n[COLOR springgreen]ZA HRANICÍ[/COLOR]\n[COLOR springgreen]MOVIE WITCHES[/COLOR]\n[COLOR springgreen]DESIGN TALK[/COLOR]',
-            'image': 'creators.png'
-        },
-        {
-            'name': 'POSLEDNÍ VIDEA',
-            'url': 'https://www.talktv.cz/videa',
-            'description': 'Nejnovější videa na [COLOR springgreen]TALK TV[/COLOR].',
-            'image': 'latest.png'
-        },
-        {
-            'name': 'POPULÁRNÍ VIDEA',
-            'url': 'popular',
-            'description': 'Trendující videa na [COLOR springgreen]TALK TV[/COLOR].',
-            'image': 'popular.png'
-        },
-        {
-            'name': 'NEJLEPŠÍ VIDEA',
-            'url': 'top',
-            'description': 'Nejsledovanější videa na [COLOR springgreen]TALK TV[/COLOR].\n\n[COLOR slategrey]Poznámka: Tato kategorie není dostupná ve webovém rozhraní.\n16 "top" videí.[/COLOR]',
-            'image': 'top.png'
-        },
-        {
-            'name': 'POKRAČOVAT V PŘEHRÁVÁNÍ',
-            'url': 'continue',
-            'description': 'Rozkoukaná videa na [COLOR springgreen]TALK TV[/COLOR].\n\n[COLOR slategrey]Poznámka: Tato kategorie se neaktualizuje při přehrávání přes Kodi.[/COLOR]',
-            'image': 'continue-watching.png'
-        },
-        {
-            'name': 'ARCHIV',
-            'url': 'archive',
-            'description': 'Archiv pořadů [COLOR springgreen]TALK TV[/COLOR] a speciálních sérií.\n\n[COLOR springgreen]IRL STREAMY[/COLOR]\n[COLOR springgreen]HODNOCENÍ HOSTŮ[/COLOR]\n[COLOR springgreen]JARDA VS. NAOMI[/COLOR]\na další...',
-            'image': 'archive.png'
-        },
-        {
-            'name': 'HLEDAT',
-            'url': 'search',
-            'description': 'Vyhledávání v obsahu [COLOR springgreen]TALK TV[/COLOR].',
-            'image': 'search.png'
-        },
-        {
-            'name': 'ŽIVĚ',
-            'url': 'live',
-            'description': '[COLOR springgreen]STANDASHOW[/COLOR] živě!\n\n[COLOR slategrey]Poznámka: Otevře doplněk YouTube.\nA samozřejmě dává smysl pouze v době živého vysílání.[/COLOR]',
-            'image': 'live.png'
-        }
-    ]
-
-    # Set the plugin category and content type
-    xbmcplugin.setPluginCategory(_HANDLE, 'Categories')
-    xbmcplugin.setContent(_HANDLE, 'files')
-
-    for category in categories:
+    for category in MENU_CATEGORIES:
         # Create a list item for each category
         list_item = xbmcgui.ListItem(label=category['name'])
         image_path = get_image_path(category['image'])
@@ -96,57 +40,15 @@ def list_menu():
         # Add the directory item to the Kodi plugin
         xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, is_folder)
 
-    # End the directory listing
+    # Set the plugin category and content type
+    xbmcplugin.setPluginCategory(_HANDLE, 'Hlavní menu') # Kategorie
+    xbmcplugin.setContent(_HANDLE, 'files')
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_creators():
     # Lists the creators and their content available in the addon
 
-    # Define the creators and their details
-    creators = [
-        {
-            'name': 'STANDASHOW',
-            'url': 'https://www.talktv.cz/standashow',
-            'description': 'Výstup z vaší názorové bubliny. Politika, společnost, kauzy a Bruntál. Obsahují minimálně jednoho [COLOR springgreen]Standu[/COLOR].',
-            'image': 'show-standashow.jpg'
-        },
-        {
-            'name': 'TECH GUYS',
-            'url': 'https://www.talktv.cz/techguys',
-            'description': 'Kde unboxingy končí, my začínáme. Apple, kryptoměny, umělá inteligence a pak zase Apple. Každý týden s [COLOR springgreen]Honzou Březinou[/COLOR], [COLOR springgreen]Kicomem[/COLOR] a [COLOR springgreen]Davidem Grudlem[/COLOR].',
-            'image': 'show-tech-guys.jpg'
-        },
-        {
-            'name': 'JADRNÁ VĚDA',
-            'url': 'https://www.talktv.cz/jadrna-veda',
-            'description': 'Pořad, který 9 z 10 diváků nepochopí (a ten desátý je [COLOR springgreen]Leoš Kyša[/COLOR], který to moderuje). Diskuse se skutečnými vědci o skutečné vědě. Pyramidy, kvantová fyzika nebo objevování vesmíru.',
-            'image': 'show-jadrna-veda.jpg'
-        },
-        {
-            'name': 'ZA HRANICÍ',
-            'url': 'https://www.talktv.cz/za-hranici',
-            'description': 'Popelář v Londýně, letuška v Kataru nebo podnikatel v Gambii. Češi žijící v zahraničí a cestovatel [COLOR springgreen]Vladimír Váchal[/COLOR], který ví o cestování (skoro) vše. A na zbytek se nebojí zeptat.',
-            'image': 'show-za-hranici.jpg'
-        },
-        {
-            'name': 'MOVIE WITCHES',
-            'url': 'https://www.talktv.cz/moviewitches',
-            'description': 'Tři holky [COLOR springgreen]Bety[/COLOR] + [COLOR springgreen]Baty[/COLOR] + [COLOR springgreen]Shial[/COLOR] si povídají o filmech, které si to zaslouží. Od vzpomínek přes zajímavosti a shrnutí děje.',
-            'image': 'show-movie-witches.jpg'
-        },
-        {
-            'name': 'DESIGN TALK',
-            'url': 'https://www.talktv.cz/design-talk',
-            'description': '[COLOR springgreen]Lukáš Veverka[/COLOR] a jeho hosté diskutují o věcech, kterým většina diváků vůbec nevěnuje pozornost. Filmy, grafika, motion design i největší faily v dějinách designu a kinematografie.',
-            'image': 'show-design-talk.jpg'
-        }
-    ]
-
-    # Set the plugin category and content type
-    xbmcplugin.setPluginCategory(_HANDLE, 'Tvůrci')
-    xbmcplugin.setContent(_HANDLE, 'files')
-
-    for creator in creators:
+    for creator in CREATOR_CATEGORIES:
         # Create a list item for each creator
         list_item = xbmcgui.ListItem(label=creator['name'])
         image_path = get_image_path(creator['image'])
@@ -166,75 +68,15 @@ def list_creators():
         # Add the directory item to the Kodi plugin
         xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, is_folder)
 
-    # End the directory listing
+    # Set the plugin category and content type
+    xbmcplugin.setPluginCategory(_HANDLE, 'Tvůrci') # Tvůrci
+    xbmcplugin.setContent(_HANDLE, 'files')
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_archive():
     # Lists the archive items available in the addon
 
-    # Define the archive items and their details
-    archive_items = [
-        {
-            'name': 'STANDASHOW SPECIÁLY',
-            'url': 'https://www.talktv.cz/seznam-videi/seznam-hejktqzt',
-            'description': 'Minutu po minutě. Den po dni. Důležité události a exkluzívní hosté ve speciálech [COLOR springgreen]STANDASHOW[/COLOR]. Unikátní formát, který kombinuje prvky podcastu, dokumentu a časové reality show.',
-            'image': 'archiv-standashow-specialy.jpg'
-        },
-        {
-            'name': 'IRL PROCHÁZKY Z TERÉNU',
-            'url': 'https://www.talktv.cz/seznam-videi/irl-prochazky-z-terenu',
-            'description': 'Kamera, baťoh, mikrofony, sim karta, power banky, hromadu kabelů... to jsou IRL streamy. Procházky z terénu. Živé vysílání skoro odkukoli. Mix podcastu, dokumentu a reality show.',
-            'image': 'archiv-irl-prochazky.jpg'
-        },
-        {
-            'name': 'HODNOCENÍ HOSTŮ',
-            'url': 'https://www.talktv.cz/seznam-videi/hodnoceni-hostu',
-            'description': 'Nezapomenutelnou atmosféru a komornější povídání, jak na veřejném vysílání. Takový virtuální sraz [COLOR springgreen]STANDASHOW[/COLOR]. Většinou prozradíme spoustu zajímavostí z backstage.',
-            'image': 'archiv-hodnoceni-hostu.jpg'
-        },
-        {
-            'name': 'CHARITA',
-            'url': 'https://www.talktv.cz/seznam-videi/charita',
-            'description': 'Pomáháme. Podcast má být především zábava, ale někde je třeba probrat i vážné téma. A díky skvělé komunitě, která se kolem [COLOR springgreen]STANDASHOW[/COLOR] vytvořila, můžeme pomoct dobré věci.',
-            'image': 'archiv-charita.jpg'
-        },
-        {
-            'name': 'PREZIDENTSKÉ VOLBY 2023',
-            'url': 'https://www.talktv.cz/seznam-videi/seznam-bxmzs6zw',
-            'description': 'Volba prezidenta České republiky 2023. Pozvali jsme všechny kandidáty a takhle to dopadlo...',
-            'image': 'archiv-prezidentske-volby-2023.jpg'
-        },
-        {
-            'name': 'NEJMLADŠÍ POLITICI',
-            'url': 'https://www.talktv.cz/seznam-videi/nejmladsi-politici',
-            'description': 'Pozvali jsme si ty nejmladší politiky ze všech politických stran zastoupených v parlamentu. A tady je výsledek.',
-            'image': 'archiv-nejmladsi-politici.jpg'
-        },
-        {
-            'name': 'VOLBY 2021',
-            'url': 'https://www.talktv.cz/seznam-videi/volby-2021',
-            'description': '8 politických podcastů, více jak 13 hodin materiálu. V každém rozhovoru se probírají kontroverzní, ale také obyčejná lidská témata.',
-            'image': 'archiv-volby-2021.jpg'
-        },
-        {
-            'name': 'JARDA VS. NAOMI',
-            'url': 'https://www.talktv.cz/jarda-a-naomi',
-            'description': 'Herní novinář [COLOR springgreen]Jarda Möwald[/COLOR] a fanynka japonské popkultury [COLOR springgreen]Naomi Adachi[/COLOR]. Diskuse o zajímavostech ze světa her, filmů a seriálů. Celé záznamy pro předplatitele na talktv.cz.',
-            'image': 'show-jarda-vs-naomi.jpg'
-        },
-        {
-            'name': 'ZÁKULISÍ TALKU',
-            'url': 'https://www.talktv.cz/seznam-videi/zakulisi-talk-tv',
-            'description': 'Toto jsme my. Váš/náš :D [COLOR springgreen]TALK[/COLOR]. A toto jsou všechna videa ze zákulisí.',
-            'image': 'archiv-zakulisi-talku.jpg'
-        }
-    ]
-
-    # Set the plugin category and content type
-    xbmcplugin.setPluginCategory(_HANDLE, 'ARCHIV')
-    xbmcplugin.setContent(_HANDLE, 'files')
-
-    for item in archive_items:
+    for item in ARCHIVE_CATEGORIES:
         # Create a list item for each archive item
         list_item = xbmcgui.ListItem(label=item['name'])
         image_path = get_image_path(item['image'])
@@ -254,7 +96,9 @@ def list_archive():
         # Add the directory item to the Kodi plugin
         xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, is_folder)
 
-    # End the directory listing
+    # Set the plugin category and content type
+    xbmcplugin.setPluginCategory(_HANDLE, 'Archiv') # Archiv
+    xbmcplugin.setContent(_HANDLE, 'files')
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_videos(category_url):
@@ -364,8 +208,8 @@ def list_videos(category_url):
 
             # Add context menu items
             context_menu = [
-                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
-                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})')
+                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'), # Přehrát (zeptat se na kvalitu)
+                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})') # Přeskočit YouTube část
             ]
             list_item.addContextMenuItems(context_menu)
 
@@ -382,7 +226,7 @@ def list_videos(category_url):
             next_url = f"{base_url}?page={next_page}"
 
             log(f"Adding next page item: page {next_page}", xbmc.LOGDEBUG)
-            next_item = xbmcgui.ListItem(label='Další strana')
+            next_item = xbmcgui.ListItem(label='Další strana') # Další strana
             next_item.setArt({
                 'icon': get_image_path('foldernext.png'),
                 'thumb': get_image_path('foldernext.png')
@@ -390,13 +234,14 @@ def list_videos(category_url):
             xbmcplugin.addDirectoryItem(_HANDLE, get_url(action='listing', category_url=next_url), next_item, True)
 
         # Set the content type and sort method for the directory
+        xbmcplugin.setPluginCategory(_HANDLE, get_category_name(category_url)) # Set the plugin category based on the URL or page content
         xbmcplugin.setContent(_HANDLE, 'videos')
         xbmcplugin.addSortMethod(_HANDLE, xbmcplugin.SORT_METHOD_NONE)
         xbmcplugin.endOfDirectory(_HANDLE)
 
     except Exception as e:
         log("Error in list_videos", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Error', str(e))
+        xbmcgui.Dialog().notification('Chyba', str(e))
 
 def list_popular(page=1):
     # Lists the most popular videos, paginated with 24 items per page (24, 48, 72, ...)
@@ -428,11 +273,8 @@ def list_popular(page=1):
             log("No popular videos section in response", xbmc.LOGERROR)
             return
 
-        soup = BeautifulSoup(data['c2'], 'html.parser')
-        xbmcplugin.setPluginCategory(_HANDLE, 'Populární videa')
-        xbmcplugin.setContent(_HANDLE, 'videos')
-
         # Get all items
+        soup = BeautifulSoup(data['c2'], 'html.parser')
         all_items = soup.find_all('div', class_='list__item')
         total_items = len(all_items)
 
@@ -448,7 +290,6 @@ def list_popular(page=1):
         has_next_page = total_items > start_idx + len(list_items) - 1 # -1 otherwise there is no "Next page"
 
         log(f"Page {page}: Processing items {start_idx} to {end_idx}, total items: {total_items}, has next: {has_next_page}", xbmc.LOGDEBUG)
-
         log(f"Page {page}: Processing items {start_idx} to {end_idx} out of {len(all_items)}", xbmc.LOGDEBUG)
 
         for list_item_div in list_items:
@@ -493,8 +334,8 @@ def list_popular(page=1):
                 info_tag.setPremiered(parse_date(date))
 
             context_menu = [
-                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
-                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})')
+                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'), # Přehrát (zeptat se na kvalitu)
+                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})') # Přeskočit YouTube část
             ]
             list_item.addContextMenuItems(context_menu)
 
@@ -503,7 +344,7 @@ def list_popular(page=1):
 
         if has_next_page:  # Add next page only if there are more items available
             next_page = page + 1
-            next_item = xbmcgui.ListItem(label='Další stránka')
+            next_item = xbmcgui.ListItem(label='Další stránka') # Další stránka
             next_item.setArt({
                 'icon': get_image_path('foldernext.png'),
                 'thumb': get_image_path('foldernext.png')
@@ -511,11 +352,14 @@ def list_popular(page=1):
             url = get_url(action='popular', page=next_page)
             xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
 
+        # Set the plugin category and content type
+        xbmcplugin.setPluginCategory(_HANDLE, 'Populární videa') # Populární videa
+        xbmcplugin.setContent(_HANDLE, 'videos')
         xbmcplugin.endOfDirectory(_HANDLE)
 
     except Exception as e:
         log("Error in list_popular", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Error', str(e))
+        xbmcgui.Dialog().notification('Chyba', str(e))
 
 def list_top():
     # Lists the top videos (no pagination as there are only 16 items)
@@ -546,10 +390,8 @@ def list_top():
             log("No top videos section in response", xbmc.LOGERROR)
             return
 
+        # Get c3 items
         soup = BeautifulSoup(data['c3'], 'html.parser')
-        xbmcplugin.setPluginCategory(_HANDLE, 'Nejlepší videa')
-        xbmcplugin.setContent(_HANDLE, 'videos')
-
         list_items = soup.find_all('div', class_='list__item')
         for list_item_div in list_items:
             item = list_item_div.find('a', class_='media')
@@ -593,19 +435,22 @@ def list_top():
                 info_tag.setPremiered(parse_date(date))
 
             context_menu = [
-                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
-                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})')
+                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'), # Přehrát (zeptat se na kvalitu)
+                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})') # Přeskočit YouTube část
             ]
             list_item.addContextMenuItems(context_menu)
 
             url = get_url(action='play', video_url=video_url)
             xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
+        # Set the plugin category and content type
+        xbmcplugin.setPluginCategory(_HANDLE, 'Nejlepší videa') # Nejlepší videa
+        xbmcplugin.setContent(_HANDLE, 'videos')
         xbmcplugin.endOfDirectory(_HANDLE)
 
     except Exception as e:
         log("Error in list_top", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Error', str(e))
+        xbmcgui.Dialog().notification('Chyba', str(e))
 
 def list_continue():
     # Lists the videos that the user can continue watching (no pagination)
@@ -636,10 +481,8 @@ def list_continue():
             log("No continue watching section in response", xbmc.LOGERROR)
             return
 
+        # Get c1 items
         soup = BeautifulSoup(data['c1'], 'html.parser')
-        xbmcplugin.setPluginCategory(_HANDLE, 'Pokračovat v přehrávání')
-        xbmcplugin.setContent(_HANDLE, 'videos')
-
         list_items = soup.find_all('div', class_='list__item')
         for list_item_div in list_items:
             item = list_item_div.find('a', class_='media')
@@ -683,16 +526,19 @@ def list_continue():
                 info_tag.setPremiered(parse_date(date))
 
             context_menu = [
-                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
-                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})')
+                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'), # Přehrát (zeptat se na kvalitu)
+                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})') # Přeskočit YouTube část
             ]
             list_item.addContextMenuItems(context_menu)
 
             url = get_url(action='play', video_url=video_url)
             xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
+        # Set the plugin category and content type
+        xbmcplugin.setPluginCategory(_HANDLE, 'Pokračovat v přehrávání') # Pokračovat v přehrávání
+        xbmcplugin.setContent(_HANDLE, 'videos')
         xbmcplugin.endOfDirectory(_HANDLE)
 
     except Exception as e:
         log("Error in list_continue", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Error', str(e))
+        xbmcgui.Dialog().notification('Chyba', str(e))
