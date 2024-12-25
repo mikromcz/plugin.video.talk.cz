@@ -14,6 +14,13 @@ Bohužel, [TALK.cz](https://talk.cz) používá na přihlašovací stránce reCa
 
 V nastavení je tak záložní varianta se zkopírováním session cookie, což je trochu nepohodlné, protože ta cookie má platnost 1 měsíc, takže se to bude muset pravidelně opakovat.
 
+### Jak na to
+
+- Přihlašte se normálně v prohlížeči na TALK.cz.
+- Přejděte do Nástrojů pro vývojáře stiskem F12.
+- Najděte hodnotu cookie PHPSESSID a zadejte ji do doplňku<br>![screenshot-4](resources/screenshot-4.png "screenshot-4")
+- Otestujte funkčnost tlačítkem **Test přihlášení**
+
 ## Co funguje
 
 * **Funkce**
@@ -36,8 +43,3 @@ V nastavení je tak záložní varianta se zkopírováním session cookie, což 
 * **Funkce**
     * Přihlášení přes talktv.cz jméno a heslo.
     * Přihlášení přes Patreon.
-
-## Co přidat
-
-* V **Poslední, Populární, Nejlepší videa** by bylo hezké přidat před název epizody ještě název pořadu. Bohužel jsem zatím neobjevil způsob, jak by se ho dalo jednoduše získat.
-    * To by pak šlo dát do kontextového menu "Přejít na pořad"
