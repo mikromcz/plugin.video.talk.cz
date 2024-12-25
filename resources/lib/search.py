@@ -4,7 +4,7 @@ import xbmcplugin
 from urllib.parse import quote
 from bs4 import BeautifulSoup
 from .constants import _HANDLE
-from .utils import get_url, log, clean_text, convert_duration_to_seconds, parse_date
+from .utils import get_url, log, clean_text, convert_duration_to_seconds, parse_date, clean_url
 from .auth import get_session
 from .cache import get_video_details
 
@@ -59,10 +59,6 @@ def list_search_results(search_url):
             xbmcgui.Dialog().notification('Hledání', 'Žádné výsledky nenalezeny')
             return
 
-        # Set the plugin category and content type
-        xbmcplugin.setPluginCategory(_HANDLE, 'Výsledky hledání')
-        xbmcplugin.setContent(_HANDLE, 'videos')
-
         for item in video_items:
             # Get the title of the video
             title_element = item.find('div', class_='media__name')
@@ -70,7 +66,7 @@ def list_search_results(search_url):
                 continue
 
             title = clean_text(title_element.p.text)
-            video_url = 'https://www.talktv.cz' + item['href']
+            video_url = clean_url('https://www.talktv.cz' + item['href'])
 
             # Get the duration of the video
             duration_element = item.find('p', class_='duration')
@@ -110,8 +106,7 @@ def list_search_results(search_url):
 
             # Add context menu items
             context_menu = [
-                ('Přehrát (zeptat se na kvalitu)',
-                 f'RunPlugin({get_url(action="select_quality", video_url=video_url, search_url=search_url)})')
+                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url, search_url=search_url)})')
             ]
             list_item.addContextMenuItems(context_menu)
 
@@ -119,7 +114,9 @@ def list_search_results(search_url):
             url = get_url(action='play', video_url=video_url, search_url=search_url)
             xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
-        # End the directory listing
+        # Set the plugin category and content type
+        xbmcplugin.setPluginCategory(_HANDLE, 'Výsledky hledání')
+        xbmcplugin.setContent(_HANDLE, 'videos')
         xbmcplugin.endOfDirectory(_HANDLE)
 
     except Exception as e:

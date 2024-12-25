@@ -43,3 +43,17 @@ V nastavení je tak záložní varianta se zkopírováním session cookie, což 
 * **Funkce**
     * Přihlášení přes talktv.cz jméno a heslo.
     * Přihlášení přes Patreon.
+
+## Poznámka
+
+> Neoficiální doplněk bez přímé vazby na TALK TV. Poskytuje přístup k obsahu dostupnému na talktv.cz pro přihlášené uživatele. Veškerý obsah a ochranné známky náleží jejich příslušným vlastníkům.
+
+Doplněk není vyvíjen TALKem, a neposkytují na něj žádnou podporu.
+
+Nicméně jeho existence je Standou povolena 😉
+
+> Předpokládám, že to čte data z webu podobně jako browser jen je rovnou intepretuje do TV UI, right? Tak to je asi ok pokavaď tam funguje přihlášení pro předplatitele a je to chráněno podobně, jako web :)
+>
+> Takže za mě v pohodě. Díky!
+>
+> &mdash; STANDASHOW (@StandaShow) [24. 12. 2024](https://x.com/StandaShow/status/1871548140429656072)

@@ -36,12 +36,11 @@ def list_menu():
         else:
             url = get_url(action='listing', category_url=category['url'])
 
-        is_folder = True
         # Add the directory item to the Kodi plugin
-        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, is_folder)
+        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, True)
 
     # Set the plugin category and content type
-    xbmcplugin.setPluginCategory(_HANDLE, 'Hlavní menu') # Kategorie
+    #xbmcplugin.setPluginCategory(_HANDLE, 'Hlavní menu') # Kategorie
     xbmcplugin.setContent(_HANDLE, 'files')
     xbmcplugin.endOfDirectory(_HANDLE)
 
@@ -64,9 +63,9 @@ def list_creators():
 
         # Determine the URL for the creator's content
         url = get_url(action='listing', category_url=creator['url'])
-        is_folder = True
+
         # Add the directory item to the Kodi plugin
-        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, is_folder)
+        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, True)
 
     # Set the plugin category and content type
     xbmcplugin.setPluginCategory(_HANDLE, 'Tvůrci') # Tvůrci
@@ -92,9 +91,9 @@ def list_archive():
 
         # Determine the URL for the archive item's content
         url = get_url(action='listing', category_url=item['url'])
-        is_folder = True
+
         # Add the directory item to the Kodi plugin
-        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, is_folder)
+        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, True)
 
     # Set the plugin category and content type
     xbmcplugin.setPluginCategory(_HANDLE, 'Archiv') # Archiv

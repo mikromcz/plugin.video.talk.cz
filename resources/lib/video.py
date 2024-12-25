@@ -171,8 +171,10 @@ def yt_live():
             xbmcgui.Dialog().ok('Chyba', 'Doplněk YouTube není nainstalován, nainstalujte jej pro zobrazení živých streamů.')
             return False
 
-        # TALK TV YouTube channel ID
-        channel_id = 'UCeBKhwWQ5M1ZPBs-sZtsQtQ'  # @StandaShow channel ID
+        # STANDASHOW YouTube channel ID
+        # https://www.youtube.com/@StandaShow
+        # https://www.youtube.com/channel/UCeDNCzyWtX6Y1ThbVuxbrtw
+        channel_id = 'UCeDNCzyWtX6Y1ThbVuxbrtw'
 
         # Construct the URL for the live streams page
         youtube_url = f'plugin://plugin.video.youtube/channel/{channel_id}/live/'
@@ -181,17 +183,21 @@ def yt_live():
 
         # Create a list item for the live streams
         list_item = xbmcgui.ListItem(label='Živé vysílání')
-        list_item.setInfo('video', {'Title': 'Živé vysílání', 'Plot': 'Živé streamy na YouTube kanálu [COLOR limegreen]STANDASHOW[/COLOR].'})
+        list_item.setInfo('video', {'Title': 'Živé vysílání',
+                                    'Plot': 'Živé streamy na YouTube kanálu [COLOR limegreen]STANDASHOW[/COLOR].\n\n[COLOR slategrey]Poznámka: Otevře doplněk YouTube v sekci živých přenosů na kanálu @StandaShow.[/COLOR]'})
 
         # Add the directory item
-        xbmcplugin.addDirectoryItem(
-            handle=_HANDLE,
-            url=youtube_url,
-            listitem=list_item,
-            isFolder=True
-        )
+        xbmcplugin.addDirectoryItem(_HANDLE, youtube_url, list_item, isFolder=True)
 
+        # you're creating a direct link to the YouTube plugin (plugin://plugin.video.youtube/...).
+        # When you do this, you're essentially jumping to a different plugin, which breaks the natural directory hierarchy tracking.
+        ADDON_NAME = _ADDON.getAddonInfo('name')
+        plugin_category = f'{ADDON_NAME} / Živě'
+
+        # Set the plugin category and content type
+        xbmcplugin.setPluginCategory(_HANDLE, plugin_category)
         xbmcplugin.endOfDirectory(_HANDLE)
+
         return True
 
     except Exception as e:

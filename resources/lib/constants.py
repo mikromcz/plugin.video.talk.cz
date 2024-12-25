@@ -4,7 +4,7 @@ import xbmcaddon
 _URL = sys.argv[0]  # Base URL of the addon
 _HANDLE = int(sys.argv[1])  # Handle for the Kodi plugin instance
 _ADDON = xbmcaddon.Addon()  # Instance of the addon
-ADDON_ID = xbmcaddon.Addon().getAddonInfo('id')  # ID of the addon
+ADDON_ID = _ADDON.getAddonInfo('id')  # ID of the addon
 
 # Main menu categories
 MENU_CATEGORIES = [
@@ -53,7 +53,7 @@ MENU_CATEGORIES = [
     {
         'name': 'ŽIVĚ',
         'url': 'live',
-        'description': '[COLOR limegreen]STANDASHOW[/COLOR] živě!\n\n[COLOR slategrey]Poznámka: Otevře doplněk YouTube v sekci živých přenosů na kanálu @standashow.[/COLOR]',
+        'description': '[COLOR limegreen]STANDASHOW[/COLOR] živě!\n\n[COLOR slategrey]Poznámka: Vyžaduje funkční doplněk YouTube.[/COLOR]',
         'image': 'live.png'
     }
 ]
