@@ -8,6 +8,13 @@ Jelikož existuje nepřeberné množství podobných doplňků, co jen berou dat
 
 Ani pro Kodi ani v Pythonu jsem nikdy nic nepsal, ale s Claudem byla za jedno odpoledne hotová kostra funkčního doplňku a za týden po odpolednách řekl bych slušně fungující doplněk.
 
+## Instalace
+
+Doplněk je dostupný na GitHubu odkud si můžete stáhnout samostatný ZIP, ale doporučoval bych spíš instalaci repozitáře a doplněk poté instalovat z něj - tím by měly být zajištěny aktualizace.
+
+* Repozitář: [repository.mikrom](https://github.com/mikromcz/repository.mikrom)
+* Doplněk: [plugin.video.talk.cz](https://github.com/mikromcz/plugin.video.talk.cz)
+
 ## Přihlášení
 
 Bohužel, [TALK.cz](https://talk.cz) používá na přihlašovací stránce reCaptchu přes kterou se mi zatím nepodařilo projít. (A kdo ví, jestli podaří.)
