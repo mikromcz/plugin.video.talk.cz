@@ -120,3 +120,58 @@ def parse_date(date_str):
     except Exception as e:
         log(f"Error parsing date {date_str}: {str(e)}", xbmc.LOGWARNING)
         return ''
+
+def get_ip():
+    # Show dialog with IP addresses and config page URL.
+    # This is useful for users who want to access the config page on a different
+    # device than the one running Kodi.
+
+    try:
+        import xbmcgui
+        import socket
+        port = _ADDON.getSettingInt('config_port')
+
+        # Get all IP addresses
+        hostname = socket.gethostname()
+        ips = []
+
+        # Try IPv4
+        try:
+            ip = socket.gethostbyname(hostname)
+            ips.append(ip)
+        except:
+            pass
+
+        # Try getting all addresses including IPv6
+        try:
+            for info in socket.getaddrinfo(hostname, None):
+                ip = info[4][0]
+                if ip not in ips:
+                    ips.append(ip)
+        except:
+            pass
+
+        # Fallback to getting local IP
+        if not ips:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            try:
+                s.connect(('8.8.8.8', 80))
+                ip = s.getsockname()[0]
+                ips.append(ip)
+            except:
+                pass
+            finally:
+                s.close()
+
+        if ips:
+            message = 'Konfigurační stránka je dostupná na adresách:\n\n'
+            for ip in ips:
+                message += f'http://{ip}:{port}/talk\n'
+        else:
+            message = 'Nepodařilo se zjistit IP adresu'
+
+        xbmcgui.Dialog().ok('IP Adresy', message)
+
+    except Exception as e:
+        log(f"Error getting IP: {str(e)}", xbmc.LOGERROR)
+        xbmcgui.Dialog().notification('Chyba', 'Nepodařilo se zjistit IP adresu')

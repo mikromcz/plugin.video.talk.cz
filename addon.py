@@ -4,10 +4,10 @@ import xbmc
 import xbmcgui
 from resources.lib.auth import test_credentials, test_session
 from resources.lib.cache import clear_cache
-from resources.lib.constants import _HANDLE
+from resources.lib.constants import _HANDLE, _ADDON
 from resources.lib.menu import list_menu, list_videos, list_popular, list_top, list_continue, list_creators, list_archive
 from resources.lib.search import search
-from resources.lib.utils import log
+from resources.lib.utils import log, get_ip
 from resources.lib.video import play_video, select_quality, skip_yt_part, yt_live
 
 def router(paramstring):
@@ -30,13 +30,14 @@ def router(paramstring):
         action = params.get('action', '')
 
         # Simple actions that don't require additional parameters
-        if action in ['creators', 'archive', 'test_credentials', 'test_session', 'clear_cache']:
+        if action in ['creators', 'archive', 'test_credentials', 'test_session', 'clear_cache', 'get_ip']:
             action_map = {
                 'creators': list_creators,
                 'archive': list_archive,
                 'test_credentials': test_credentials,
                 'test_session': test_session,
-                'clear_cache': clear_cache
+                'clear_cache': clear_cache,
+                'get_ip': get_ip
             }
             action_map[action]()
             return
@@ -127,4 +128,18 @@ def router(paramstring):
 if __name__ == '__main__':
     # Entry point for the addon, route the request based on the parameters
 
+    # Only import and start web server if enabled
+    if _ADDON.getSettingBool('enable_config_page'):
+        try:
+            import threading
+            from resources.lib.webconfig import start_server
+
+            server_thread = threading.Thread(target=start_server)
+            server_thread.daemon = True
+            server_thread.start()
+            log("Config web server thread started", xbmc.LOGINFO)
+        except Exception as e:
+            log(f"Failed to start config web server: {str(e)}", xbmc.LOGERROR)
+
+    # Route the request based on the parameters
     router(sys.argv[2])

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <title>Session cookie - TALK.cz</title>
+    <style>
+        html {
+            background: #0f0f0f;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #0f0f0f;
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .instructions {
+            margin-bottom: 20px;
+        }
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.6;
+        }
+        .cookie-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .cookie-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .cookie-input:focus {
+            outline: none;
+            border-color: #00c800;
+        }
+        .button {
+            padding: 8px 16px;
+            background-color: #00c800;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #00a600;
+        }
+        .login-link {
+            display: block;
+            width: fit-content;
+            margin: 0 auto;
+            padding: 12px 24px;
+            background-color: #00c800;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .login-link:hover {
+            background-color: #00a600;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+        .status.success {
+            background-color: #00c800;
+            display: block;
+        }
+        .status.error {
+            background-color: #c80000;
+            display: block;
+        }
+        .helper-img {
+            max-width: 100%;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="instructions">
+            <h2>Jak získat PHPSESSID:</h2>
+            <ol>
+                <li>Klikněte na tlačítko "Otevřít TalkTV Přihlášení" níže.</li>
+                <li>Přihlaste se přes email a heslo, nebo přes Patreon.</li>
+                <li>V novém okně klikněte pravým tlačítkem a vyberte "Prozkoumat" nebo stiskněte F12.</li>
+                <li>Přejděte na záložku "Application" (Chrome) nebo "Úložiště" (Firefox).</li>
+                <li>V levém panelu rozbalte "Cookies".
+                    <div>
+                        <img src="https://raw.githubusercontent.com/mikromcz/plugin.video.talk.cz/main/resources/screenshot-4.png"
+                            alt="Nápověda - kde najít PHPSESSID" class="helper-img">
+                    </div>
+                </li>
+                <li>Najděte "PHPSESSID" a zkopírujte jeho hodnotu.</li>
+                <li>Vraťte se na tuto stránku a vložte hodnotu níže.</li>
+                <li>Klikněte na tlačítko "Uložit".</li>
+                <li>Pro otestování klikněte na tlačítko "Test".</li>
+                <li>Pokud byl test úspěšný, můžete zavřít okno a vypnout konfigurační stránku v nastavení doplňku.</li>
+            </ol>
+        </div>
+        <div class="cookie-form">
+            <input type="text" id="cookieInput" class="cookie-input" placeholder="Sem vložte PHPSESSID"
+                value="{{CURRENT_COOKIE}}">
+            <button onclick="saveCookie()" class="button">Uložit</button>
+            <button onclick="testSession()" class="button test">Test</button>
+        </div>
+        <a href="https://www.talktv.cz/prihlasit" target="_blank" class="login-link">Otevřít TalkTV Přihlášení</a>
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        // This script is used to save the PHPSESSID cookie to the plugin settings.
+        function saveCookie() {
+            const input = document.getElementById('cookieInput');
+            const status = document.getElementById('status');
+
+            fetch('/talk/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    cookie: input.value
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    status.textContent = 'Cookie uloženo!';
+                    status.className = 'status success';
+                })
+                .catch(error => {
+                    status.textContent = 'Chyba při ukládání!';
+                    status.className = 'status error';
+                });
+        }
+
+        // This script is used to test the session cookie.
+        function testSession() {
+            const status = document.getElementById('status');
+
+            fetch('/talk/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    status.textContent = data.message;
+                    status.className = 'status ' + (data.success ? 'success' : 'error');
+                })
+                .catch(error => {
+                    status.textContent = 'Chyba při testování!';
+                    status.className = 'status error';
+                });
+        }
+    </script>
+</body>
+</html>

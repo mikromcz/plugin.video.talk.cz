@@ -14,12 +14,41 @@ Bohužel, [TALK.cz](https://talk.cz) používá na přihlašovací stránce reCa
 
 V nastavení je tak záložní varianta se zkopírováním session cookie, což je trochu nepohodlné, protože ta cookie má platnost 1 měsíc, takže se to bude muset pravidelně opakovat.
 
-### Jak na to
+### Nastavení přes prohlížeč
 
-- Přihlašte se normálně v prohlížeči na TALK.cz.
-- Přejděte do Nástrojů pro vývojáře stiskem F12.
-- Najděte hodnotu cookie PHPSESSID a zadejte ji do doplňku<br>![screenshot-4](resources/screenshot-4.png "screenshot-4")
-- Otestujte funkčnost tlačítkem **Test přihlášení**
+Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to funguje takto:
+
+1. V nastavení doplňku povolíte konfigurační stránku a zavřete nastavení kliknutím na tlačítko OK.
+2. Na počítači navštívíte `http://<ipaddress>:<port>/talk`, jde `<ipaddress>` je IP adresa zařízení na kterém běží Kodi a `<port>` je port zadaný v nastavení (výchozí je `47447`).<br>Takže např. `192.168.1.103:47447/talk`.
+3. Měla by se načíst stránka s detailními instrukcemi jak dál,
+
+    > *1. Klikněte na tlačítko "Otevřít TalkTV Přihlášení" níže*<br>
+    > *2. Přihlaste se přes email a heslo, nebo přes Patreon*<br>
+    > *3. V novém okně klikněte pravým tlačítkem a vyberte "Prozkoumat" nebo stiskněte F12*<br>
+    > *4. Přejděte na záložku "Application" (Chrome) nebo "Úložiště" (Firefox)*<br>
+    > *5. V levém panelu rozbalte "Cookies"*<br>
+    > *6. Najděte "PHPSESSID" a zkopírujte jeho hodnotu*<br>
+    > *7. Vraťte se na tuto stránku a vložte hodnotu níže*<br>
+    > *8. Klikněte na tlačítko "Uložit".*<br>
+    > *9. Pro otestování klikněte na tlačítko "Test".*<br>
+    > *10. Pokud byl test úspěšný, můžete zavřít okno a vypnout konfigurační stránku v nastavení doplňku.*
+
+    1. Obsahuje tlačítko pro otevření přihlašovací stránky TALKu,
+    2. kde se přihlásíte přes e-mail/heslo či Patreon,
+    3. zkopírujete session cookie, vložíte do políčka a kliknete uložit,
+    4. a to je vše.
+    5. Můžete udělat test přihlášení.
+
+### Nastavení přes doplněk
+
+1. Přihlašte se normálně v prohlížeči na TALK.cz.
+2. Přejděte do Nástrojů pro vývojáře stiskem F12.
+3. Najděte hodnotu cookie PHPSESSID a zadejte ji do doplňku<br>
+4. Otestujte funkčnost tlačítkem **Test přihlášení**
+
+### Screenshot PHPSESSID
+
+![screenshot-4](resources/screenshot-4.png "screenshot-4")
 
 ## Co funguje
 

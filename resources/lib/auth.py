@@ -7,20 +7,6 @@ from bs4 import BeautifulSoup
 from .constants import _ADDON
 from .utils import log
 
-def login():
-    # Main login function that tries available login methods
-
-    # First try direct login
-    if try_direct_login():
-        return True
-
-    # If direct login failed, try Patreon
-    #if try_patreon_login():
-    #    return True
-
-    # Both methods failed
-    return False
-
 def get_session():
     # Get a requests session with authentication cookie.
 
@@ -59,98 +45,19 @@ def get_session():
         xbmcgui.Dialog().notification('Session Error', str(e))
         return False
 
-def get_recaptcha_token(site_key):
-    # Get reCAPTCHA token using approach that matches browser flow.
+def login():
+    # Main login function that tries available login methods
 
-    try:
-        session = requests.Session()
+    # First try direct login
+    if try_direct_login():
+        return True
 
-        # Step 1: Initial anchor request like browser's initial page load
-        log("Starting initial anchor request...", xbmc.LOGDEBUG)
-        anchor_url = (
-            f"https://www.google.com/recaptcha/api2/anchor"
-            f"?ar=1"
-            f"&k={site_key}"
-            f"&co=aHR0cHM6Ly93d3cudGFsa3R2LmN6OjQ0Mw.."
-            f"&hl=cs"
-            f"&v=zIriijn3uj5Vpknvt_LnfNbF"
-            f"&size=invisible"
-            f"&cb=" + str(int(time.time() * 1000))
-        )
+    # If direct login failed, try Patreon
+    #if try_patreon_login():
+    #    return True
 
-        headers = {
-            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-            "accept-language": "cs-CZ,cs;q=0.8",
-            "sec-ch-ua": '"Brave";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": '"Windows"',
-            "sec-fetch-dest": "iframe",
-            "sec-fetch-mode": "navigate",
-            "sec-fetch-site": "cross-site",
-            "sec-fetch-user": "?1",
-            "upgrade-insecure-requests": "1"
-        }
-
-        response = session.get(anchor_url, headers=headers)
-        log(f"Initial anchor response status: {response.status_code}", xbmc.LOGDEBUG)
-        log(f"Initial anchor cookies: {dict(session.cookies.items())}", xbmc.LOGDEBUG)
-
-        soup = BeautifulSoup(response.text, 'html.parser')
-        token_element = soup.find('input', {'id': 'recaptcha-token'})
-        if not token_element:
-            log("Could not find initial recaptcha-token", xbmc.LOGERROR)
-            return None
-
-        initial_token = token_element['value']
-        log(f"Got initial token: {initial_token[:20]}...", xbmc.LOGDEBUG)
-
-        # Step 2: First reload request (simulating grecaptcha.reset())
-        log("Starting first reload request...", xbmc.LOGDEBUG)
-        reload_url = f"https://www.google.com/recaptcha/api2/reload?k={site_key}"
-
-        reload_headers = {
-            "accept": "*/*",
-            "accept-language": "cs-CZ,cs;q=0.8",
-            "content-type": "application/x-www-form-urlencoded",
-            "sec-ch-ua": '"Brave";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": '"Windows"',
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "origin": "https://www.google.com",
-            "referer": anchor_url
-        }
-
-        reload_data = {
-            'v': 'zIriijn3uj5Vpknvt_LnfNbF',
-            'reason': 'q',
-            'c': initial_token,
-            'k': site_key,
-            'co': 'aHR0cHM6Ly93d3cudGFsa3R2LmN6OjQ0Mw..',
-            'hl': 'cs',
-            'size': 'invisible',
-            'chr': '[89,64,71]',
-            'vh': '13599012192',
-            'bg': 'qxNvTkF3E-kF9qRfuPPHzoNO3qGFcqQHwhfV3tXHFiXKhU9ByVvWNTrEBgQ...'
-        }
-
-        response = session.post(reload_url, headers=reload_headers, data=reload_data)
-        log(f"First reload response status: {response.status_code}", xbmc.LOGDEBUG)
-        log(f"First reload cookies: {dict(session.cookies.items())}", xbmc.LOGDEBUG)
-
-        if '"rresp","' in response.text:
-            token = response.text.split('"rresp","')[1].split('"')[0]
-            log(f"Got final token length: {len(token)}", xbmc.LOGDEBUG)
-            log(f"Token preview: {token[:50]}...", xbmc.LOGDEBUG)
-            return token
-        else:
-            log(f"Could not find rresp in response: {response.text[:200]}", xbmc.LOGERROR)
-            return None
-
-    except Exception as e:
-        log(f"Error getting reCAPTCHA token: {str(e)}", xbmc.LOGERROR)
-        return None
+    # Both methods failed
+    return False
 
 def try_direct_login():
     # Attempt direct login with form submission and reCAPTCHA bypass.
@@ -627,3 +534,96 @@ def test_session():
         log(f"Session test failed: {str(e)}", xbmc.LOGERROR)
         xbmcgui.Dialog().ok('Test Session Error', str(e))
         return False
+
+def get_recaptcha_token(site_key):
+    # Get reCAPTCHA token using approach that matches browser flow.
+
+    try:
+        session = requests.Session()
+
+        # Step 1: Initial anchor request like browser's initial page load
+        log("Starting initial anchor request...", xbmc.LOGDEBUG)
+        anchor_url = (
+            f"https://www.google.com/recaptcha/api2/anchor"
+            f"?ar=1"
+            f"&k={site_key}"
+            f"&co=aHR0cHM6Ly93d3cudGFsa3R2LmN6OjQ0Mw.."
+            f"&hl=cs"
+            f"&v=zIriijn3uj5Vpknvt_LnfNbF"
+            f"&size=invisible"
+            f"&cb=" + str(int(time.time() * 1000))
+        )
+
+        headers = {
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "accept-language": "cs-CZ,cs;q=0.8",
+            "sec-ch-ua": '"Brave";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"',
+            "sec-fetch-dest": "iframe",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-site": "cross-site",
+            "sec-fetch-user": "?1",
+            "upgrade-insecure-requests": "1"
+        }
+
+        response = session.get(anchor_url, headers=headers)
+        log(f"Initial anchor response status: {response.status_code}", xbmc.LOGDEBUG)
+        log(f"Initial anchor cookies: {dict(session.cookies.items())}", xbmc.LOGDEBUG)
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+        token_element = soup.find('input', {'id': 'recaptcha-token'})
+        if not token_element:
+            log("Could not find initial recaptcha-token", xbmc.LOGERROR)
+            return None
+
+        initial_token = token_element['value']
+        log(f"Got initial token: {initial_token[:20]}...", xbmc.LOGDEBUG)
+
+        # Step 2: First reload request (simulating grecaptcha.reset())
+        log("Starting first reload request...", xbmc.LOGDEBUG)
+        reload_url = f"https://www.google.com/recaptcha/api2/reload?k={site_key}"
+
+        reload_headers = {
+            "accept": "*/*",
+            "accept-language": "cs-CZ,cs;q=0.8",
+            "content-type": "application/x-www-form-urlencoded",
+            "sec-ch-ua": '"Brave";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"',
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "origin": "https://www.google.com",
+            "referer": anchor_url
+        }
+
+        reload_data = {
+            'v': 'zIriijn3uj5Vpknvt_LnfNbF',
+            'reason': 'q',
+            'c': initial_token,
+            'k': site_key,
+            'co': 'aHR0cHM6Ly93d3cudGFsa3R2LmN6OjQ0Mw..',
+            'hl': 'cs',
+            'size': 'invisible',
+            'chr': '[89,64,71]',
+            'vh': '13599012192',
+            'bg': 'qxNvTkF3E-kF9qRfuPPHzoNO3qGFcqQHwhfV3tXHFiXKhU9ByVvWNTrEBgQ...'
+        }
+
+        response = session.post(reload_url, headers=reload_headers, data=reload_data)
+        log(f"First reload response status: {response.status_code}", xbmc.LOGDEBUG)
+        log(f"First reload cookies: {dict(session.cookies.items())}", xbmc.LOGDEBUG)
+
+        if '"rresp","' in response.text:
+            token = response.text.split('"rresp","')[1].split('"')[0]
+            log(f"Got final token length: {len(token)}", xbmc.LOGDEBUG)
+            log(f"Token preview: {token[:50]}...", xbmc.LOGDEBUG)
+            return token
+        else:
+            log(f"Could not find rresp in response: {response.text[:200]}", xbmc.LOGERROR)
+            return None
+
+    except Exception as e:
+        log(f"Error getting reCAPTCHA token: {str(e)}", xbmc.LOGERROR)
+        return None
