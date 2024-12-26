@@ -8,6 +8,8 @@ Jelikož existuje nepřeberné množství podobných doplňků, co jen berou dat
 
 Ani pro Kodi ani v Pythonu jsem nikdy nic nepsal, ale s Claudem byla za jedno odpoledne hotová kostra funkčního doplňku a za týden po odpolednách řekl bych slušně fungující doplněk.
 
+> Doplněk vyžaduje aktivní předplatné na [TALK.cz](https://talk.cz)
+
 ## Instalace
 
 Doplněk je dostupný na GitHubu odkud si můžete stáhnout samostatný ZIP, ale doporučoval bych spíš instalaci repozitáře a doplněk poté instalovat z něj - tím by měly být zajištěny aktualizace.
