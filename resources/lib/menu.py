@@ -2,13 +2,15 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
-from .constants import _HANDLE, _ADDON, ADDON_ID, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
-from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name, clean_url
 from .auth import get_session
 from .cache import get_video_details
+from .constants import _HANDLE, _ADDON, ADDON_ID, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
+from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name, clean_url, get_creator_name_from_coloring, get_creator_cast, get_creator_url
 
 def list_menu():
-    # Lists the main menu categories available in the addon
+    """
+    Lists the main menu categories available in the addon
+    """
 
     for category in MENU_CATEGORIES:
         # Create a list item for each category
@@ -45,7 +47,9 @@ def list_menu():
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_creators():
-    # Lists the creators and their content available in the addon
+    """
+    Lists the creators and their content available in the addon
+    """
 
     for creator in CREATOR_CATEGORIES:
         # Create a list item for each creator
@@ -73,7 +77,9 @@ def list_creators():
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_archive():
-    # Lists the archive items available in the addon
+    """
+    Lists the archive items available in the addon
+    """
 
     for item in ARCHIVE_CATEGORIES:
         # Create a list item for each archive item
@@ -101,7 +107,9 @@ def list_archive():
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_videos(category_url):
-    # Lists videos from the given category URL
+    """
+    Lists videos from the given category URL
+    """
 
     # Get a session for making HTTP requests
     session = get_session()
@@ -113,6 +121,11 @@ def list_videos(category_url):
         log(f"Listing videos for category: {category_url}", xbmc.LOGINFO)
         original_url = category_url
         is_paginated = 'page=' in category_url
+
+        # Determine if we should show creator names
+        # Show creator names only for the main videos section
+        show_creator = 'talktv.cz/videa' in category_url
+        log(f"Show creator names: {show_creator} for URL: {category_url}", xbmc.LOGINFO)
 
         # Make the HTTP GET request
         response = session.get(category_url)
@@ -162,59 +175,17 @@ def list_videos(category_url):
                 return
 
         for item in video_items:
-            title_element = item.find('div', class_='media__name')
-            if not title_element or not title_element.p:
-                log("Skipping item with missing title", xbmc.LOGWARNING)
-                continue
+            #log(f"Processing item: {item.get('class')}", xbmc.LOGINFO)
+            # Process video item with creator names only for main videos section
+            result = process_video_item(item, session, show_creator_in_title=show_creator)
+            if result:
+                list_item, video_url = result
+                url = get_url(action='play', video_url=video_url)
+                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
-            title = clean_text(title_element.p.text)
-            video_url = clean_url('https://www.talktv.cz' + item['href'])
-
-            duration_element = item.find('p', class_='duration')
-            duration_text = duration_element.text.strip() if duration_element else "0:00"
-
-            list_item = xbmcgui.ListItem(label=title)
-            list_item.setProperty('IsPlayable', 'true')
-            list_item.setIsFolder(False)
-
-            img_element = item.find('img')
-            thumbnail = img_element.get('data-src', '') if img_element else ''
-            if not thumbnail and img_element:
-                thumbnail = img_element.get('src', '')
-
-            list_item.setArt({
-                'thumb': thumbnail,
-                'icon': thumbnail
-            })
-
-            # Get video details from cache or fetch them
-            description, date = get_video_details(session, video_url)
-
-            # Convert the duration to seconds
-            duration_seconds = convert_duration_to_seconds(duration_text)
-
-            # Set video info tags
-            info_tag = list_item.getVideoInfoTag()
-            info_tag.setTitle(title)
-            info_tag.setPlot(description)
-            info_tag.setDuration(duration_seconds)
-            info_tag.setMediaType('video')
-
-            if date:
-                info_tag.setPremiered(parse_date(date))
-
-            list_item.setLabel2(duration_text)
-
-            # Add context menu items
-            context_menu = [
-                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'), # Přehrát (zeptat se na kvalitu)
-                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})') # Přeskočit YouTube část
-            ]
-            list_item.addContextMenuItems(context_menu)
-
-            # Add the directory item to the Kodi plugin
-            url = get_url(action='play', video_url=video_url)
-            xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+        # No next for "OSTATNÍ"
+        if 'filter=ostatni' in category_url:
+            has_next = False
 
         if has_next:
             # Get base URL without any query parameters
@@ -225,7 +196,7 @@ def list_videos(category_url):
             next_url = f"{base_url}?page={next_page}"
 
             log(f"Adding next page item: page {next_page}", xbmc.LOGDEBUG)
-            next_item = xbmcgui.ListItem(label='Další strana') # Další strana
+            next_item = xbmcgui.ListItem(label='Další strana')
             next_item.setArt({
                 'icon': get_image_path('foldernext.png'),
                 'thumb': get_image_path('foldernext.png')
@@ -233,9 +204,8 @@ def list_videos(category_url):
             xbmcplugin.addDirectoryItem(_HANDLE, get_url(action='listing', category_url=next_url), next_item, True)
 
         # Set the content type and sort method for the directory
-        xbmcplugin.setPluginCategory(_HANDLE, get_category_name(category_url)) # Set the plugin category based on the URL or page content
+        xbmcplugin.setPluginCategory(_HANDLE, get_category_name(category_url))
         xbmcplugin.setContent(_HANDLE, 'videos')
-        xbmcplugin.addSortMethod(_HANDLE, xbmcplugin.SORT_METHOD_NONE)
         xbmcplugin.endOfDirectory(_HANDLE)
 
     except Exception as e:
@@ -243,8 +213,10 @@ def list_videos(category_url):
         xbmcgui.Dialog().notification('Chyba', str(e))
 
 def list_popular(page=1):
-    # Lists the most popular videos, paginated with 24 items per page (24, 48, 72, ...)
-    # C2 in https://www.talktv.cz/srv/videos/home
+    """
+    Lists the most popular videos, paginated with 24 items per page (24, 48, 72, ...)
+    C2 in https://www.talktv.cz/srv/videos/home
+    """
 
     # Get a session for making HTTP requests
     session = get_session()
@@ -296,50 +268,11 @@ def list_popular(page=1):
             if not item:
                 continue
 
-            title_element = item.find('div', class_='media__name')
-            if not title_element or not title_element.p:
-                continue
-
-            title = clean_text(title_element.p.text)
-            video_url = clean_url('https://www.talktv.cz' + item['href'])
-
-            duration_element = item.find('p', class_='duration')
-            duration_text = duration_element.text.strip() if duration_element else "0:00"
-
-            list_item = xbmcgui.ListItem(label=title)
-            list_item.setProperty('IsPlayable', 'true')
-            list_item.setIsFolder(False)
-
-            img_element = item.find('img')
-            thumbnail = img_element.get('data-src', '') if img_element else ''
-            if not thumbnail and img_element:
-                thumbnail = img_element.get('src', '')
-
-            list_item.setArt({
-                'thumb': thumbnail,
-                'icon': thumbnail
-            })
-
-            description, date = get_video_details(session, video_url)
-            duration_seconds = convert_duration_to_seconds(duration_text)
-
-            info_tag = list_item.getVideoInfoTag()
-            info_tag.setTitle(title)
-            info_tag.setPlot(description)
-            info_tag.setDuration(duration_seconds)
-            info_tag.setMediaType('video')
-
-            if date:
-                info_tag.setPremiered(parse_date(date))
-
-            context_menu = [
-                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'), # Přehrát (zeptat se na kvalitu)
-                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})') # Přeskočit YouTube část
-            ]
-            list_item.addContextMenuItems(context_menu)
-
-            url = get_url(action='play', video_url=video_url)
-            xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+            result = process_video_item(item, session)
+            if result:
+                list_item, video_url = result
+                url = get_url(action='play', video_url=video_url)
+                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
         if has_next_page:  # Add next page only if there are more items available
             next_page = page + 1
@@ -361,8 +294,10 @@ def list_popular(page=1):
         xbmcgui.Dialog().notification('Chyba', str(e))
 
 def list_top():
-    # Lists the top videos (no pagination as there are only 16 items)
-    # C3 in https://www.talktv.cz/srv/videos/home
+    """
+    Lists the top videos (no pagination as there are only 16 items)
+    C3 in https://www.talktv.cz/srv/videos/home
+    """
 
     # Get a session for making HTTP requests
     session = get_session()
@@ -397,50 +332,11 @@ def list_top():
             if not item:
                 continue
 
-            title_element = item.find('div', class_='media__name')
-            if not title_element or not title_element.p:
-                continue
-
-            title = clean_text(title_element.p.text)
-            video_url = clean_url('https://www.talktv.cz' + item['href'])
-
-            duration_element = item.find('p', class_='duration')
-            duration_text = duration_element.text.strip() if duration_element else "0:00"
-
-            list_item = xbmcgui.ListItem(label=title)
-            list_item.setProperty('IsPlayable', 'true')
-            list_item.setIsFolder(False)
-
-            img_element = item.find('img')
-            thumbnail = img_element.get('data-src', '') if img_element else ''
-            if not thumbnail and img_element:
-                thumbnail = img_element.get('src', '')
-
-            list_item.setArt({
-                'thumb': thumbnail,
-                'icon': thumbnail
-            })
-
-            description, date = get_video_details(session, video_url)
-            duration_seconds = convert_duration_to_seconds(duration_text)
-
-            info_tag = list_item.getVideoInfoTag()
-            info_tag.setTitle(title)
-            info_tag.setPlot(description)
-            info_tag.setDuration(duration_seconds)
-            info_tag.setMediaType('video')
-
-            if date:
-                info_tag.setPremiered(parse_date(date))
-
-            context_menu = [
-                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'), # Přehrát (zeptat se na kvalitu)
-                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})') # Přeskočit YouTube část
-            ]
-            list_item.addContextMenuItems(context_menu)
-
-            url = get_url(action='play', video_url=video_url)
-            xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+            result = process_video_item(item, session)
+            if result:
+                list_item, video_url = result
+                url = get_url(action='play', video_url=video_url)
+                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
         # Set the plugin category and content type
         xbmcplugin.setPluginCategory(_HANDLE, 'Nejlepší videa') # Nejlepší videa
@@ -452,8 +348,10 @@ def list_top():
         xbmcgui.Dialog().notification('Chyba', str(e))
 
 def list_continue():
-    # Lists the videos that the user can continue watching (no pagination)
-    # C1 in https://www.talktv.cz/srv/videos/home
+    """
+    Lists the videos that the user can continue watching (no pagination)
+    C1 in https://www.talktv.cz/srv/videos/home
+    """
 
     # Get a session for making HTTP requests
     session = get_session()
@@ -488,50 +386,11 @@ def list_continue():
             if not item:
                 continue
 
-            title_element = item.find('div', class_='media__name')
-            if not title_element or not title_element.p:
-                continue
-
-            title = clean_text(title_element.p.text)
-            video_url = clean_url('https://www.talktv.cz' + item['href'])
-
-            duration_element = item.find('p', class_='duration')
-            duration_text = duration_element.text.strip() if duration_element else "0:00"
-
-            list_item = xbmcgui.ListItem(label=title)
-            list_item.setProperty('IsPlayable', 'true')
-            list_item.setIsFolder(False)
-
-            img_element = item.find('img')
-            thumbnail = img_element.get('data-src', '') if img_element else ''
-            if not thumbnail and img_element:
-                thumbnail = img_element.get('src', '')
-
-            list_item.setArt({
-                'thumb': thumbnail,
-                'icon': thumbnail
-            })
-
-            description, date = get_video_details(session, video_url)
-            duration_seconds = convert_duration_to_seconds(duration_text)
-
-            info_tag = list_item.getVideoInfoTag()
-            info_tag.setTitle(title)
-            info_tag.setPlot(description)
-            info_tag.setDuration(duration_seconds)
-            info_tag.setMediaType('video')
-
-            if date:
-                info_tag.setPremiered(parse_date(date))
-
-            context_menu = [
-                ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'), # Přehrát (zeptat se na kvalitu)
-                ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})') # Přeskočit YouTube část
-            ]
-            list_item.addContextMenuItems(context_menu)
-
-            url = get_url(action='play', video_url=video_url)
-            xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+            result = process_video_item(item, session)
+            if result:
+                list_item, video_url = result
+                url = get_url(action='play', video_url=video_url)
+                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
         # Set the plugin category and content type
         xbmcplugin.setPluginCategory(_HANDLE, 'Pokračovat v přehrávání') # Pokračovat v přehrávání
@@ -541,3 +400,94 @@ def list_continue():
     except Exception as e:
         log("Error in list_continue", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Chyba', str(e))
+
+# In process_video_item(), update how we handle cast:
+
+def process_video_item(item, session, show_creator_in_title=True):
+    """
+    Helper function to process a video item and create a ListItem.
+    """
+
+    title_element = item.find('div', class_='media__name')
+    if not title_element or not title_element.p:
+        return None
+
+    # Get coloring class from the media element itself
+    coloring_class = None
+    item_classes = item.get('class', [])
+    coloring_class = next((c for c in item_classes if 'coloring-' in c), None)
+
+    creator_name = get_creator_name_from_coloring(coloring_class)
+
+    # Get basic video info
+    raw_title = clean_text(title_element.p.text)
+    full_title = f"[COLOR limegreen]{creator_name}[/COLOR] • {raw_title}" if creator_name else raw_title
+
+    # Use either full title with creator or raw title based on parameter
+    display_title = full_title if show_creator_in_title else raw_title
+
+    video_url = clean_url('https://www.talktv.cz' + item['href'])
+
+    duration_element = item.find('p', class_='duration')
+    duration_text = duration_element.text.strip() if duration_element else "0:00"
+
+    list_item = xbmcgui.ListItem(display_title)
+    list_item.setProperty('IsPlayable', 'true')
+    list_item.setIsFolder(False)
+
+    # Set thumbnail
+    img_element = item.find('img')
+    thumbnail = img_element.get('data-src', '') if img_element else ''
+    if not thumbnail and img_element:
+        thumbnail = img_element.get('src', '')
+
+    list_item.setArt({
+        'thumb': thumbnail,
+        'icon': thumbnail
+    })
+
+    # Get additional details
+    description, date = get_video_details(session, video_url)
+    duration_seconds = convert_duration_to_seconds(duration_text)
+
+    # Set video info
+    info_tag = list_item.getVideoInfoTag()
+    info_tag.setTitle(raw_title)
+    info_tag.setTvShowTitle(f"[COLOR limegreen]{creator_name}[/COLOR]")
+    info_tag.setPlot(description)
+    info_tag.setDuration(duration_seconds)
+    info_tag.setMediaType('episode')
+    info_tag.setStudios(["TALK"])
+    info_tag.setCountries(["Česká Republika"])
+
+    # Get cast information
+    cast = get_creator_cast(creator_name)
+    if cast:
+        try:
+            info_tag.setCast(cast)
+            #log(f"Cast set successfully for {creator_name}: {[a.getAsString() for a in cast]}", xbmc.LOGINFO)
+        except Exception as e:
+            log(f"Error setting cast for {creator_name}: {str(e)}", xbmc.LOGERROR)
+
+    if date:
+        info_tag.setPremiered(parse_date(date))
+
+    # Add context menu
+    context_menu = [
+        ('Přeskočit YouTube část', f'RunPlugin({get_url(action="skip_yt_part", video_url=video_url)})'),
+        ('Pokračovat od pozice na webu', f'RunPlugin({get_url(action="resume_web", video_url=video_url)})'),
+        ('Přehrát (zeptat se na kvalitu)', f'RunPlugin({get_url(action="select_quality", video_url=video_url)})'),
+        ('---', f'RunPlugin({get_url(action="notification")})')
+    ]
+
+    # Add creator navigation option if showing creator in title
+    if show_creator_in_title and creator_name:
+        creator_url = get_creator_url(creator_name)
+        if creator_url:
+            context_menu.insert(0,
+                ('Přejít na tvůrce', f'Container.Update({get_url(action="listing", category_url=creator_url)})')
+            )
+
+    list_item.addContextMenuItems(context_menu)
+
+    return list_item, video_url

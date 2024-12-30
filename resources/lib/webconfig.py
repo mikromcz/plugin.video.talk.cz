@@ -9,7 +9,13 @@ from .constants import _ADDON
 from .utils import log
 
 class ConfigHandler(http.server.SimpleHTTPRequestHandler):
-    # Custom handler for the config server
+    """
+    Custom handler for the config server
+
+    GET /talk - Serve the HTML template
+    POST /talk/save - Save the session cookie
+    POST /talk/test - Test the session cookie
+    """
 
     # Handle GET requests
     def do_GET(self):
@@ -102,7 +108,12 @@ class ConfigHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(404)
 
 def start_server():
-    # Start the config server
+    """
+    Start the config server
+
+    If the config page is enabled, start the server at the specified port
+    """
+
     if not _ADDON.getSettingBool('enable_config_page'):
         return
 

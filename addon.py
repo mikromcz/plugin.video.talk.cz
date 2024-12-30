@@ -8,10 +8,15 @@ from resources.lib.constants import _HANDLE, _ADDON
 from resources.lib.menu import list_menu, list_videos, list_popular, list_top, list_continue, list_creators, list_archive
 from resources.lib.search import search
 from resources.lib.utils import log, get_ip
-from resources.lib.video import play_video, select_quality, skip_yt_part, yt_live
+from resources.lib.video import play_video, select_quality, skip_yt_part, yt_live, resume_from_web
 
 def router(paramstring):
-    # Routes the request based on the provided query parameters
+    """
+    Routes the request based on the provided query parameters
+
+    Args:
+        paramstring (str): The URL query parameters
+    """
 
     # Import search functionality at the module level
     from resources.lib.search import search, list_search_results
@@ -96,6 +101,7 @@ def router(paramstring):
             if not video_url:
                 log("Missing video_url parameter", xbmc.LOGERROR)
                 return
+
             quality = params.get('quality')
             play_video(video_url, quality)
             return
@@ -118,6 +124,19 @@ def router(paramstring):
             skip_yt_part(video_url)
             return
 
+        # Handle resuming video from web
+        if action == 'resume_web':
+            video_url = params.get('video_url')
+            if not video_url:
+                log("Missing video_url parameter", xbmc.LOGERROR)
+                return
+            resume_from_web(video_url)
+            return
+
+        # Handle notification
+        if params['action'] == 'notification':
+            xbmcgui.Dialog().notification('TALK', 'Já nic, já jen oddělovač', time=2000)
+
         # If we get here, the action was not recognized
         log(f"Unrecognized action: {action}", xbmc.LOGERROR)
 
@@ -126,7 +145,17 @@ def router(paramstring):
         xbmcgui.Dialog().notification('Chyba', str(e))
 
 if __name__ == '__main__':
-    # Entry point for the addon, route the request based on the parameters
+    """
+    Entry point for the addon, route the request based on the parameters
+
+    The addon can be started with the following parameters:
+    - action: The action to perform
+    - page: The page number to display
+    - category_url: The URL of the category to list
+    - video_url: The URL of the video to play
+    - quality: The quality of the video to play
+    - search_url: The URL to search
+    """
 
     # Only import and start web server if enabled
     if _ADDON.getSettingBool('enable_config_page'):

@@ -8,7 +8,12 @@ from .constants import _ADDON
 from .utils import log
 
 def get_session():
-    # Get a requests session with authentication cookie.
+    """
+    Get a requests session with authentication cookie.
+
+    Returns:
+        requests.Session: A session object with authentication cookie set
+    """
 
     # Attempts login if no valid session exists.
     session_cookie = _ADDON.getSetting('session_cookie')
@@ -46,7 +51,12 @@ def get_session():
         return False
 
 def login():
-    # Main login function that tries available login methods
+    """
+    Main login function that tries available login methods
+
+    Returns:
+        bool: True if login was successful, False otherwise
+    """
 
     # First try direct login
     if try_direct_login():
@@ -60,7 +70,12 @@ def login():
     return False
 
 def try_direct_login():
-    # Attempt direct login with form submission and reCAPTCHA bypass.
+    """
+    Attempt direct login with form submission and reCAPTCHA bypass.
+
+    Returns:
+        bool: True if login was successful, False otherwise
+    """
 
     email = _ADDON.getSetting('email')
     password = _ADDON.getSetting('password')
@@ -188,7 +203,12 @@ def try_direct_login():
         return False
 
 def try_patreon_login():
-    # Attempt login via Patreon OAuth
+    """
+    Attempt login via Patreon OAuth
+
+    Returns:
+        bool: True if login was successful, False otherwise
+    """
 
     session = requests.Session()
 
@@ -211,7 +231,12 @@ def try_patreon_login():
     return False
 
 def test_credentials():
-    # Test login credentials with full debug output.
+    """
+    Test login credentials with full debug output.
+
+    This function is used to test the login credentials and provide detailed debug output.
+    It is useful for troubleshooting login issues and reCAPTCHA token generation.
+    """
 
     email = _ADDON.getSetting('email')
     password = _ADDON.getSetting('password')
@@ -502,7 +527,9 @@ def test_credentials():
         xbmcgui.Dialog().ok('Test Error', str(e))
 
 def test_session():
-    # Test if the current session cookie is valid
+    """
+    Test if the current session cookie is valid
+    """
 
     session_cookie = _ADDON.getSetting('session_cookie')
 
@@ -536,7 +563,15 @@ def test_session():
         return False
 
 def get_recaptcha_token(site_key):
-    # Get reCAPTCHA token using approach that matches browser flow.
+    """
+    Get reCAPTCHA token using approach that matches browser flow.
+
+    Args:
+        site_key (str): The reCAPTCHA site key to use
+
+    Returns:
+        str: The reCAPTCHA token if successful, None otherwise
+    """
 
     try:
         session = requests.Session()

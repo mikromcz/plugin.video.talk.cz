@@ -66,6 +66,7 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
     * Kešování popisů epizod a datumů - menší zátěž pro server Talku, značné zrychlení doplňku
     * Skok na čas, kdy skončila YouTube část videa (Tak trochu. Jen spustí video od času nastaveného v nastavení - průměrná délka YouTube části je cca 22 minut)
     * Živé streamy - aktuálně přes otevření doplňku YouTube
+    * Podpora ukládání pozice přehrávání. Obousměrně - při přehrávání v Kodi se posílá pozice na web, a pokud je rozkoukáno na webu, tak se v Kodi přehraje od té pozice.
 
 * **Menu**
     * **Hledání**

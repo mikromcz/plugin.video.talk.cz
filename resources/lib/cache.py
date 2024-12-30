@@ -8,7 +8,12 @@ from .constants import _ADDON
 from .utils import log
 
 def get_cache_path():
-    # Get the path to the cache file.
+    """
+    Get the path to the cache file.
+
+    Returns:
+        str: The full path to the cache file
+    """
 
     try:
         # For Kodi 19+ use xbmcvfs.translatePath
@@ -23,7 +28,12 @@ def get_cache_path():
     return os.path.join(profile_path, 'video_cache.json')
 
 def load_cache():
-    # Load the cache from file.
+    """
+    Load the cache from file.
+
+    Returns:
+        dict: The cache data
+    """
 
     cache_path = get_cache_path()
     if os.path.exists(cache_path):
@@ -35,7 +45,12 @@ def load_cache():
     return {}
 
 def save_cache(cache_data):
-    # Save the cache to file.
+    """
+    Save the cache to file.
+
+    Args:
+        cache_data (dict): The cache data to save
+    """
 
     cache_path = get_cache_path()
     try:
@@ -45,7 +60,9 @@ def save_cache(cache_data):
         log(f"Error saving cache: {str(e)}", xbmc.LOGWARNING)
 
 def clear_cache():
-    # Clear the video description cache.
+    """
+    Clear the video description cache.
+    """
 
     cache_path = get_cache_path()
     if os.path.exists(cache_path):
@@ -61,7 +78,16 @@ def clear_cache():
     return True
 
 def get_video_details(session, video_url):
-    # Get video details with caching support.
+    """
+    Get video details with caching support.
+
+    Args:
+        session (requests.Session): The session to use for the request
+        video_url (str): The URL of the video
+
+    Returns:
+        tuple: A tuple containing the video description and the date when the video was published
+    """
 
     # Check if caching is enabled in settings
     use_cache = _ADDON.getSettingBool('use_cache')
@@ -81,33 +107,44 @@ def get_video_details(session, video_url):
         log(f"Fetching details for video: {video_url}", xbmc.LOGDEBUG)
         video_response = session.get(video_url)
         video_soup = BeautifulSoup(video_response.text, 'html.parser')
+
+        # Get the main details info
         details_element = video_soup.find('div', class_='details__info')
+        description = ''
+        date = ''
 
         if details_element:
-            description = details_element.text.strip()
-            parts = description.split('                -', 1)
+            main_content = details_element.text.strip()
+            parts = main_content.split('                -', 1)
+
             if len(parts) == 2:
                 date = parts[0].strip()
-                content = parts[1].strip()
-                description = content
+                description = parts[1].strip()
             else:
-                date = ''
-                content = description
+                description = main_content
 
-            # Save to cache if enabled
-            if use_cache:
-                cache = load_cache()
-                cache[video_url] = {
-                    'description': description,
-                    'date': date,
-                    'timestamp': time.time()
-                }
-                save_cache(cache)
+        # Get additional description if available
+        description_element = video_soup.find('div', class_='details__description-text')
+        if description_element:
+            additional_description = description_element.text.strip()
+            if additional_description:
+                # Only add newline if we have both descriptions
+                if description:
+                    description += '\n' + additional_description
+                else:
+                    description = additional_description
 
-            return description, date
-        else:
-            log(f"No details found for video: {video_url}", xbmc.LOGWARNING)
-            return '', ''
+        # Save to cache if enabled
+        if use_cache and (description or date):
+            cache = load_cache()
+            cache[video_url] = {
+                'description': description,
+                'date': date,
+                'timestamp': time.time()
+            }
+            save_cache(cache)
+
+        return description, date
 
     except Exception as e:
         log(f"Error fetching video details: {str(e)}", xbmc.LOGERROR)
