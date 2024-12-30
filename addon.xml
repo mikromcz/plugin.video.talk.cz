@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.talk.cz" name="TALK" provider-name="mikrom" version="1.1.0">
+<addon id="plugin.video.talk.cz" name="TALK" provider-name="mikrom" version="1.2.0">
     <requires>
         <import addon="xbmc.python" version="3.0.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -34,12 +34,12 @@
 1.1.0 (2024-12-26)
 • Přidán webserver pro pohodlné zadání PHPSESSID přes webové rozhraní
 
-1.2.0 (2024-12-29)
+1.2.0 (2024-12-30)
 • Kategorie Ostatní
 • Kompatibilita s ukládáním pozice přehrávání na webu - při přehrávání v Kodi se pozice průběžně ukládá na web, a video je z kontextové nabídky možné spustit od pozice uložené na webu.
 • Rozšíření popisu videa (u některých videí na webu je dostupný rozšířený popis "Zobrazit více...", který se nyní zobrazí i v Kodi)
 • Přidání položky "Informace o videu" do kontextové nabídky. Včetně "obsazení".
-• V posledních, poopulárních apd. videích se zobrazuje název tvůrce
+• V posledních, populárních apd. videích se zobrazuje název tvůrce
 • Přidání položky "Přejít na tvůrce" do kontextového menu
         </news>
     </extension>
