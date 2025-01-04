@@ -28,11 +28,8 @@
         </assets>
         <news>[COLOR slategrey]Poznámka: Neumím programovat, a už vůbec ne v Pythonu. Drtivou většinu kódu vygeneroval Claude.AI. A leccos také GitHub Copilot :)[/COLOR]
 
-1.0.0 (2024-12-24)
-• První veřejná verze
-
-1.1.0 (2024-12-26)
-• Přidán webserver pro pohodlné zadání PHPSESSID přes webové rozhraní
+1.3.0 (2024-xxx)
+• Při ručním označení videa jako shlédnuté, se aktualizuje i stav na webu
 
 1.2.0 (2024-12-30)
 • Kategorie Ostatní
@@ -41,6 +38,12 @@
 • Přidání položky "Informace o videu" do kontextové nabídky. Včetně "obsazení".
 • V posledních, populárních apd. videích se zobrazuje název tvůrce
 • Přidání položky "Přejít na tvůrce" do kontextového menu
+
+1.1.0 (2024-12-26)
+• Přidán webserver pro pohodlné zadání PHPSESSID přes webové rozhraní
+
+1.0.0 (2024-12-24)
+• První veřejná verze
         </news>
     </extension>
 </addon>
