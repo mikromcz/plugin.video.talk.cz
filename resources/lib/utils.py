@@ -219,6 +219,7 @@ def get_creator_name_from_coloring(coloring_class):
     Example:
         get_creator_name_from_coloring('coloring-1') -> 'STANDASHOW'
     """
+
     if not coloring_class or not isinstance(coloring_class, str):
         return ''
 
@@ -236,6 +237,15 @@ def get_creator_name_from_coloring(coloring_class):
 def get_creator_cast(creator_name):
     """
     Get cast list as xbmc.Actor objects for a given creator name
+
+    Args:
+        creator_name (str): Name of the creator
+
+    Returns:
+        list: List of xbmc.Actor objects or empty list if not found
+
+    Example:
+        get_creator_cast('STANDASHOW') -> [Actor('Standa Hruška', 'Moderátor', 0, ''), Actor('Vladimír Váchal', 'Moderátor', 1, '')]
     """
 
     cast_list = []
@@ -266,7 +276,11 @@ def get_creator_url(creator_name):
 
     Returns:
         str: URL of the creator's page or None if not found
+
+    Example:
+        get_creator_url('STANDASHOW') -> 'https://www.talktv.cz/standashow'
     """
+
     if not creator_name:
         return None
 
