@@ -388,9 +388,6 @@ def check_web_resume(video_url):
 def get_progress_monitor():
     """
     Get or create the progress monitor singleton instance.
-
-    Returns:
-        ProgressMonitor: Progress monitor instance for tracking video playback progress
     """
 
     global _progress_monitor
@@ -403,9 +400,8 @@ def get_progress_monitor():
 class ProgressMonitor(xbmc.Player):
     """
     Progress monitor class to track video playback progress and send updates to the server.
-    Also handles marking videos as watched when completed.
 
-    Note: This class extends the xbmc.Player class to monitor video playback.
+    Note: This class extends the xbmc.Player class to inherit playback methods.
     """
 
     def __init__(self):
@@ -415,8 +411,7 @@ class ProgressMonitor(xbmc.Player):
         self.session = None
         self.stop_thread = False
         self.progress_thread = None
-        self.initial_position = 0
-        self.total_time = 0
+        self.initial_position = 0  # Add this new property
         log("ProgressMonitor initialized", xbmc.LOGINFO)
 
     @property
@@ -430,73 +425,9 @@ class ProgressMonitor(xbmc.Player):
             log(f"Video ID set to: {value}", xbmc.LOGINFO)
             self._start_monitoring()
 
-    def onPlayBackStarted(self):
-        """
-        Called when playback starts.
-        """
-        if self.isPlayingVideo():
-            # Store the total duration when playback starts
-            self.total_time = self.getTotalTime()
-            log(f"Video total time: {self.total_time} seconds", xbmc.LOGINFO)
-
-    def onPlayBackEnded(self):
-        """
-        Called when playback ends normally.
-        """
-        self._handle_playback_completion()
-
-    def onPlayBackStopped(self):
-        """
-        Called when playback is stopped by user.
-        """
-        self._handle_playback_completion()
-
-    def _handle_playback_completion(self):
-        """
-        Handle video completion or when marked as watched.
-        """
-        try:
-            if self.video_id and self.total_time > 0:
-                # Check if video is marked as watched in Kodi's database
-                import json
-                request = {
-                    "jsonrpc": "2.0",
-                    "method": "VideoLibrary.GetEpisodeDetails",
-                    "params": {
-                        "episodeid": int(self.video_id),
-                        "properties": ["playcount"]
-                    },
-                    "id": 1
-                }
-
-                response = json.loads(xbmc.executeJSONRPC(json.dumps(request)))
-                playcount = response.get("result", {}).get("episodedetails", {}).get("playcount", 0)
-
-                if playcount > 0:
-                    log(f"Video {self.video_id} marked as watched, sending total time: {self.total_time}", xbmc.LOGINFO)
-                    # Send the total time as current position
-                    if self.session:
-                        response = self.session.get(
-                            'https://www.talktv.cz/srv/log-time',
-                            params={
-                                'vid': self.video_id,
-                                'p': int(self.total_time),
-                                't': int(time.time()),
-                                's': 30
-                            },
-                            timeout=10
-                        )
-                        if response.status_code == 200:
-                            log(f"Final progress updated for video {self.video_id}", xbmc.LOGINFO)
-                        else:
-                            log(f"Failed to update final progress: {response.status_code}", xbmc.LOGWARNING)
-        except Exception as e:
-            log(f"Error handling playback completion: {str(e)}", xbmc.LOGERROR)
-        finally:
-            self.cleanup()
-
     def _start_monitoring(self):
         # Start the monitoring thread.
+
         try:
             # Get a new session
             self.session = get_session()
@@ -521,6 +452,7 @@ class ProgressMonitor(xbmc.Player):
 
     def cleanup(self):
         # Clean up resources and stop monitoring.
+
         log("Cleanup called", xbmc.LOGINFO)
         if self.progress_thread and self.progress_thread.is_alive():
             self.stop_thread = True
@@ -528,7 +460,6 @@ class ProgressMonitor(xbmc.Player):
             log("Stopped progress monitoring thread", xbmc.LOGINFO)
         self.video_id = None
         self.session = None
-        self.total_time = 0
 
     def monitor_progress(self):
         log("Starting progress monitoring loop", xbmc.LOGINFO)
@@ -583,3 +514,4 @@ class ProgressMonitor(xbmc.Player):
                     return
 
         log("Progress monitoring loop ended", xbmc.LOGINFO)
+        self.initial_position = 0

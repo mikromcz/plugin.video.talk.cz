@@ -9,9 +9,7 @@ from .utils import get_url, get_image_path, log, clean_text, convert_duration_to
 
 def list_menu():
     """
-    Lists the main menu categories available in the addon.
-    The main menu categories are defined in the MENU_CATEGORIES constant.
-    Each category has a name, image, description, and URL.
+    Lists the main menu categories available in the addon
     """
 
     for category in MENU_CATEGORIES:
@@ -50,9 +48,7 @@ def list_menu():
 
 def list_creators():
     """
-    Lists the creators and their content available in the addon.
-    The creators are defined in the CREATOR_CATEGORIES constant.
-    Each creator has a name, image, description, and URL.
+    Lists the creators and their content available in the addon
     """
 
     for creator in CREATOR_CATEGORIES:
@@ -82,9 +78,7 @@ def list_creators():
 
 def list_archive():
     """
-    Lists the archive items available in the addon.
-    The archive items are defined in the ARCHIVE_CATEGORIES constant.
-    Each item has a name, image, description, and URL.
+    Lists the archive items available in the addon
     """
 
     for item in ARCHIVE_CATEGORIES:
@@ -114,11 +108,7 @@ def list_archive():
 
 def list_videos(category_url):
     """
-    Lists videos from the given category URL.
-    The category URL can be a regular category page or a paginated page.
-
-    Args:
-        category_url (str): The URL of the category page to list videos from.
+    Lists videos from the given category URL
     """
 
     # Get a session for making HTTP requests
@@ -416,17 +406,6 @@ def list_continue():
 def process_video_item(item, session, show_creator_in_title=True):
     """
     Helper function to process a video item and create a ListItem.
-    The video item is a BeautifulSoup element with video information.
-    The function extracts the video title, URL, thumbnail, and duration.
-    It also fetches additional video details like description and date.
-
-    Args:
-        item (BeautifulSoup): The video item element.
-        session (requests.Session): The session to use for making HTTP requests.
-        show_creator_in_title (bool): Whether to show creator names in the video title.
-
-    Returns:
-        tuple: A tuple containing the ListItem and video URL.
     """
 
     title_element = item.find('div', class_='media__name')

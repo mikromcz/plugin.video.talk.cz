@@ -12,9 +12,6 @@ from .utils import get_url, log, clean_text, convert_duration_to_seconds, parse_
 def search():
     """
     Prompts the user to enter a search string and lists the search results
-
-    Example search URL:
-        https://www.talktv.cz/hledani?q=terminator
     """
 
     # Create a dialog for user input

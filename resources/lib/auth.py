@@ -383,8 +383,7 @@ def test_credentials():
     except Exception as e:
         log(f"Test failed: {str(e)}", xbmc.LOGERROR)
         xbmcgui.Dialog().ok('Test Error', str(e))
-
-    # Test login credentials with full debug output.
+    """Test login credentials with full debug output."""
     email = _ADDON.getSetting('email')
     password = _ADDON.getSetting('password')
 
