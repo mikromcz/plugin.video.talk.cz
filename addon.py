@@ -6,7 +6,8 @@ from resources.lib.auth import test_credentials, test_session
 from resources.lib.cache import clear_cache
 from resources.lib.constants import _HANDLE, _ADDON
 from resources.lib.menu import list_menu, list_videos, list_popular, list_top, list_continue, list_creators, list_archive
-from resources.lib.search import search
+from resources.lib.search import search, list_search_results
+from resources.lib.talknews import list_talknews, show_article, show_news_info
 from resources.lib.utils import log, get_ip
 from resources.lib.video import play_video, select_quality, skip_yt_part, yt_live, resume_from_web
 
@@ -17,9 +18,6 @@ def router(paramstring):
     Args:
         paramstring (str): The URL query parameters
     """
-
-    # Import search functionality at the module level
-    from resources.lib.search import search, list_search_results
 
     try:
         # Parse the query parameters from the URL
@@ -35,14 +33,15 @@ def router(paramstring):
         action = params.get('action', '')
 
         # Simple actions that don't require additional parameters
-        if action in ['creators', 'archive', 'test_credentials', 'test_session', 'clear_cache', 'get_ip']:
+        if action in ['creators', 'archive', 'test_credentials', 'test_session', 'clear_cache', 'get_ip', 'talknews']:
             action_map = {
                 'creators': list_creators,
                 'archive': list_archive,
                 'test_credentials': test_credentials,
                 'test_session': test_session,
                 'clear_cache': clear_cache,
-                'get_ip': get_ip
+                'get_ip': get_ip,
+                'talknews': list_talknews
             }
             action_map[action]()
             return
@@ -62,6 +61,22 @@ def router(paramstring):
             action_map[action]()
             return
 
+        # Handle TALKNEWS article display
+        if action == 'talknews_article':
+            article_url = params.get('article_url')
+            if not article_url:
+                log("Missing article_url parameter", xbmc.LOGERROR)
+                return
+            show_article(article_url)
+            return
+
+        # Handle TALKNEWS info display
+        if action == 'talknews_info':
+            title = params.get('title', '')
+            meta = params.get('meta', '')
+            show_news_info(title, meta)
+            return
+
         # Handle search functionality
         if action == 'search':
             if 'search_url' in params:
@@ -70,7 +85,7 @@ def router(paramstring):
                 search()
             return
 
-        # Handle video listing
+         # Handle video listing
         if action == 'listing':
             category_url = params.get('category_url', '')
             if not category_url:
@@ -86,6 +101,9 @@ def router(paramstring):
                 return
             elif category_url == 'live':
                 yt_live()
+                return
+            elif category_url == 'talknews':
+                list_talknews()
                 return
             elif category_url.startswith('http'):
                 list_videos(category_url)

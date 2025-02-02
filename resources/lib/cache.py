@@ -25,6 +25,7 @@ def get_cache_path():
 
     if not os.path.exists(profile_path):
         os.makedirs(profile_path)
+
     return os.path.join(profile_path, 'video_cache.json')
 
 def load_cache():
@@ -42,6 +43,7 @@ def load_cache():
                 return json.load(f)
         except Exception as e:
             log(f"Error loading cache: {str(e)}", xbmc.LOGWARNING)
+
     return {}
 
 def save_cache(cache_data):
@@ -75,6 +77,7 @@ def clear_cache():
             log(f"Error clearing cache: {str(e)}", xbmc.LOGERROR)
             xbmcgui.Dialog().notification('Cache', 'Chyba při mazání mezipaměti')
             return False
+
     return True
 
 def get_video_details(session, video_url):
@@ -99,6 +102,7 @@ def get_video_details(session, video_url):
         # Check if we have cached data
         if video_url in cache:
             cached_data = cache[video_url]
+
             # Cache data for 7 days (604800 seconds)
             if time.time() - cached_data.get('timestamp', 0) < 604800:
                 return cached_data.get('description', ''), cached_data.get('date', '')
@@ -128,6 +132,7 @@ def get_video_details(session, video_url):
         if description_element:
             additional_description = description_element.text.strip()
             if additional_description:
+
                 # Only add newline if we have both descriptions
                 if description:
                     description += '\n' + additional_description

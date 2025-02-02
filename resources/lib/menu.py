@@ -61,6 +61,7 @@ def list_creators():
             'icon': image_path
         })
 
+        # Set the plot and title for the creator
         info_tag = list_item.getVideoInfoTag()
         info_tag.setPlot(creator['description'])
         info_tag.setTitle(creator['name'])
@@ -91,6 +92,7 @@ def list_archive():
             'icon': image_path
         })
 
+        # Set the plot and title for the archive item
         info_tag = list_item.getVideoInfoTag()
         info_tag.setPlot(item['description'])
         info_tag.setTitle(item['name'])
@@ -201,6 +203,7 @@ def list_videos(category_url):
                 'icon': get_image_path('foldernext.png'),
                 'thumb': get_image_path('foldernext.png')
             })
+
             xbmcplugin.addDirectoryItem(_HANDLE, get_url(action='listing', category_url=next_url), next_item, True)
 
         # Set the content type and sort method for the directory
@@ -417,6 +420,7 @@ def process_video_item(item, session, show_creator_in_title=True):
     item_classes = item.get('class', [])
     coloring_class = next((c for c in item_classes if 'coloring-' in c), None)
 
+    # Get creator name from coloring class
     creator_name = get_creator_name_from_coloring(coloring_class)
 
     # Get basic video info
@@ -428,9 +432,11 @@ def process_video_item(item, session, show_creator_in_title=True):
 
     video_url = clean_url('https://www.talktv.cz' + item['href'])
 
+    # Get duration
     duration_element = item.find('p', class_='duration')
     duration_text = duration_element.text.strip() if duration_element else "0:00"
 
+    # Create list item
     list_item = xbmcgui.ListItem(display_title)
     list_item.setProperty('IsPlayable', 'true')
     list_item.setIsFolder(False)
@@ -441,6 +447,7 @@ def process_video_item(item, session, show_creator_in_title=True):
     if not thumbnail and img_element:
         thumbnail = img_element.get('src', '')
 
+    # Set art for the list item
     list_item.setArt({
         'thumb': thumbnail,
         'icon': thumbnail
