@@ -21,7 +21,7 @@ Doplněk je dostupný na GitHubu odkud si můžete stáhnout samostatný ZIP, al
 
 Bohužel, [TALK.cz](https://talk.cz) používá na přihlašovací stránce reCaptchu přes kterou se mi zatím nepodařilo projít. (A kdo ví, jestli podaří.)
 
-V nastavení je tak záložní varianta se zkopírováním session cookie, což je trochu nepohodlné, protože ta cookie má platnost 1 měsíc, takže se to bude muset pravidelně opakovat.
+V nastavení je tak záložní varianta se zkopírováním session cookie, což je trochu nepohodlné, protože ta cookie má platnost 1 měsíc takže, pokud nespustíte doplněk TAK alespoň jednou za měsíc, platnost cookie vyprší a přihlášení se bude muset opakovat. V praxi jsem se několik měsíců nemusel přihlašovat a jedu pořád na tu původní session.
 
 ### Nastavení přes prohlížeč
 
