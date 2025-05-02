@@ -17,7 +17,6 @@ def list_talknews():
     - Thumbnail image
     - Tag and meta information
     - URL to the article or info page
-
     """
 
     # Get a session for making HTTP requests

@@ -104,13 +104,17 @@ def list_archive():
         xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, True)
 
     # Set the plugin category and content type
-    xbmcplugin.setPluginCategory(_HANDLE, 'Archiv') # Archiv
+    xbmcplugin.setPluginCategory(_HANDLE, 'Archiv')
     xbmcplugin.setContent(_HANDLE, 'files')
     xbmcplugin.endOfDirectory(_HANDLE)
 
 def list_videos(category_url):
     """
     Lists videos from the given category URL
+    Handles pagination and displays video items with their details.
+
+    Args:
+        category_url (str): The URL of the category to list videos from.
     """
 
     # Get a session for making HTTP requests
@@ -279,7 +283,7 @@ def list_popular(page=1):
 
         if has_next_page:  # Add next page only if there are more items available
             next_page = page + 1
-            next_item = xbmcgui.ListItem(label='Další stránka') # Další stránka
+            next_item = xbmcgui.ListItem(label='Další stránka')
             next_item.setArt({
                 'icon': get_image_path('foldernext.png'),
                 'thumb': get_image_path('foldernext.png')
@@ -288,7 +292,7 @@ def list_popular(page=1):
             xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
 
         # Set the plugin category and content type
-        xbmcplugin.setPluginCategory(_HANDLE, 'Populární videa') # Populární videa
+        xbmcplugin.setPluginCategory(_HANDLE, 'Populární videa')
         xbmcplugin.setContent(_HANDLE, 'videos')
         xbmcplugin.endOfDirectory(_HANDLE)
 
@@ -342,7 +346,7 @@ def list_top():
                 xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
         # Set the plugin category and content type
-        xbmcplugin.setPluginCategory(_HANDLE, 'Nejlepší videa') # Nejlepší videa
+        xbmcplugin.setPluginCategory(_HANDLE, 'Nejlepší videa')
         xbmcplugin.setContent(_HANDLE, 'videos')
         xbmcplugin.endOfDirectory(_HANDLE)
 
@@ -396,7 +400,7 @@ def list_continue():
                 xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
         # Set the plugin category and content type
-        xbmcplugin.setPluginCategory(_HANDLE, 'Pokračovat v přehrávání') # Pokračovat v přehrávání
+        xbmcplugin.setPluginCategory(_HANDLE, 'Pokračovat v přehrávání')
         xbmcplugin.setContent(_HANDLE, 'videos')
         xbmcplugin.endOfDirectory(_HANDLE)
 
@@ -409,6 +413,14 @@ def list_continue():
 def process_video_item(item, session, show_creator_in_title=True):
     """
     Helper function to process a video item and create a ListItem.
+
+    This function extracts the title, thumbnail, and other details from the item.
+    It also sets the context menu for the item and returns the ListItem and video URL.
+
+    Args:
+        item (BeautifulSoup object): The video item to process.
+        session (requests.Session): The session for making HTTP requests.
+        show_creator_in_title (bool): Whether to show the creator in the title.
     """
 
     title_element = item.find('div', class_='media__name')
