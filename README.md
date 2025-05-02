@@ -16,6 +16,7 @@ Doplněk je dostupný na GitHubu odkud si můžete stáhnout samostatný ZIP, al
 
 * Repozitář: [repository.mikrom](https://github.com/mikromcz/repository.mikrom)
 * Doplněk: [plugin.video.talk.cz](https://github.com/mikromcz/plugin.video.talk.cz)
+* Fórum: [xbmc-kodi.cz](https://www.xbmc-kodi.cz/prispevek-talk-talk-tv-standashow)
 
 ## Přihlášení
 
