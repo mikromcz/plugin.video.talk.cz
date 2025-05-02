@@ -79,7 +79,7 @@ def list_search_results(search_url):
                 xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
 
         # Set the plugin category and content type
-        xbmcplugin.setPluginCategory(_HANDLE, 'Výsledky hledání')
+        xbmcplugin.setPluginCategory(_HANDLE, 'Výsledky hledání') # Výsledky hledání
         xbmcplugin.setContent(_HANDLE, 'videos')
         xbmcplugin.endOfDirectory(_HANDLE)
 

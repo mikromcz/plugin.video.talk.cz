@@ -56,8 +56,8 @@ def get_category_name(url):
         if category['url'] in url:
             log(f"category url: {category['url']}, category name: {category['name']}", xbmc.LOGINFO)
 
-            if '/videa' in category['url']:
-                return category['name'].capitalize() # POSLEDNÍ VIDEA -> Poslední videa
+            #if '/videa' in category['url']:
+            #    return category['name'].capitalize() # POSLEDNÍ VIDEA -> Poslední videa
 
             return category['name']  # Categories already in uppercase
 

@@ -15,49 +15,49 @@ MENU_CATEGORIES = [
         'image': 'talknews.png'
     },
     {
-        'name': 'POSLEDNÍ VIDEA',
+        'name': 'Poslední videa',
         'url': 'https://www.talktv.cz/videa',
         'description': 'Nejnovější videa na [COLOR limegreen]TALK[/COLOR]u.',
         'image': 'latest.png'
     },
     {
-        'name': 'POPULÁRNÍ VIDEA',
+        'name': 'Populární videa',
         'url': 'popular',
         'description': 'Trendující videa na [COLOR limegreen]TALK[/COLOR]u.',
         'image': 'popular.png'
     },
     {
-        'name': 'NEJLEPŠÍ VIDEA',
+        'name': 'Nejlepší videa',
         'url': 'top',
         'description': 'Nejsledovanější videa na [COLOR limegreen]TALK[/COLOR]u.\n\n[COLOR slategrey]Poznámka: Tato kategorie není dostupná ve webovém rozhraní.\nObsahuje 16 "top" videí.[/COLOR]',
         'image': 'top.png'
     },
     {
-        'name': 'POKRAČOVAT V PŘEHRÁVÁNÍ',
+        'name': 'Pokračovat v přehrávání',
         'url': 'continue',
         'description': 'Rozkoukaná videa na [COLOR limegreen]TALK[/COLOR]u.\n\n[COLOR slategrey]Poznámka: I rozkoukaná v Kodi.[/COLOR]',
         'image': 'continue-watching.png'
     },
     {
-        'name': 'TVŮRCI',
+        'name': 'Tvůrci',
         'url': 'creators',
         'description': 'Všichni tvůrci na [COLOR limegreen]TALK[/COLOR]u a jejich pořady.\n\n[COLOR limegreen]STANDASHOW[/COLOR]\n[COLOR limegreen]TECH GUYS[/COLOR]\n[COLOR limegreen]JADRNÁ VĚDA[/COLOR]\n[COLOR limegreen]ZA HRANICÍ[/COLOR]\n[COLOR limegreen]MOVIE WITCHES[/COLOR]\n[COLOR limegreen]DESIGN TALK[/COLOR]',
         'image': 'creators.png'
     },
     {
-        'name': 'SEZNAMY VIDEÍ & ARCHIV',
+        'name': 'Seznamy videí & archiv',
         'url': 'archive',
         'description': 'Speciální série a archiv pořadů [COLOR limegreen]TALK[/COLOR]u.\n\n[COLOR limegreen]IRL STREAMY[/COLOR]\n[COLOR limegreen]HODNOCENÍ HOSTŮ[/COLOR]\n[COLOR limegreen]JARDA VS. NAOMI[/COLOR]\na další...',
         'image': 'archive.png'
     },
     {
-        'name': 'HLEDAT',
+        'name': 'Hledat',
         'url': 'search',
         'description': 'Vyhledávání v obsahu [COLOR limegreen]TALK[/COLOR]u.',
         'image': 'search.png'
     },
     {
-        'name': 'ŽIVĚ',
+        'name': 'Živě',
         'url': 'live',
         'description': '[COLOR limegreen]STANDASHOW[/COLOR] živě!\n\n[COLOR slategrey]Poznámka: Vyžaduje funkční doplněk YouTube.[/COLOR]',
         'image': 'live.png'
