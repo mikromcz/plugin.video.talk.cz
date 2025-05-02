@@ -15,12 +15,6 @@ MENU_CATEGORIES = [
         'image': 'talknews.png'
     },
     {
-        'name': 'TVŮRCI',
-        'url': 'creators',
-        'description': 'Všichni tvůrci na [COLOR limegreen]TALK[/COLOR]u a jejich pořady.\n\n[COLOR limegreen]STANDASHOW[/COLOR]\n[COLOR limegreen]TECH GUYS[/COLOR]\n[COLOR limegreen]JADRNÁ VĚDA[/COLOR]\n[COLOR limegreen]ZA HRANICÍ[/COLOR]\n[COLOR limegreen]MOVIE WITCHES[/COLOR]\n[COLOR limegreen]DESIGN TALK[/COLOR]',
-        'image': 'creators.png'
-    },
-    {
         'name': 'POSLEDNÍ VIDEA',
         'url': 'https://www.talktv.cz/videa',
         'description': 'Nejnovější videa na [COLOR limegreen]TALK[/COLOR]u.',
@@ -45,6 +39,12 @@ MENU_CATEGORIES = [
         'image': 'continue-watching.png'
     },
     {
+        'name': 'TVŮRCI',
+        'url': 'creators',
+        'description': 'Všichni tvůrci na [COLOR limegreen]TALK[/COLOR]u a jejich pořady.\n\n[COLOR limegreen]STANDASHOW[/COLOR]\n[COLOR limegreen]TECH GUYS[/COLOR]\n[COLOR limegreen]JADRNÁ VĚDA[/COLOR]\n[COLOR limegreen]ZA HRANICÍ[/COLOR]\n[COLOR limegreen]MOVIE WITCHES[/COLOR]\n[COLOR limegreen]DESIGN TALK[/COLOR]',
+        'image': 'creators.png'
+    },
+    {
         'name': 'SEZNAMY VIDEÍ & ARCHIV',
         'url': 'archive',
         'description': 'Speciální série a archiv pořadů [COLOR limegreen]TALK[/COLOR]u.\n\n[COLOR limegreen]IRL STREAMY[/COLOR]\n[COLOR limegreen]HODNOCENÍ HOSTŮ[/COLOR]\n[COLOR limegreen]JARDA VS. NAOMI[/COLOR]\na další...',
@@ -61,58 +61,6 @@ MENU_CATEGORIES = [
         'url': 'live',
         'description': '[COLOR limegreen]STANDASHOW[/COLOR] živě!\n\n[COLOR slategrey]Poznámka: Vyžaduje funkční doplněk YouTube.[/COLOR]',
         'image': 'live.png'
-    }
-]
-
-# Creator categories
-CREATOR_CATEGORIES = [
-    {
-        'name': 'STANDASHOW',
-        'url': 'https://www.talktv.cz/standashow',
-        'description': 'Výstup z vaší názorové bubliny. Politika, společnost, kauzy a Bruntál. Obsahují minimálně jednoho [COLOR limegreen]Standu[/COLOR].',
-        'image': 'show-standashow.jpg',
-        'coloring': '1',
-        'cast': ['Standa Hruška']
-    },
-    {
-        'name': 'TECH GUYS',
-        'url': 'https://www.talktv.cz/techguys',
-        'description': 'Kde unboxingy končí, my začínáme. Apple, kryptoměny, umělá inteligence a pak zase Apple. Každý týden s [COLOR limegreen]Honzou Březinou[/COLOR], [COLOR limegreen]Kicomem[/COLOR] a [COLOR limegreen]Davidem Grudlem[/COLOR].',
-        'image': 'show-tech-guys.jpg',
-        'coloring': '6',
-        'cast': ['Honza Březina', 'David Grudl', 'Kicom']
-    },
-    {
-        'name': 'JADRNÁ VĚDA',
-        'url': 'https://www.talktv.cz/jadrna-veda',
-        'description': 'Pořad, který 9 z 10 diváků nepochopí (a ten desátý je [COLOR limegreen]Leoš Kyša[/COLOR], který to moderuje). Diskuse se skutečnými vědci o skutečné vědě. Pyramidy, kvantová fyzika nebo objevování vesmíru.',
-        'image': 'show-jadrna-veda.jpg',
-        'coloring': '3',
-        'cast': ['Leoš Kyša', 'Jelena Lenka Příplatová', 'Kateřina Rohlenová']
-    },
-    {
-        'name': 'ZA HRANICÍ',
-        'url': 'https://www.talktv.cz/za-hranici',
-        'description': 'Popelář v Londýně, letuška v Kataru nebo podnikatel v Gambii. Češi žijící v zahraničí a cestovatel [COLOR limegreen]Vladimír Váchal[/COLOR], který ví o cestování (skoro) vše. A na zbytek se nebojí zeptat.',
-        'image': 'show-za-hranici.jpg',
-        'coloring': '4',
-        'cast': ['Vladimír Váchal']
-    },
-    {
-        'name': 'MOVIE WITCHES',
-        'url': 'https://www.talktv.cz/moviewitches',
-        'description': 'Tři holky [COLOR limegreen]Bety[/COLOR] + [COLOR limegreen]Baty[/COLOR] + [COLOR limegreen]Shial[/COLOR] si povídají o filmech, které si to zaslouží. Od vzpomínek přes zajímavosti a shrnutí děje.',
-        'image': 'show-movie-witches.jpg',
-        'coloring': '7',
-        'cast': ['Bety', 'Baty', 'Shial']
-    },
-    {
-        'name': 'DESIGN TALK',
-        'url': 'https://www.talktv.cz/design-talk',
-        'description': '[COLOR limegreen]Lukáš Veverka[/COLOR] a jeho hosté diskutují o věcech, kterým většina diváků vůbec nevěnuje pozornost. Filmy, grafika, motion design i největší faily v dějinách designu a kinematografie.',
-        'image': 'show-design-talk.jpg',
-        'coloring': '8',
-        'cast': ['Lukáš Veverka']
     }
 ]
 
@@ -177,5 +125,57 @@ ARCHIVE_CATEGORIES = [
         'url': 'https://www.talktv.cz/videa?filter=ostatni',
         'description': 'Kategorie ostatní na [COLOR limegreen]TALK[/COLOR]u.\n\nJaký je [COLOR limegreen]Standa[/COLOR] šéf?\nJaký je vysněný host?\nKteré pivo je nejlepší?\na další...',
         'image': 'archiv-ostatni.jpg'
+    }
+]
+
+# Creator categories
+CREATOR_CATEGORIES = [
+    {
+        'name': 'STANDASHOW',
+        'url': 'https://www.talktv.cz/standashow',
+        'description': 'Výstup z vaší názorové bubliny. Politika, společnost, kauzy a Bruntál. Obsahují minimálně jednoho [COLOR limegreen]Standu[/COLOR].',
+        'image': 'show-standashow.jpg',
+        'coloring': '1',
+        'cast': ['Standa Hruška']
+    },
+    {
+        'name': 'TECH GUYS',
+        'url': 'https://www.talktv.cz/techguys',
+        'description': 'Kde unboxingy končí, my začínáme. Apple, kryptoměny, umělá inteligence a pak zase Apple. Každý týden s [COLOR limegreen]Honzou Březinou[/COLOR], [COLOR limegreen]Kicomem[/COLOR] a [COLOR limegreen]Davidem Grudlem[/COLOR].',
+        'image': 'show-tech-guys.jpg',
+        'coloring': '6',
+        'cast': ['Honza Březina', 'David Grudl', 'Kicom']
+    },
+    {
+        'name': 'JADRNÁ VĚDA',
+        'url': 'https://www.talktv.cz/jadrna-veda',
+        'description': 'Pořad, který 9 z 10 diváků nepochopí (a ten desátý je [COLOR limegreen]Leoš Kyša[/COLOR], který to moderuje). Diskuse se skutečnými vědci o skutečné vědě. Pyramidy, kvantová fyzika nebo objevování vesmíru.',
+        'image': 'show-jadrna-veda.jpg',
+        'coloring': '3',
+        'cast': ['Leoš Kyša', 'Jelena Lenka Příplatová', 'Kateřina Rohlenová']
+    },
+    {
+        'name': 'ZA HRANICÍ',
+        'url': 'https://www.talktv.cz/za-hranici',
+        'description': 'Popelář v Londýně, letuška v Kataru nebo podnikatel v Gambii. Češi žijící v zahraničí a cestovatel [COLOR limegreen]Vladimír Váchal[/COLOR], který ví o cestování (skoro) vše. A na zbytek se nebojí zeptat.',
+        'image': 'show-za-hranici.jpg',
+        'coloring': '4',
+        'cast': ['Vladimír Váchal']
+    },
+    {
+        'name': 'MOVIE WITCHES',
+        'url': 'https://www.talktv.cz/moviewitches',
+        'description': 'Tři holky [COLOR limegreen]Bety[/COLOR] + [COLOR limegreen]Baty[/COLOR] + [COLOR limegreen]Shial[/COLOR] si povídají o filmech, které si to zaslouží. Od vzpomínek přes zajímavosti a shrnutí děje.',
+        'image': 'show-movie-witches.jpg',
+        'coloring': '7',
+        'cast': ['Bety', 'Baty', 'Shial']
+    },
+    {
+        'name': 'DESIGN TALK',
+        'url': 'https://www.talktv.cz/design-talk',
+        'description': '[COLOR limegreen]Lukáš Veverka[/COLOR] a jeho hosté diskutují o věcech, kterým většina diváků vůbec nevěnuje pozornost. Filmy, grafika, motion design i největší faily v dějinách designu a kinematografie.',
+        'image': 'show-design-talk.jpg',
+        'coloring': '8',
+        'cast': ['Lukáš Veverka']
     }
 ]
