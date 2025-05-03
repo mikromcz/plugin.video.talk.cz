@@ -45,7 +45,7 @@ MENU_CATEGORIES = [
         'image': 'creators.png'
     },
     {
-        'name': 'Seznamy videí & archiv',
+        'name': 'Seznamy videí & Archiv',
         'url': 'archive',
         'description': 'Speciální série a archiv pořadů [COLOR limegreen]TALK[/COLOR]u.\n\n[COLOR limegreen]IRL STREAMY[/COLOR]\n[COLOR limegreen]HODNOCENÍ HOSTŮ[/COLOR]\n[COLOR limegreen]JARDA VS. NAOMI[/COLOR]\na další...',
         'image': 'archive.png'
