@@ -530,15 +530,23 @@ def test_session():
     """
     Test if the current session cookie is valid
     """
-
+    
+    # Get the session cookie
     session_cookie = _ADDON.getSetting('session_cookie')
+    log(f"Testing session cookie (length: {len(session_cookie) if session_cookie else 0})", xbmc.LOGINFO)
 
     if not session_cookie:
-        xbmcgui.Dialog().ok('Test Session', 'No session cookie configured. Please enter your session cookie in settings.')
+        # Inform user they need to save settings first if no cookie is found
+        dialog_result = xbmcgui.Dialog().yesno(
+            'Test Session', 
+            'No session cookie found. Make sure you have entered the session cookie and saved the settings.\n\nDo you want to open settings now?'
+        )
+        if dialog_result:
+            _ADDON.openSettings()
         return False
 
     session = requests.Session()
-    log("Testing session cookie...", xbmc.LOGINFO)
+    log(f"Testing session cookie: {session_cookie[:20]}...", xbmc.LOGINFO)
 
     try:
         # Set up the session cookie
@@ -554,7 +562,7 @@ def test_session():
             return True
         else:
             log("Session cookie is invalid", xbmc.LOGERROR)
-            xbmcgui.Dialog().ok('Test Session', 'Session cookie is invalid or expired. Please get a new cookie from your browser.')
+            xbmcgui.Dialog().ok('Test Session', 'Session cookie is invalid or expired.\n\nIf you just entered a new cookie, make sure to SAVE the settings first before testing.\n\nOtherwise, please get a new cookie from your browser.')
             return False
 
     except Exception as e:
