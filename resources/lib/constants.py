@@ -9,7 +9,7 @@ ADDON_ID = _ADDON.getAddonInfo('id')  # ID of the addon
 # Main menu categories
 MENU_CATEGORIES = [
     {
-        'name': 'TALKNEWS',
+        'name': '[COLOR limegreen]TALKNEWS[/COLOR]',
         'url': 'talknews',
         'description': 'Novinky na [COLOR limegreen]TALK[/COLOR]u.\n\nNadcházející streamy, nové pořady a všechny důležité informace.',
         'image': 'talknews.png'
