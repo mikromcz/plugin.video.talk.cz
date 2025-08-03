@@ -64,13 +64,19 @@ def list_talknews():
             info_tag = list_item.getVideoInfoTag()
             info_tag.setPlot(plot)
             info_tag.setTitle(title)
+            info_tag.setMediaType('video')
+            info_tag.setStudios(["TALKNEWS"])
+            info_tag.setCountries(["Česká Republika"])
 
             # Set thumbnail image
             img_elem = item.find('img')
             if img_elem and img_elem.get('src'):
+                thumbnail = img_elem['src']
                 list_item.setArt({
-                    'thumb': img_elem['src'],
-                    'icon': img_elem['src']
+                    'thumb': thumbnail,
+                    'icon': thumbnail,
+                    'fanart': thumbnail,
+                    'poster': thumbnail
                 })
 
             # Check if item itself is a link or contains a link

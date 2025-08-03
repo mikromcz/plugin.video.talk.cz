@@ -19,12 +19,17 @@ def list_menu():
 
         list_item.setArt({
             'thumb': image_path,
-            'icon': image_path
+            'icon': image_path,
+            'fanart': image_path,
+            'poster': image_path
         })
 
         info_tag = list_item.getVideoInfoTag()
         info_tag.setPlot(category['description'])
         info_tag.setTitle(category['name'])
+        info_tag.setStudios(["TALK"])
+        info_tag.setCountries(["Česká Republika"])
+        info_tag.setGenres(['Directory'])
 
         # Determine the URL for the category action
         if category['url'] == 'search':
@@ -58,7 +63,9 @@ def list_creators():
 
         list_item.setArt({
             'thumb': image_path,
-            'icon': image_path
+            'icon': image_path,
+            'fanart': image_path,
+            'poster': image_path
         })
 
         # Set the plot and title for the creator
@@ -89,7 +96,9 @@ def list_archive():
 
         list_item.setArt({
             'thumb': image_path,
-            'icon': image_path
+            'icon': image_path,
+            'fanart': image_path,
+            'poster': image_path
         })
 
         # Set the plot and title for the archive item
@@ -462,7 +471,9 @@ def process_video_item(item, session, show_creator_in_title=True):
     # Set art for the list item
     list_item.setArt({
         'thumb': thumbnail,
-        'icon': thumbnail
+        'icon': thumbnail,
+        'fanart': thumbnail,  # Use thumbnail as fanart background
+        'poster': thumbnail   # Use thumbnail as poster
     })
 
     # Get additional details
@@ -478,6 +489,18 @@ def process_video_item(item, session, show_creator_in_title=True):
     info_tag.setMediaType('episode')
     info_tag.setStudios(["TALK"])
     info_tag.setCountries(["Česká Republika"])
+    info_tag.setGenres(['Podcast', 'Talk Show'])
+    info_tag.setTags(['Czech', 'Interview', 'TALKTV'])
+    
+    # Extract year from date if available
+    if date:
+        try:
+            parsed_date = parse_date(date)
+            if parsed_date:
+                year = int(parsed_date.split('-')[0])
+                info_tag.setYear(year)
+        except:
+            pass
 
     # Get cast information
     cast = get_creator_cast(creator_name)
@@ -490,6 +513,15 @@ def process_video_item(item, session, show_creator_in_title=True):
 
     if date:
         info_tag.setPremiered(parse_date(date))
+    
+    # Add useful properties for Kodi integration
+    list_item.setProperty('TotalTime', str(duration_seconds))
+    list_item.setProperty('Creator', creator_name)
+    list_item.setProperty('Duration', duration_text)  # Original format like "1h42m"
+    
+    # Set unique ID for the video
+    video_id = video_url.split('/')[-1]  # Extract from URL
+    info_tag.setUniqueIDs({'talktv': video_id}, 'talktv')
 
     # Add context menu
     context_menu = [
