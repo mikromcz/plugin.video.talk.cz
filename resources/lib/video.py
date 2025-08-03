@@ -13,6 +13,11 @@ from .utils import get_url, log
 _progress_monitor = None
 _monitor_lock = threading.Lock()
 
+# Cleanup handler for Kodi shutdown
+def cleanup_on_exit():
+    """Cleanup function to be called on Kodi shutdown"""
+    clear_progress_monitor()
+
 def play_video(video_url, requested_quality=None, start_time=None):
     """
     Play a video from the provided URL with optional quality and start time
@@ -389,13 +394,23 @@ def get_progress_monitor():
     """
     Get or create the progress monitor singleton instance.
     """
-
     global _progress_monitor
     with _monitor_lock:
         if _progress_monitor is None:
             _progress_monitor = ProgressMonitor()
             log("Created new ProgressMonitor instance", xbmc.LOGINFO)
         return _progress_monitor
+
+def clear_progress_monitor():
+    """
+    Clear the global progress monitor instance after cleanup.
+    """
+    global _progress_monitor
+    with _monitor_lock:
+        if _progress_monitor is not None:
+            _progress_monitor.cleanup()
+            _progress_monitor = None
+            log("Cleared global ProgressMonitor instance", xbmc.LOGINFO)
 
 class ProgressMonitor(xbmc.Player):
     """
@@ -412,7 +427,23 @@ class ProgressMonitor(xbmc.Player):
         self.stop_thread = False
         self.progress_thread = None
         self.initial_position = 0  # Add this new property
+        self._cleanup_called = False
         log("ProgressMonitor initialized", xbmc.LOGINFO)
+    
+    def __del__(self):
+        """Destructor to ensure cleanup when object is garbage collected"""
+        if not self._cleanup_called:
+            log("ProgressMonitor destructor called, cleaning up", xbmc.LOGINFO)
+            self.cleanup()
+    
+    def __enter__(self):
+        """Context manager entry"""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - ensures cleanup"""
+        self.cleanup()
+        return False  # Don't suppress exceptions
 
     @property
     def video_id(self):
@@ -439,7 +470,12 @@ class ProgressMonitor(xbmc.Player):
             if self.progress_thread and self.progress_thread.is_alive():
                 log("Stopping existing progress thread", xbmc.LOGINFO)
                 self.stop_thread = True
-                self.progress_thread.join()
+                try:
+                    self.progress_thread.join(timeout=3.0)
+                    if self.progress_thread.is_alive():
+                        log("Previous thread did not stop within timeout", xbmc.LOGWARNING)
+                except Exception as e:
+                    log(f"Error stopping previous thread: {str(e)}", xbmc.LOGERROR)
 
             # Start new monitoring thread
             self.stop_thread = False
@@ -451,18 +487,56 @@ class ProgressMonitor(xbmc.Player):
             log(f"Error starting monitoring: {str(e)}", xbmc.LOGERROR)
 
     def cleanup(self):
-        # Clean up resources and stop monitoring.
-
+        """Clean up resources and stop monitoring with proper timeout protection"""
+        if self._cleanup_called:
+            return
+        
         log("Cleanup called", xbmc.LOGINFO)
+        self._cleanup_called = True
+        
+        # Stop the monitoring thread
         if self.progress_thread and self.progress_thread.is_alive():
+            log("Stopping progress monitoring thread", xbmc.LOGINFO)
             self.stop_thread = True
-            self.progress_thread.join()
-            log("Stopped progress monitoring thread", xbmc.LOGINFO)
-        self.video_id = None
+            
+            # Wait for thread to finish with timeout
+            try:
+                self.progress_thread.join(timeout=5.0)
+                if self.progress_thread.is_alive():
+                    log("Thread did not stop within timeout", xbmc.LOGWARNING)
+                else:
+                    log("Progress monitoring thread stopped successfully", xbmc.LOGINFO)
+            except Exception as e:
+                log(f"Error joining progress thread: {str(e)}", xbmc.LOGERROR)
+        
+        # Close session if it exists
+        if self.session:
+            try:
+                self.session.close()
+                log("Session closed", xbmc.LOGDEBUG)
+            except Exception as e:
+                log(f"Error closing session: {str(e)}", xbmc.LOGWARNING)
+        
+        # Reset all attributes
+        self._video_id = None
         self.session = None
+        self.progress_thread = None
+        self.stop_thread = False
+        self.initial_position = 0
+        
+        log("ProgressMonitor cleanup completed", xbmc.LOGINFO)
 
     def monitor_progress(self):
-        log("Starting progress monitoring loop", xbmc.LOGINFO)
+        """Monitor video progress and send updates to server with full exception protection"""
+        try:
+            log("Starting progress monitoring loop", xbmc.LOGINFO)
+            self._monitor_progress_internal()
+        except Exception as e:
+            log(f"Critical error in progress monitoring: {str(e)}", xbmc.LOGERROR)
+        finally:
+            log("Progress monitoring thread ending", xbmc.LOGINFO)
+    
+    def _monitor_progress_internal(self):
 
         # Wait for playback to start
         attempt = 0
