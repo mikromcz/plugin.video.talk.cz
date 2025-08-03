@@ -216,8 +216,8 @@ def list_videos(category_url):
         xbmcplugin.endOfDirectory(_HANDLE)
 
     except Exception as e:
-        log("Error in list_videos", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', str(e))
+        log(f"Error in list_videos: {str(e)}", xbmc.LOGERROR)
+        xbmcgui.Dialog().notification('Chyba', 'Chyba při načítání videi')
 
 def list_popular(page=1):
     """

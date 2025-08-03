@@ -2,6 +2,7 @@ import sys
 import traceback
 from urllib.parse import urlencode
 import xbmc
+import xbmcgui
 from .constants import _URL, _ADDON, ADDON_ID, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
 
 def log(msg, level=xbmc.LOGDEBUG):
@@ -34,6 +35,7 @@ def log(msg, level=xbmc.LOGDEBUG):
                 formatted_msg += f"\nTraceback:\n{''.join(traceback.format_exception(exc_type, exc_value, exc_tb))}"
 
         xbmc.log(formatted_msg, level)
+
 
 def get_category_name(url):
     """

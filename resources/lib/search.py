@@ -84,5 +84,5 @@ def list_search_results(search_url):
         xbmcplugin.endOfDirectory(_HANDLE)
 
     except Exception as e:
-        log("Error in list_search_results", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', str(e))
+        log(f"Error in list_search_results: {str(e)}", xbmc.LOGERROR)
+        xbmcgui.Dialog().notification('Chyba', 'Chyba při vyhledávání')

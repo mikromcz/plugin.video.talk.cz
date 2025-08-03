@@ -75,7 +75,7 @@ def clear_cache():
             return True
         except Exception as e:
             log(f"Error clearing cache: {str(e)}", xbmc.LOGERROR)
-            xbmcgui.Dialog().notification('Cache', 'Chyba při mazání mezipaměti')
+            xbmcgui.Dialog().notification('Chyba', 'Chyba při mazání mezipaměti', time=5000)
             return False
 
     return True

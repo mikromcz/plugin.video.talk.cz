@@ -162,7 +162,7 @@ def router(paramstring):
 
     except Exception as e:
         log(f"Error in router: {str(e)}", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', str(e))
+        xbmcgui.Dialog().notification('Chyba', 'Chyba při zpracování požadavku')
 
 if __name__ == '__main__':
     """

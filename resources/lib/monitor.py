@@ -193,7 +193,7 @@ class TalkNewsMonitor:
                 log(f"Showed {count} pending TALKNEWS notifications", xbmc.LOGINFO)
                 
         except Exception as e:
-            log(f"Error checking pending notifications: {str(e)}", xbmc.LOGERROR)
+            log(f"Error showing TALKNEWS notification: {str(e)}", xbmc.LOGERROR)
 
 # Global monitor instance
 _monitor = None
@@ -239,4 +239,4 @@ def reset_monitor():
 
     except Exception as e:
         log(f"Error resetting TALKNEWS monitor: {str(e)}", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', f'Chyba při resetování monitoru: {str(e)}', time=5000)
+        xbmcgui.Dialog().notification('Chyba', 'Chyba při resetování monitoru')

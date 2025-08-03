@@ -97,7 +97,7 @@ def list_talknews():
 
     except Exception as e:
         log(f"Error in list_talknews: {str(e)}", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', str(e))
+        xbmcgui.Dialog().notification('Chyba', 'Chyba při načítání TALKNEWS')
 
 def show_article(article_url):
     """
@@ -164,7 +164,7 @@ def show_article(article_url):
 
     except Exception as e:
         log(f"Error in show_article: {str(e)}", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', str(e))
+        xbmcgui.Dialog().notification('Chyba', 'Chyba při zobrazení článku')
 
 def show_news_info(title, meta):
     """
