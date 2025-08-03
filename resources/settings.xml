@@ -35,6 +35,12 @@
         <setting label="Konfigurační webová stránka" type="lsep" />
         <setting label="Port konfiguračního serveru" type="number" id="config_port" default="47447" />
 
+        <setting label="Automatické kontroly" type="lsep" />
+        <setting label="Kontrolovat TALKNEWS" type="bool" id="monitor_talknews" default="true" />
+        <setting label="Interval kontroly (hodiny)" type="enum" id="check_interval" values="1|3|6|12|24|48" default="2" enable="eq(-1,true)" />
+        <setting label="[COLOR red]Resetovat TALKNEWS monitor[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.talk.cz/?action=reset_monitor)" enable="eq(-2,true)" />
+        <setting label="Poslední viděný TALKNEWS" type="text" id="last_talknews_title" default="" visible="false" />
+
         <setting label="Logování" type="lsep" />
         <setting label="Povolit detailní logování" type="bool" id="debug" default="false" />
     </category>

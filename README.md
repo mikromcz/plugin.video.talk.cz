@@ -68,6 +68,7 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
     * Skok na čas, kdy skončila YouTube část videa (Tak trochu. Jen spustí video od času nastaveného v nastavení - průměrná délka YouTube části je cca 22 minut)
     * Živé streamy - aktuálně přes otevření doplňku YouTube
     * Podpora ukládání pozice přehrávání. Obousměrně - při přehrávání v Kodi se posílá pozice na web, a pokud je rozkoukáno na webu, tak se v Kodi přehraje od té pozice.
+    * **Automatické sledování TALKNEWS** - Na pozadí kontroluje novinky a upozorní na ně. Zároveň udržuje session cookie aktivní.
 
 * **Menu**
     * **Hledání**
@@ -77,6 +78,29 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
     * **Pokračovat v přehrávání** - Neaktualizuje se při sledování přes Kodi 😌. (Zatím? 🤔)
     * **Tvůrci** - V podmenu jsou všechny aktuální pořady od STANDASHOW po DESIGN TALK.
     * **Archiv** - V podmenu jsou seznamy videí (IRL, HODNOCENÍ HOSTŮ, VOLBY, ...) a archivované pořady (JARDA VS. NAOMI 🪦).
+
+## Automatické sledování TALKNEWS
+
+Doplněk umí na pozadí sledovat sekci TALKNEWS a upozornit na novinky. Tato funkce má několik výhod:
+
+* **Automatické notifikace** - Při objevení novinky se zobrazí upozornění
+* **Udržování session** - Pravidelné kontroly udržují session cookie aktivní, takže nemusíte řešit vypršení přihlášení
+* **Přímý přístup** - Můžete si nechat novinku rovnou zobrazit v Kodi
+
+### Nastavení
+
+V nastavení doplňku (kategorie **Pokročilé**) najdete:
+
+* **Kontrolovat TALKNEWS** - Zapne/vypne automatické sledování
+* **Interval kontroly (hodiny)** - Jak často kontrolovat (1, 3, 6, 12, 24, 48 hodin, výchozí 6 hodin)
+* **Resetovat TALKNEWS monitor** - Vymaže posledně vidēnou novinku a restartuje sledování
+
+### Jak to funguje
+
+1. Při prvním spuštění si doplněk zapamatuje aktuálně nejnovější novinku
+2. V nastaveném intervalu kontroluje TALKNEWS sekci
+3. Pokud najde novou novinku, zobrazí notifikaci a nabídne jehjí přečtení
+4. Každá kontrola zároveň "osvěží" session cookie, takže zůstáváte přihlášeni
 
 ## Co nefunguje
 
