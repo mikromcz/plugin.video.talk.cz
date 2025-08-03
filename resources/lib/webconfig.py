@@ -4,6 +4,8 @@ import socket
 import socketserver
 import json
 import requests
+import threading
+import time
 import xbmc
 from urllib.parse import urlparse
 from .constants import _ADDON
@@ -109,12 +111,18 @@ class ConfigHandler(http.server.SimpleHTTPRequestHandler):
             log(f'No matching handler for path: {parsed_path}', xbmc.LOGINFO)
             self.send_error(404)
 
+# Global server control
+_server_shutdown_event = threading.Event()
+_server_instance = None
+
 def start_server():
     """
-    Start the config server
+    Start the config server with auto-shutdown after 10 minutes
 
     If the config page is enabled, start the server at the specified port
+    and automatically shut it down after 10 minutes while disabling the setting
     """
+    global _server_instance
 
     if not _ADDON.getSettingBool('enable_config_page'):
         return
@@ -136,9 +144,24 @@ def start_server():
                     pass  # SO_REUSEPORT not available on all systems
                 super().server_bind()
 
-        with ReuseAddrTCPServer(("", port), ConfigHandler) as httpd:
-            log(f'Config server started at port {port}', xbmc.LOGINFO)
-            httpd.serve_forever()
+            def service_actions(self):
+                # Check if shutdown was requested
+                if _server_shutdown_event.is_set():
+                    self.shutdown()
+
+        _server_instance = ReuseAddrTCPServer(("", port), ConfigHandler)
+        
+        # Start auto-shutdown timer (10 minutes)
+        shutdown_timer = threading.Timer(600.0, _auto_shutdown_server)
+        shutdown_timer.daemon = True
+        shutdown_timer.start()
+        
+        log(f'Config server started at port {port} (auto-shutdown in 10 minutes)', xbmc.LOGINFO)
+        
+        # Serve until shutdown is requested
+        while not _server_shutdown_event.is_set():
+            _server_instance.handle_request()
+            
     except Exception as e:
         log(f'Config server error: {str(e)}', xbmc.LOGERROR)
         import xbmcgui
@@ -147,3 +170,42 @@ def start_server():
         #    f'Nelze spustit konfigurační server: {str(e)}',
         #    time=5000
         #)
+    finally:
+        _cleanup_server()
+
+def _auto_shutdown_server():
+    """Auto-shutdown the server after timeout and disable the setting"""
+    global _server_instance
+    
+    try:
+        log('Config server auto-shutdown triggered (10 minutes timeout)', xbmc.LOGINFO)
+        
+        # Signal server to shutdown
+        _server_shutdown_event.set()
+        
+        # Disable the config page setting
+        _ADDON.setSettingBool('enable_config_page', False)
+        
+        # Show notification to user
+        import xbmcgui
+        xbmcgui.Dialog().notification(
+            'Konfigurační server', 
+            'Server byl automaticky vypnut po 10 minutách', 
+            time=5000
+        )
+        
+    except Exception as e:
+        log(f'Error during auto-shutdown: {str(e)}', xbmc.LOGERROR)
+
+def _cleanup_server():
+    """Clean up server resources"""
+    global _server_instance
+    
+    try:
+        if _server_instance:
+            _server_instance.server_close()
+            _server_instance = None
+        _server_shutdown_event.clear()
+        log('Config server cleaned up', xbmc.LOGDEBUG)
+    except Exception as e:
+        log(f'Error cleaning up server: {str(e)}', xbmc.LOGERROR)

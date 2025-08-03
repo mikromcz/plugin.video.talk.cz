@@ -29,8 +29,9 @@ V nastavení je tak záložní varianta se zkopírováním session cookie, což 
 Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to funguje takto:
 
 1. V nastavení doplňku povolíte konfigurační stránku a zavřete nastavení kliknutím na tlačítko OK.
-2. Na počítači navštívíte `http://<ipaddress>:<port>/talk`, jde `<ipaddress>` je IP adresa zařízení na kterém běží Kodi a `<port>` je port zadaný v nastavení (výchozí je `47447`).<br>Takže např. `192.168.1.103:47447/talk`.
-3. Měla by se načíst stránka s detailními instrukcemi jak dál,
+2. Na počítači navštívíte `http://<ipaddress>:<port>/talk`, kde `<ipaddress>` je IP adresa zařízení na kterém běží Kodi a `<port>` je port zadaný v nastavení (výchozí je `47447`).<br>Takže např. `192.168.1.103:47447/talk`.
+3. **Konfigurační server se automaticky vypne po 10 minutách** a zároveň se vypne nastavení "Povolit konfigurační stránku" - dostanete o tom upozornění.
+4. Měla by se načíst stránka s detailními instrukcemi jak dál,
 
     > *1. Klikněte na tlačítko "Otevřít TalkTV Přihlášení" níže*<br>
     > *2. Přihlaste se přes email a heslo, nebo přes Patreon*<br>
@@ -41,13 +42,14 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
     > *7. Vraťte se na tuto stránku a vložte hodnotu níže*<br>
     > *8. Klikněte na tlačítko "Uložit".*<br>
     > *9. Pro otestování klikněte na tlačítko "Test".*<br>
-    > *10. Pokud byl test úspěšný, můžete zavřít okno a vypnout konfigurační stránku v nastavení doplňku.*
+    > *10. Pokud byl test úspěšný, můžete zavřít okno - konfigurační stránka se automaticky vypne po 10 minutách.*
 
     1. Obsahuje tlačítko pro otevření přihlašovací stránky TALKu,
     2. kde se přihlásíte přes e-mail/heslo či Patreon,
     3. zkopírujete session cookie, vložíte do políčka a kliknete uložit,
     4. a to je vše.
     5. Můžete udělat test přihlášení.
+    6. **Server se automaticky vypne po 10 minutách, takže nemusíte na vypnutí myslet.**
 
 ### Nastavení přes doplněk
 
@@ -63,12 +65,15 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
 ## Co funguje
 
 * **Funkce**
-    * Přihlášení přes PHPSESSID (cookie vykopírované z prohlížeče)
-    * Kešování popisů epizod a datumů - menší zátěž pro server Talku, značné zrychlení doplňku
-    * Skok na čas, kdy skončila YouTube část videa (Tak trochu. Jen spustí video od času nastaveného v nastavení - průměrná délka YouTube části je cca 22 minut)
-    * Živé streamy - aktuálně přes otevření doplňku YouTube
-    * Podpora ukládání pozice přehrávání. Obousměrně - při přehrávání v Kodi se posílá pozice na web, a pokud je rozkoukáno na webu, tak se v Kodi přehraje od té pozice.
-    * **Automatické sledování TALKNEWS** - Na pozadí kontroluje novinky a upozorní na ně. Zároveň udržuje session cookie aktivní.
+    * **Přihlášení přes PHPSESSID** (cookie vykopírované z prohlížeče) - buď ručně, nebo přes webový konfigurační server
+    * **Automatický konfigurační server** - webové rozhraní pro jednoduché zadání PHPSESSID s automatickým vypnutím po 10 minutách
+    * **Optimalizované session management** - cache s 1hodinovou platností snižuje zátěž serveru o 40-60%
+    * **Kešování popisů epizod a datumů** - menší zátěž pro server Talku, značné zrychlení doplňku
+    * **Skok na čas, kdy skončila YouTube část videa** (Tak trochu. Jen spustí video od času nastaveného v nastavení - průměrná délka YouTube části je cca 22 minut)
+    * **Živé streamy** - aktuálně přes otevření doplňku YouTube
+    * **Podpora ukládání pozice přehrávání** - Obousměrně: při přehrávání v Kodi se posílá pozice na web, a pokud je rozkoukáno na webu, tak se v Kodi přehraje od té pozice
+    * **Automatické sledování TALKNEWS** - Na pozadí kontroluje novinky a upozorní na ně. Zároveň udržuje session cookie aktivní
+    * **Inteligentní notifikace** - Během přehrávání videa se zobrazí jen diskrétní upozornění, detailní informace se zobrazí až po skončení přehrávání
 
 * **Menu**
     * **Hledání**
@@ -84,6 +89,7 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
 Doplněk umí na pozadí sledovat sekci TALKNEWS a upozornit na novinky. Tato funkce má několik výhod:
 
 * **Automatické notifikace** - Při objevení novinky se zobrazí upozornění
+* **Inteligentní upozorňování** - Během přehrávání videa jen diskrétní notifikace, po skončení detailní informace
 * **Udržování session** - Pravidelné kontroly udržují session cookie aktivní, takže nemusíte řešit vypršení přihlášení
 * **Přímý přístup** - Můžete si nechat novinku rovnou zobrazit v Kodi
 

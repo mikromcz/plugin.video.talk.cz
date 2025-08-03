@@ -19,7 +19,7 @@ This is an unofficial Kodi video plugin for TALK.cz (formerly TALKTV.cz), a Czec
 - `resources/lib/search.py` - Search functionality across TALK.cz content
 - `resources/lib/talknews.py` - TALKNEWS section (news articles and updates)
 - `resources/lib/cache.py` - Caching system for video metadata and performance
-- `resources/lib/webconfig.py` - Web server for easier PHPSESSID configuration
+- `resources/lib/webconfig.py` - Web server for easier PHPSESSID configuration (auto-shutdown after 10 minutes)
 - `resources/lib/utils.py` - Utility functions for data processing and formatting
 
 ### Authentication System
@@ -37,8 +37,20 @@ Main categories defined in `constants.py`:
 - Search functionality
 - Live streams (via YouTube plugin)
 
-### Video Streaming
-Supports both HLS (adaptive) and MP4 streams with quality selection. Features YouTube part skipping and position synchronization with the web platform.
+### Video Streaming & Progress Monitoring
+- Supports both HLS (adaptive) and MP4 streams with quality selection
+- Features YouTube part skipping and position synchronization with the web platform
+- `video.py` contains `ProgressMonitor` class that extends `xbmc.Player` with threaded progress tracking
+- Progress monitoring uses singleton pattern with proper resource cleanup and thread management
+- Implements context manager pattern (`__enter__`/`__exit__`) for safe resource handling
+- Auto-cleanup with destructor methods and timeout protection for thread joins
+
+### Background Monitoring System
+- `monitor.py` contains `TalkNewsMonitor` class for background TALKNEWS monitoring
+- Runs in daemon thread with configurable intervals (1-48 hours)
+- Maintains session keep-alive functionality
+- Smart notification system that avoids interrupting video playback
+- Implements pending notification queue for post-playback display
 
 ## Development Commands
 
@@ -75,8 +87,13 @@ This is a Kodi plugin with no build system. Development workflow:
 
 ### Authentication Setup
 Users must provide PHPSESSID cookie from authenticated TALK.cz session:
-1. Via web configuration interface (preferred)
+1. Via web configuration interface (preferred) - `webconfig.py` runs local HTTP server with auto-shutdown after 10 minutes
 2. Manual DevTools extraction
+
+### Session Management
+- `auth.py` implements session caching with 1-hour TTL to reduce validation requests
+- Automatic session refresh during background monitoring
+- Thread-safe session management with proper cleanup
 
 ### Important Settings
 - `preferred_stream` - HLS (Adaptive) vs MP4
@@ -98,6 +115,41 @@ The plugin scrapes TALK.cz website and uses internal JSON APIs:
 - `resources/screenshot-*.jpg` - Plugin screenshots for Kodi addon browser
 - `dev/` - Development tools, notes, and shortcuts
 - `dev/NOTES.md` - Detailed development notes and API documentation
+
+## Error Handling & Logging
+
+### Unified Error Handling Pattern
+- Consistent pattern across all modules: `log()` + `xbmcgui.Dialog().notification()`
+- Czech user notifications, English developer logs
+- `utils.log()` provides automatic function name detection and traceback support
+- Error notifications avoid interrupting video playback
+
+### ListItem Enhancement
+Recent improvements to Kodi integration include:
+- Enhanced art properties (fanart, poster) for better visual presentation
+- Rich metadata (genres, studios, countries, year extraction)
+- Custom properties for advanced Kodi skins
+- Unique IDs for external tool integration
+
+## Resource Management
+
+### Thread Safety
+- Proper cleanup patterns implemented for all background threads
+- Context manager support for `ProgressMonitor` class
+- Global singleton management with thread-safe locks
+- Timeout protection for thread joins to prevent blocking
+
+### Memory Management
+- Session cleanup with proper `session.close()` calls
+- Destructor methods (`__del__`) for automatic resource cleanup
+- Cache size management and TTL-based invalidation
+
+### Web Configuration Server
+- `webconfig.py` provides HTTP server on configurable port (default: 47447) for PHPSESSID setup
+- Server includes auto-shutdown after 10 minutes to prevent resource waste
+- Automatic setting disable when timeout occurs with user notification
+- Serves HTML form at `/talk` endpoint with test and save functionality
+- Enhanced socket configuration with `SO_REUSEADDR` and `SO_REUSEPORT` for port binding reliability
 
 ## Localization
 
