@@ -1,5 +1,6 @@
 import os
 import http.server
+import socket
 import socketserver
 import json
 import requests
@@ -7,6 +8,7 @@ import xbmc
 from urllib.parse import urlparse
 from .constants import _ADDON
 from .utils import log
+
 
 class ConfigHandler(http.server.SimpleHTTPRequestHandler):
     """
@@ -120,10 +122,28 @@ def start_server():
     port = _ADDON.getSettingInt('config_port')
 
     try:
-        # Allow socket reuse
-        socketserver.TCPServer.allow_reuse_address = True
-        with socketserver.TCPServer(("", port), ConfigHandler) as httpd:
+        # Create custom TCPServer class with better socket options
+        class ReuseAddrTCPServer(socketserver.TCPServer):
+            allow_reuse_address = True
+
+            def server_bind(self):
+                # Set SO_REUSEADDR before binding
+                self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                # On Linux, also set SO_REUSEPORT if available
+                try:
+                    self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+                except (OSError, AttributeError):
+                    pass  # SO_REUSEPORT not available on all systems
+                super().server_bind()
+
+        with ReuseAddrTCPServer(("", port), ConfigHandler) as httpd:
             log(f'Config server started at port {port}', xbmc.LOGINFO)
             httpd.serve_forever()
     except Exception as e:
         log(f'Config server error: {str(e)}', xbmc.LOGERROR)
+        import xbmcgui
+        #xbmcgui.Dialog().notification(
+        #    'Chyba',
+        #    f'Nelze spustit konfigurační server: {str(e)}',
+        #    time=5000
+        #)

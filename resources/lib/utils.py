@@ -286,36 +286,47 @@ def get_ip():
         port = _ADDON.getSettingInt('config_port')
 
         # Get all IP addresses
-        hostname = socket.gethostname()
         ips = []
 
-        # Try IPv4
+        # Method 1: Connect to external IP to get the actual network interface IP (most reliable)
         try:
-            ip = socket.gethostbyname(hostname)
-            ips.append(ip)
-        except:
-            pass
-
-        # Try getting all addresses including IPv6
-        try:
-            for info in socket.getaddrinfo(hostname, None):
-                ip = info[4][0]
-                if ip not in ips:
-                    ips.append(ip)
-        except:
-            pass
-
-        # Fallback to getting local IP
-        if not ips:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             try:
                 s.connect(('8.8.8.8', 80))
                 ip = s.getsockname()[0]
-                ips.append(ip)
-            except:
-                pass
+                if ip and ip != '127.0.0.1' and not ip.startswith('127.0.1.'):
+                    ips.append(ip)
             finally:
                 s.close()
+        except:
+            pass
+
+        # Method 2: Try hostname resolution (often returns 127.0.1.1 on Linux)
+        try:
+            hostname = socket.gethostname()
+            ip = socket.gethostbyname(hostname)
+            if ip and ip not in ips and ip != '127.0.0.1' and not ip.startswith('127.0.1.'):
+                ips.append(ip)
+        except:
+            pass
+
+        # Method 3: Get all network interfaces (comprehensive but may include many IPs)
+        try:
+            hostname = socket.gethostname()
+            for info in socket.getaddrinfo(hostname, None):
+                ip = info[4][0]
+                # Filter out localhost, IPv6, and 127.0.1.x addresses
+                if (ip not in ips and 
+                    not ip.startswith('127.') and 
+                    not ip.startswith('::') and 
+                    ':' not in ip):  # Skip IPv6
+                    ips.append(ip)
+        except:
+            pass
+
+        # Method 4: If all else fails, include localhost as last resort
+        if not ips:
+            ips.append('127.0.0.1')
 
         if ips:
             message = 'Konfigurační stránka je dostupná na adresách:\n\n'
