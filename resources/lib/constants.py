@@ -141,10 +141,10 @@ CREATOR_CATEGORIES = [
     {
         'name': '[COLOR limegreen]TECH GUYS[/COLOR]',
         'url': 'https://www.talktv.cz/techguys',
-        'description': 'Kde unboxingy končí, my začínáme. Apple, kryptoměny, umělá inteligence a pak zase Apple. Každý týden s [COLOR limegreen]Honzou Březinou[/COLOR], [COLOR limegreen]Kicomem[/COLOR] a [COLOR limegreen]Davidem Grudlem[/COLOR].',
+        'description': 'Kde unboxingy končí, my začínáme. Apple, kryptoměny, umělá inteligence a pak zase Apple. Každý týden s [COLOR limegreen]Kicomem[/COLOR], [COLOR limegreen]Davidem Grudlem[/COLOR] a [COLOR limegreen]Standou[/COLOR] (dříve s [COLOR limegreen]Tesláčkem[/COLOR] a [COLOR limegreen]Honzou Březinou[/COLOR]).',
         'image': 'show-tech-guys.jpg',
         'coloring': '6',
-        'cast': ['Honza Březina', 'David Grudl', 'Kicom']
+        'cast': ['Kicom', 'David Grudl', 'Standa Hruška', 'Honza Březina', 'Tesláček']
     },
     {
         'name': '[COLOR limegreen]JADRNÁ VĚDA[/COLOR]',
