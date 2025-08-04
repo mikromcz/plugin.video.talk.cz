@@ -136,7 +136,9 @@ CREATOR_CATEGORIES = [
         'description': 'Výstup z vaší názorové bubliny. Politika, společnost, kauzy a Bruntál. Obsahují minimálně jednoho [COLOR limegreen]Standu[/COLOR].',
         'image': 'show-standashow.jpg',
         'coloring': '1',
-        'cast': ['Standa Hruška']
+        'cast': [
+            {'name': 'Standa Hruška', 'image': 'creator-standa-hruska.jpg'}
+        ]
     },
     {
         'name': '[COLOR limegreen]TECH GUYS[/COLOR]',
@@ -144,7 +146,13 @@ CREATOR_CATEGORIES = [
         'description': 'Kde unboxingy končí, my začínáme. Apple, kryptoměny, umělá inteligence a pak zase Apple. Každý týden s [COLOR limegreen]Kicomem[/COLOR], [COLOR limegreen]Davidem Grudlem[/COLOR] a [COLOR limegreen]Standou[/COLOR] (dříve s [COLOR limegreen]Tesláčkem[/COLOR] a [COLOR limegreen]Honzou Březinou[/COLOR]).',
         'image': 'show-tech-guys.jpg',
         'coloring': '6',
-        'cast': ['Kicom', 'David Grudl', 'Standa Hruška', 'Honza Březina', 'Tesláček']
+        'cast': [
+            {'name': 'Kicom', 'image': 'creator-kicom.jpg'},
+            {'name': 'David Grudl', 'image': 'creator-david-grudl.jpg'},
+            {'name': 'Standa Hruška', 'image': 'creator-standa-hruska.jpg'},
+            {'name': 'Honza Březina'},  # No image available
+            {'name': 'Tesláček'}  # No image available
+        ]
     },
     {
         'name': '[COLOR limegreen]JADRNÁ VĚDA[/COLOR]',
@@ -152,7 +160,11 @@ CREATOR_CATEGORIES = [
         'description': 'Pořad, který 9 z 10 diváků nepochopí (a ten desátý je [COLOR limegreen]Leoš Kyša[/COLOR], který to moderuje). Diskuse se skutečnými vědci o skutečné vědě. Pyramidy, kvantová fyzika nebo objevování vesmíru.',
         'image': 'show-jadrna-veda.jpg',
         'coloring': '3',
-        'cast': ['Leoš Kyša', 'Jelena Lenka Příplatová', 'Kateřina Rohlenová']
+        'cast': [
+            {'name': 'Leoš Kyša', 'image': 'creator-leos-kysa.jpg'},
+            {'name': 'Jelena Lenka Příplatová', 'image': 'creator-jelena-lenka-priplatova.jpg'},
+            {'name': 'Kateřina Rohlenová', 'image': 'creator-katerina-rohlenova.jpg'}
+        ]
     },
     {
         'name': '[COLOR limegreen]ZA HRANICÍ[/COLOR]',
@@ -160,7 +172,9 @@ CREATOR_CATEGORIES = [
         'description': 'Popelář v Londýně, letuška v Kataru nebo podnikatel v Gambii. Češi žijící v zahraničí a cestovatel [COLOR limegreen]Vladimír Váchal[/COLOR], který ví o cestování (skoro) vše. A na zbytek se nebojí zeptat.',
         'image': 'show-za-hranici.jpg',
         'coloring': '4',
-        'cast': ['Vladimír Váchal']
+        'cast': [
+            {'name': 'Vladimír Váchal', 'image': 'creator-vladimir-vachal.jpg'}
+        ]
     },
     {
         'name': '[COLOR limegreen]MOVIE WITCHES[/COLOR]',
@@ -168,7 +182,11 @@ CREATOR_CATEGORIES = [
         'description': 'Tři holky [COLOR limegreen]Bety[/COLOR] + [COLOR limegreen]Baty[/COLOR] + [COLOR limegreen]Shial[/COLOR] si povídají o filmech, které si to zaslouží. Od vzpomínek přes zajímavosti a shrnutí děje.',
         'image': 'show-movie-witches.jpg',
         'coloring': '7',
-        'cast': ['Bety', 'Baty', 'Shial']
+        'cast': [
+            {'name': 'Bety'},
+            {'name': 'Baty'},
+            {'name': 'Shial'}
+        ]
     },
     {
         'name': '[COLOR limegreen]DESIGN TALK[/COLOR]',
@@ -176,6 +194,8 @@ CREATOR_CATEGORIES = [
         'description': '[COLOR limegreen]Lukáš Veverka[/COLOR] a jeho hosté diskutují o věcech, kterým většina diváků vůbec nevěnuje pozornost. Filmy, grafika, motion design i největší faily v dějinách designu a kinematografie.',
         'image': 'show-design-talk.jpg',
         'coloring': '8',
-        'cast': ['Lukáš Veverka']
+        'cast': [
+            {'name': 'Lukáš Veverka', 'image': 'creator-lukas-veverka.jpg'}
+        ]
     }
 ]

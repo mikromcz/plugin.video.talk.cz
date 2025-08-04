@@ -234,6 +234,7 @@ def get_creator_name_from_coloring(coloring_class):
 def get_creator_cast(creator_name):
     """
     Get cast list as xbmc.Actor objects for a given creator name
+    Supports both string and dictionary format for cast members with optional images
     """
 
     cast_list = []
@@ -244,13 +245,33 @@ def get_creator_cast(creator_name):
     for creator in CREATOR_CATEGORIES:
         if creator['name'] == creator_name:
             # Create proper Actor objects
-            for i, actor_name in enumerate(creator.get('cast', [])):
+            for i, actor_data in enumerate(creator.get('cast', [])):
                 try:
-                    # Create Actor object with required name
-                    actor = xbmc.Actor(actor_name, 'Moderátor', i, '')
+                    # Handle both string and dictionary format
+                    if isinstance(actor_data, str):
+                        # Old format: just actor name as string
+                        actor_name = actor_data
+                        actor_image = ''
+                    elif isinstance(actor_data, dict):
+                        # New format: dictionary with name and optional image
+                        actor_name = actor_data.get('name', '')
+                        actor_image = actor_data.get('image', '')
+                        
+                        # Convert image filename to full path if provided
+                        if actor_image:
+                            actor_image = get_image_path(actor_image)
+                    else:
+                        log(f"Invalid cast data format: {actor_data}", xbmc.LOGWARNING)
+                        continue
+                    
+                    if not actor_name:
+                        continue
+                        
+                    # Create Actor object with name, role, order, and thumbnail
+                    actor = xbmc.Actor(actor_name, 'Moderátor', i, actor_image)
                     cast_list.append(actor)
                 except Exception as e:
-                    log(f"Error creating actor {actor_name}: {str(e)}", xbmc.LOGERROR)
+                    log(f"Error creating actor {actor_data}: {str(e)}", xbmc.LOGERROR)
             break
 
     return cast_list
