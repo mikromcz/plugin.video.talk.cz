@@ -183,9 +183,9 @@ CREATOR_CATEGORIES = [
         'image': 'show-movie-witches.jpg',
         'coloring': '7',
         'cast': [
-            {'name': 'Bety'},
-            {'name': 'Baty'},
-            {'name': 'Shial'}
+            {'name': 'Bety'}, # No image available
+            {'name': 'Baty'}, # No image available
+            {'name': 'Shial'} # No image available
         ]
     },
     {

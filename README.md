@@ -74,6 +74,7 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
     * **Podpora ukládání pozice přehrávání** - Obousměrně: při přehrávání v Kodi se posílá pozice na web, a pokud je rozkoukáno na webu, tak se v Kodi přehraje od té pozice
     * **Automatické sledování TALKNEWS** - Na pozadí kontroluje novinky a upozorní na ně. Zároveň udržuje session cookie aktivní
     * **Inteligentní notifikace** - Během přehrávání videa se zobrazí jen diskrétní upozornění, detailní informace se zobrazí až po skončení přehrávání
+    * **Obsazení s fotografiemi** - Informace o videu obsahují moderátory s jejich fotografiemi pro lepší vizuální zážitek
 
 * **Menu**
     * **Hledání**

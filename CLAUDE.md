@@ -130,6 +130,7 @@ Recent improvements to Kodi integration include:
 - Rich metadata (genres, studios, countries, year extraction)
 - Custom properties for advanced Kodi skins
 - Unique IDs for external tool integration
+- Cast member integration with profile images
 
 ## Resource Management
 
@@ -150,6 +151,19 @@ Recent improvements to Kodi integration include:
 - Automatic setting disable when timeout occurs with user notification
 - Serves HTML form at `/talk` endpoint with test and save functionality
 - Enhanced socket configuration with `SO_REUSEADDR` and `SO_REUSEPORT` for port binding reliability
+
+## Cast & Creator System
+
+### Cast Member Integration
+- `constants.py` defines cast members in dictionary format with optional profile images
+- `utils.get_creator_cast()` supports both legacy string format and new dictionary format for backward compatibility
+- Cast members appear in video information with profile pictures located in `resources/media/creator-*.jpg`
+
+### Image Naming Convention
+Creator profile images follow the pattern: `creator-[name-with-hyphens].jpg`
+- Examples: `creator-standa-hruska.jpg`, `creator-kicom.jpg`, `creator-leos-kysa.jpg`
+- Images are automatically converted to full Kodi paths via `utils.get_image_path()`
+- Missing images gracefully fall back to empty string without breaking functionality
 
 ## Localization
 
