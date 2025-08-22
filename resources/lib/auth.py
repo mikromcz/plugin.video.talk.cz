@@ -11,7 +11,8 @@ from .utils import log
 _session_cache = {
     'session': None,
     'validated_at': 0,
-    'ttl': 3600  # 1 hour cache
+    'ttl': 3600,  # 1 hour cache
+    'failed_cookie': None  # Track failed cookies to show error each time
 }
 
 def get_session():
@@ -21,11 +22,17 @@ def get_session():
 
     Returns:
         requests.Session: A session object with authentication cookie set
+        False: Authentication failed (invalid cookie or network error)
     """
     global _session_cache
     
     current_time = time.time()
     session_cookie = _ADDON.getSetting('session_cookie')
+
+    # Check if this is the same cookie that failed before
+    if (session_cookie and session_cookie == _session_cache['failed_cookie']):
+        log("Using previously failed cookie", xbmc.LOGDEBUG)
+        return False
 
     # Check if we have a valid cached session
     if (_session_cache['session'] and 
@@ -50,35 +57,37 @@ def get_session():
 
         if 'popup-account__header-email' in response.text:
             log("Session cookie valid", xbmc.LOGINFO)
-            # Cache the valid session
+            # Cache the valid session and clear any failure markers
             _session_cache['session'] = session
             _session_cache['validated_at'] = current_time
+            _session_cache['failed_cookie'] = None
             return session
         else:
-            # Session invalid - try to login again
-            log("Session cookie invalid - attempting new login", xbmc.LOGWARNING)
+            # Session invalid - mark cookie as failed
+            log("Session cookie invalid", xbmc.LOGWARNING)
+            _session_cache['failed_cookie'] = session_cookie
             # Clear cache
             _session_cache['session'] = None
             _session_cache['validated_at'] = 0
-            
-            if login():
-                # Recreate session with new cookie
-                session = requests.Session()
-                session.cookies.set('PHPSESSID', _ADDON.getSetting('session_cookie'), domain='www.talktv.cz')
-                # Cache the new session
-                _session_cache['session'] = session
-                _session_cache['validated_at'] = current_time
-                return session
-            else:
-                return False
+            return False
 
     except Exception as e:
         log(f"Session validation failed: {str(e)}", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', 'Chyba připojení k serveru')
-        # Clear cache on error
+        # Mark cookie as failed and clear cache on error
+        _session_cache['failed_cookie'] = session_cookie
         _session_cache['session'] = None
         _session_cache['validated_at'] = 0
         return False
+
+def is_cookie_failed():
+    """
+    Check if the current session cookie is the one that previously failed
+    
+    Returns:
+        bool: True if current cookie is marked as failed
+    """
+    session_cookie = _ADDON.getSetting('session_cookie')
+    return session_cookie and session_cookie == _session_cache.get('failed_cookie')
 
 def login():
     """

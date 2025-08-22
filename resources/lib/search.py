@@ -3,7 +3,7 @@ import xbmcgui
 import xbmcplugin
 from urllib.parse import quote
 from bs4 import BeautifulSoup
-from .auth import get_session
+from .auth import get_session, is_cookie_failed
 from .cache import get_video_details
 from .constants import _HANDLE
 from .menu import process_video_item
@@ -44,6 +44,10 @@ def list_search_results(search_url):
     # Get a session for making HTTP requests
     session = get_session()
     if not session:
+        log("Failed to get valid session", xbmc.LOGERROR)
+        if is_cookie_failed():
+            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return
 
     try:

@@ -3,13 +3,24 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-### VisualStudioCode ###
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/*.code-snippets
+# IDE specific files
+.vscode/
+.idea/
+*.sublime-*
+
+# Claude specific files
+.claude/
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Windows system files
+Thumbs.db
+Desktop.ini
 
 # Local History for Visual Studio Code
 .history/

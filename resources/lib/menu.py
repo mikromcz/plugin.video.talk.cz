@@ -2,7 +2,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
-from .auth import get_session
+from .auth import get_session, is_cookie_failed
 from .cache import get_video_details
 from .constants import _HANDLE, _ADDON, ADDON_ID, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
 from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name, clean_url, get_creator_name_from_coloring, get_creator_cast, get_creator_url
@@ -130,6 +130,9 @@ def list_videos(category_url):
     session = get_session()
     if not session:
         log("Failed to get valid session", xbmc.LOGERROR)
+        if is_cookie_failed():
+            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return
 
     try:
@@ -237,6 +240,10 @@ def list_popular(page=1):
     # Get a session for making HTTP requests
     session = get_session()
     if not session:
+        log("Failed to get valid session", xbmc.LOGERROR)
+        if is_cookie_failed():
+            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return
 
     try:
@@ -318,6 +325,10 @@ def list_top():
     # Get a session for making HTTP requests
     session = get_session()
     if not session:
+        log("Failed to get valid session", xbmc.LOGERROR)
+        if is_cookie_failed():
+            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return
 
     try:
@@ -372,6 +383,10 @@ def list_continue():
     # Get a session for making HTTP requests
     session = get_session()
     if not session:
+        log("Failed to get valid session", xbmc.LOGERROR)
+        if is_cookie_failed():
+            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return
 
     try:
