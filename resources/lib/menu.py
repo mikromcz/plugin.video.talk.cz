@@ -530,7 +530,8 @@ def process_video_item(item, session, show_creator_in_title=True):
         info_tag.setPremiered(parse_date(date))
 
     # Add useful properties for Kodi integration
-    list_item.setProperty('TotalTime', str(duration_seconds))
+    # Note: TotalTime is deprecated - using setResumePoint() instead
+    info_tag.setResumePoint(0.0, duration_seconds)  # Resume from 0, with total duration
     list_item.setProperty('Creator', creator_name)
     list_item.setProperty('Duration', duration_text)  # Original format like "1h42m"
 

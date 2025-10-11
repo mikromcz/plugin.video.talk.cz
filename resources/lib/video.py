@@ -231,7 +231,8 @@ def skip_yt_part(video_url):
 
         # Create a new list item and play it with the seek time
         play_item = xbmcgui.ListItem(path=get_url(action='play', video_url=video_url))
-        play_item.setProperty('StartOffset', str(seek_time))
+        info_tag = play_item.getVideoInfoTag()
+        info_tag.setResumePoint(seek_time)  # Set resume point to skip YouTube portion
 
         # Start playback from the specified time
         xbmc.Player().play(item=get_url(action='play', video_url=video_url), listitem=play_item)
@@ -320,7 +321,8 @@ def resume_from_web(video_url):
             if resume:
                 # Create a new list item with the start position
                 play_item = xbmcgui.ListItem(path=get_url(action='play', video_url=video_url))
-                play_item.setProperty('StartOffset', str(web_position))
+                info_tag = play_item.getVideoInfoTag()
+                info_tag.setResumePoint(web_position)  # Set resume point to continue from web position
 
                 # Start playback from the specified time
                 xbmc.Player().play(item=get_url(action='play', video_url=video_url), listitem=play_item)
