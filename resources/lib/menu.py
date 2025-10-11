@@ -20,8 +20,8 @@ def list_menu():
         list_item.setArt({
             'thumb': image_path,
             'icon': image_path,
-            'fanart': image_path,
-            'poster': image_path
+            #'fanart': image_path,
+            #'poster': image_path
         })
 
         info_tag = list_item.getVideoInfoTag()
@@ -44,7 +44,7 @@ def list_menu():
             url = get_url(action='listing', category_url=category['url'])
 
         # Add the directory item to the Kodi plugin
-        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, True)
+        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=True)
 
     # Set the plugin category and content type
     #xbmcplugin.setPluginCategory(_HANDLE, 'Hlavní menu') # Kategorie
@@ -64,8 +64,8 @@ def list_creators():
         list_item.setArt({
             'thumb': image_path,
             'icon': image_path,
-            'fanart': image_path,
-            'poster': image_path
+            #'fanart': image_path,
+            #'poster': image_path
         })
 
         # Set the plot and title for the creator
@@ -77,7 +77,7 @@ def list_creators():
         url = get_url(action='listing', category_url=creator['url'])
 
         # Add the directory item to the Kodi plugin
-        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, True)
+        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=True)
 
     # Set the plugin category and content type
     xbmcplugin.setPluginCategory(_HANDLE, 'Tvůrci') # Tvůrci
@@ -97,8 +97,8 @@ def list_archive():
         list_item.setArt({
             'thumb': image_path,
             'icon': image_path,
-            'fanart': image_path,
-            'poster': image_path
+            #'fanart': image_path,
+            #'poster': image_path
         })
 
         # Set the plot and title for the archive item
@@ -110,7 +110,7 @@ def list_archive():
         url = get_url(action='listing', category_url=item['url'])
 
         # Add the directory item to the Kodi plugin
-        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, True)
+        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=True)
 
     # Set the plugin category and content type
     xbmcplugin.setPluginCategory(_HANDLE, 'Archiv')
@@ -199,7 +199,7 @@ def list_videos(category_url):
             if result:
                 list_item, video_url = result
                 url = get_url(action='play', video_url=video_url)
-                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
 
         # No next for "OSTATNÍ"
         if 'filter=ostatni' in category_url:
@@ -220,7 +220,7 @@ def list_videos(category_url):
                 'thumb': get_image_path('foldernext.png')
             })
 
-            xbmcplugin.addDirectoryItem(_HANDLE, get_url(action='listing', category_url=next_url), next_item, True)
+            xbmcplugin.addDirectoryItem(_HANDLE, get_url(action='listing', category_url=next_url), next_item, isFolder=True)
 
         # Set the content type and sort method for the directory
         xbmcplugin.setPluginCategory(_HANDLE, get_category_name(category_url))
@@ -295,7 +295,7 @@ def list_popular(page=1):
             if result:
                 list_item, video_url = result
                 url = get_url(action='play', video_url=video_url)
-                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
 
         if has_next_page:  # Add next page only if there are more items available
             next_page = page + 1
@@ -363,7 +363,7 @@ def list_top():
             if result:
                 list_item, video_url = result
                 url = get_url(action='play', video_url=video_url)
-                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
 
         # Set the plugin category and content type
         xbmcplugin.setPluginCategory(_HANDLE, 'Nejlepší videa')
@@ -421,7 +421,7 @@ def list_continue():
             if result:
                 list_item, video_url = result
                 url = get_url(action='play', video_url=video_url)
-                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
 
         # Set the plugin category and content type
         xbmcplugin.setPluginCategory(_HANDLE, 'Pokračovat v přehrávání')
@@ -487,8 +487,8 @@ def process_video_item(item, session, show_creator_in_title=True):
     list_item.setArt({
         'thumb': thumbnail,
         'icon': thumbnail,
-        'fanart': thumbnail,  # Use thumbnail as fanart background
-        'poster': thumbnail   # Use thumbnail as poster
+        #'fanart': thumbnail,  # Use thumbnail as fanart background
+        #'poster': thumbnail   # Use thumbnail as poster
     })
 
     # Get additional details
@@ -506,7 +506,7 @@ def process_video_item(item, session, show_creator_in_title=True):
     info_tag.setCountries(["Česká Republika"])
     info_tag.setGenres(['Podcast', 'Talk Show'])
     info_tag.setTags(['Czech', 'Interview', 'TALKTV'])
-    
+
     # Extract year from date if available
     if date:
         try:
@@ -528,12 +528,12 @@ def process_video_item(item, session, show_creator_in_title=True):
 
     if date:
         info_tag.setPremiered(parse_date(date))
-    
+
     # Add useful properties for Kodi integration
     list_item.setProperty('TotalTime', str(duration_seconds))
     list_item.setProperty('Creator', creator_name)
     list_item.setProperty('Duration', duration_text)  # Original format like "1h42m"
-    
+
     # Set unique ID for the video
     video_id = video_url.split('/')[-1]  # Extract from URL
     info_tag.setUniqueIDs({'talktv': video_id}, 'talktv')

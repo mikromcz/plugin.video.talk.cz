@@ -256,17 +256,17 @@ def get_creator_cast(creator_name):
                         # New format: dictionary with name and optional image
                         actor_name = actor_data.get('name', '')
                         actor_image = actor_data.get('image', '')
-                        
+
                         # Convert image filename to full path if provided
                         if actor_image:
                             actor_image = get_image_path(actor_image)
                     else:
                         log(f"Invalid cast data format: {actor_data}", xbmc.LOGWARNING)
                         continue
-                    
+
                     if not actor_name:
                         continue
-                        
+
                     # Create Actor object with name, role, order, and thumbnail
                     actor = xbmc.Actor(actor_name, 'Moderátor', i, actor_image)
                     cast_list.append(actor)
@@ -337,9 +337,9 @@ def get_ip():
             for info in socket.getaddrinfo(hostname, None):
                 ip = info[4][0]
                 # Filter out localhost, IPv6, and 127.0.1.x addresses
-                if (ip not in ips and 
-                    not ip.startswith('127.') and 
-                    not ip.startswith('::') and 
+                if (ip not in ips and
+                    not ip.startswith('127.') and
+                    not ip.startswith('::') and
                     ':' not in ip):  # Skip IPv6
                     ips.append(ip)
         except:

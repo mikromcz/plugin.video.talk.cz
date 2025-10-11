@@ -80,7 +80,7 @@ def list_search_results(search_url):
             if result:
                 list_item, video_url = result
                 url = get_url(action='play', video_url=video_url, search_url=search_url)
-                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, False)
+                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
 
         # Set the plugin category and content type
         xbmcplugin.setPluginCategory(_HANDLE, 'Výsledky hledání') # Výsledky hledání

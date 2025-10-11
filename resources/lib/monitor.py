@@ -73,7 +73,7 @@ class TalkNewsMonitor:
                     if not self.running:
                         break
                     time.sleep(300)  # 5 minutes
-                    
+
                     # Check for pending notifications during wait periods too
                     self._check_and_show_pending()
 
@@ -163,7 +163,7 @@ class TalkNewsMonitor:
             if player.isPlayingVideo():
                 # Show non-intrusive notification during playback
                 xbmcgui.Dialog().notification('TALKNEWS', content, time=8000)
-                
+
                 # Store notification for later display when playback stops
                 self._store_pending_notification(content)
             else:
@@ -172,12 +172,12 @@ class TalkNewsMonitor:
 
         except Exception as e:
             log(f"Error showing TALKNEWS notification: {str(e)}", xbmc.LOGERROR)
-            
+
     def _store_pending_notification(self, content):
         """Store notification to show later when playback stops"""
         self.pending_notifications.append(content)
         log("Stored TALKNEWS notification for later display", xbmc.LOGDEBUG)
-        
+
     def _check_and_show_pending(self):
         """Check if playback stopped and show any pending notifications"""
         try:
@@ -186,12 +186,12 @@ class TalkNewsMonitor:
                 # Show all pending notifications
                 for content in self.pending_notifications:
                     xbmcgui.Dialog().ok('TALKNEWS', content)
-                
+
                 # Clear pending notifications
                 count = len(self.pending_notifications)
                 self.pending_notifications.clear()
                 log(f"Showed {count} pending TALKNEWS notifications", xbmc.LOGINFO)
-                
+
         except Exception as e:
             log(f"Error showing TALKNEWS notification: {str(e)}", xbmc.LOGERROR)
 

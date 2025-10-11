@@ -431,17 +431,17 @@ class ProgressMonitor(xbmc.Player):
         self.initial_position = 0  # Add this new property
         self._cleanup_called = False
         log("ProgressMonitor initialized", xbmc.LOGINFO)
-    
+
     def __del__(self):
         """Destructor to ensure cleanup when object is garbage collected"""
         if not self._cleanup_called:
             log("ProgressMonitor destructor called, cleaning up", xbmc.LOGINFO)
             self.cleanup()
-    
+
     def __enter__(self):
         """Context manager entry"""
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit - ensures cleanup"""
         self.cleanup()
@@ -492,15 +492,15 @@ class ProgressMonitor(xbmc.Player):
         """Clean up resources and stop monitoring with proper timeout protection"""
         if self._cleanup_called:
             return
-        
+
         log("Cleanup called", xbmc.LOGINFO)
         self._cleanup_called = True
-        
+
         # Stop the monitoring thread
         if self.progress_thread and self.progress_thread.is_alive():
             log("Stopping progress monitoring thread", xbmc.LOGINFO)
             self.stop_thread = True
-            
+
             # Wait for thread to finish with timeout
             try:
                 self.progress_thread.join(timeout=5.0)
@@ -510,7 +510,7 @@ class ProgressMonitor(xbmc.Player):
                     log("Progress monitoring thread stopped successfully", xbmc.LOGINFO)
             except Exception as e:
                 log(f"Error joining progress thread: {str(e)}", xbmc.LOGERROR)
-        
+
         # Close session if it exists
         if self.session:
             try:
@@ -518,14 +518,14 @@ class ProgressMonitor(xbmc.Player):
                 log("Session closed", xbmc.LOGDEBUG)
             except Exception as e:
                 log(f"Error closing session: {str(e)}", xbmc.LOGWARNING)
-        
+
         # Reset all attributes
         self._video_id = None
         self.session = None
         self.progress_thread = None
         self.stop_thread = False
         self.initial_position = 0
-        
+
         log("ProgressMonitor cleanup completed", xbmc.LOGINFO)
 
     def monitor_progress(self):
@@ -537,7 +537,7 @@ class ProgressMonitor(xbmc.Player):
             log(f"Critical error in progress monitoring: {str(e)}", xbmc.LOGERROR)
         finally:
             log("Progress monitoring thread ending", xbmc.LOGINFO)
-    
+
     def _monitor_progress_internal(self):
 
         # Wait for playback to start
