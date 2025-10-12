@@ -19,9 +19,7 @@ def list_menu():
 
         list_item.setArt({
             'thumb': image_path,
-            'icon': image_path,
-            #'fanart': image_path,
-            #'poster': image_path
+            'icon': image_path
         })
 
         info_tag = list_item.getVideoInfoTag()
@@ -63,9 +61,7 @@ def list_creators():
 
         list_item.setArt({
             'thumb': image_path,
-            'icon': image_path,
-            #'fanart': image_path,
-            #'poster': image_path
+            'icon': image_path
         })
 
         # Set the plot and title for the creator
@@ -76,11 +72,20 @@ def list_creators():
         # Determine the URL for the creator's content
         url = get_url(action='listing', category_url=creator['url'])
 
+        # Add context menu for YouTube channel if available
+        if 'yt_channel_id' in creator and creator['yt_channel_id']:
+            yt_channel_id = creator['yt_channel_id']
+            yt_url = f'plugin://plugin.video.youtube/channel/{yt_channel_id}'
+            context_menu = [
+                ('Přejít na YouTube kanál tvůrce', f'Container.Update({yt_url})')
+            ]
+            list_item.addContextMenuItems(context_menu)
+
         # Add the directory item to the Kodi plugin
         xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=True)
 
     # Set the plugin category and content type
-    xbmcplugin.setPluginCategory(_HANDLE, 'Tvůrci') # Tvůrci
+    xbmcplugin.setPluginCategory(_HANDLE, 'Tvůrci')
     xbmcplugin.setContent(_HANDLE, 'files')
     xbmcplugin.endOfDirectory(_HANDLE)
 
@@ -96,9 +101,7 @@ def list_archive():
 
         list_item.setArt({
             'thumb': image_path,
-            'icon': image_path,
-            #'fanart': image_path,
-            #'poster': image_path
+            'icon': image_path
         })
 
         # Set the plot and title for the archive item
@@ -486,9 +489,7 @@ def process_video_item(item, session, show_creator_in_title=True):
     # Set art for the list item
     list_item.setArt({
         'thumb': thumbnail,
-        'icon': thumbnail,
-        #'fanart': thumbnail,  # Use thumbnail as fanart background
-        #'poster': thumbnail   # Use thumbnail as poster
+        'icon': thumbnail
     })
 
     # Get additional details
