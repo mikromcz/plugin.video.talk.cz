@@ -156,7 +156,7 @@ class TalkNewsMonitor:
             # Format content similar to show_news_info
             content = title.replace(" • ", "\n")
             if meta_text:
-                content = f"{content}\n\n{meta_text}"
+                content = f"{content}\n{meta_text}"
 
             # Check if video is playing
             player = xbmc.Player()
