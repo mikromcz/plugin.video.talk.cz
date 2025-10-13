@@ -12,55 +12,55 @@ MENU_CATEGORIES = [
         'name': '[COLOR limegreen]TALKNEWS[/COLOR]',
         'url': 'talknews',
         'description': 'Novinky na [COLOR limegreen]TALK[/COLOR]u.\n\nNadcházející streamy, nové pořady a všechny důležité informace.',
-        'image': 'talknews.png'
+        'image': 'fa-bullhorn-solid-full.png'
     },
     {
         'name': 'Poslední videa',
         'url': 'https://www.talktv.cz/videa',
         'description': 'Nejnovější videa na [COLOR limegreen]TALK[/COLOR]u.',
-        'image': 'latest.png'
+        'image': 'fa-star-solid-full.png'
     },
     {
         'name': 'Populární videa',
         'url': 'popular',
         'description': 'Trendující videa na [COLOR limegreen]TALK[/COLOR]u.',
-        'image': 'popular.png'
+        'image': 'fa-fire-flame-curved-solid-full.png'
     },
     {
         'name': 'Nejlepší videa',
         'url': 'top',
         'description': 'Nejsledovanější videa na [COLOR limegreen]TALK[/COLOR]u.\n\n[COLOR slategrey]Poznámka: Tato kategorie není dostupná ve webovém rozhraní.\nObsahuje 16 "top" videí.[/COLOR]',
-        'image': 'top.png'
+        'image': 'fa-chart-line-solid-full.png'
     },
     {
         'name': 'Pokračovat v přehrávání',
         'url': 'continue',
         'description': 'Rozkoukaná videa na [COLOR limegreen]TALK[/COLOR]u.\n\n[COLOR slategrey]Poznámka: I rozkoukaná v Kodi.[/COLOR]',
-        'image': 'continue-watching.png'
+        'image': 'fa-play-pause-solid-full.png'
     },
     {
         'name': 'Tvůrci',
         'url': 'creators',
         'description': 'Všichni tvůrci na [COLOR limegreen]TALK[/COLOR]u a jejich pořady.\n\n[COLOR limegreen]STANDASHOW[/COLOR]\n[COLOR limegreen]TECH GUYS[/COLOR]\n[COLOR limegreen]JADRNÁ VĚDA[/COLOR]\n[COLOR limegreen]ZA HRANICÍ[/COLOR]\n[COLOR limegreen]MOVIE WITCHES[/COLOR]\n[COLOR limegreen]DESIGN TALK[/COLOR]',
-        'image': 'creators.png'
+        'image': 'fa-people-group-solid-full.png'
     },
     {
         'name': 'Seznamy videí & Archiv',
         'url': 'archive',
         'description': 'Speciální série a archiv pořadů [COLOR limegreen]TALK[/COLOR]u.\n\n[COLOR limegreen]IRL STREAMY[/COLOR]\n[COLOR limegreen]HODNOCENÍ HOSTŮ[/COLOR]\n[COLOR limegreen]JARDA VS. NAOMI[/COLOR]\na další...',
-        'image': 'archive.png'
+        'image': 'fa-list-solid-full.png'
     },
     {
         'name': 'Hledat',
         'url': 'search',
         'description': 'Vyhledávání v obsahu [COLOR limegreen]TALK[/COLOR]u.',
-        'image': 'search.png'
+        'image': 'fa-magnifying-glass-solid-full.png'
     },
     {
         'name': 'Živě',
         'url': 'live',
-        'description': '[COLOR limegreen]STANDASHOW[/COLOR] živě!\n\n[COLOR slategrey]Poznámka: Vyžaduje funkční doplněk YouTube.[/COLOR]',
-        'image': 'live.png'
+        'description': '[COLOR limegreen]STANDASHOW[/COLOR] živě!\n\n[COLOR limegreen]Čumil stream[/COLOR] - veřejný stream na YouTube\n[COLOR limegreen]VIP stream[/COLOR] - exkluzivní stream pro předplatitele\n\n[COLOR slategrey]Poznámka: Vyžaduje funkční doplněk YouTube.[/COLOR]',
+        'image': 'fa-video-solid-full.png'
     }
 ]
 
