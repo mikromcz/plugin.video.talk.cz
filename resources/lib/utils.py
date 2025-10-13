@@ -2,7 +2,6 @@ import sys
 import traceback
 from urllib.parse import urlencode
 import xbmc
-import xbmcgui
 from .constants import _URL, _ADDON, ADDON_ID, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
 
 def log(msg, level=xbmc.LOGDEBUG):

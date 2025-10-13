@@ -77,9 +77,7 @@ def list_talknews():
                 thumbnail = img_elem['src']
                 list_item.setArt({
                     'thumb': thumbnail,
-                    'icon': thumbnail,
-                    'fanart': thumbnail,
-                    'poster': thumbnail
+                    'icon': thumbnail
                 })
 
             # Check if item itself is a link or contains a link
