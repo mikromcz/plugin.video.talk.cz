@@ -7,7 +7,7 @@ import xbmcplugin
 from bs4 import BeautifulSoup
 from .auth import get_session, is_cookie_failed
 from .constants import _HANDLE, _ADDON
-from .utils import get_url, log
+from .utils import get_url, log, get_image_path
 
 # Global progress monitor instance
 _progress_monitor = None
@@ -244,7 +244,7 @@ def skip_yt_part(video_url):
 
 def yt_live():
     """
-    Create directory item for YouTube live streams
+    Create directory with two stream options: public (Čumilové) and VIP
 
     Note: This function requires the YouTube addon to be installed
     """
@@ -264,26 +264,45 @@ def yt_live():
         # https://www.youtube.com/channel/UCeDNCzyWtX6Y1ThbVuxbrtw
         channel_id = 'UCeDNCzyWtX6Y1ThbVuxbrtw'
 
-        # Construct the URL for the live streams page
+        # Construct the URL for the public live streams page
         youtube_url = f'plugin://plugin.video.youtube/channel/{channel_id}/live/'
 
-        log(f"Creating directory item for YouTube URL: {youtube_url}", xbmc.LOGINFO)
+        log(f"Creating directory items for live streams", xbmc.LOGINFO)
 
-        # Create a list item for the live streams
-        list_item = xbmcgui.ListItem(label='Živé vysílání')
-        list_item.setInfo('video', {'Title': 'Živé vysílání',
-                                    'Plot': 'Živé streamy na YouTube kanálu [COLOR limegreen]STANDASHOW[/COLOR].\n\n[COLOR slategrey]Poznámka: Otevře doplněk YouTube v sekci živých přenosů na kanálu @StandaShow.[/COLOR]'})
+        # Create list item for public stream (Čumilové stream)
+        list_item_public = xbmcgui.ListItem(label='Čumil stream')
+        info_tag_public = list_item_public.getVideoInfoTag()
+        info_tag_public.setTitle('Čumil stream')
+        info_tag_public.setPlot('Veřejné živé streamy na YouTube kanálu [COLOR limegreen]STANDASHOW[/COLOR].\n\n[COLOR slategrey]Poznámka: Otevře doplněk YouTube v sekci živých přenosů na kanálu @StandaShow.[/COLOR]')
 
-        # Add the directory item
-        xbmcplugin.addDirectoryItem(_HANDLE, youtube_url, list_item, isFolder=True)
+        # Add the public stream directory item
+        xbmcplugin.addDirectoryItem(_HANDLE, youtube_url, list_item_public, True)
+
+        # Create list item for VIP stream
+        list_item_vip = xbmcgui.ListItem(label='VIP stream')
+        info_tag_vip = list_item_vip.getVideoInfoTag()
+        info_tag_vip.setTitle('VIP stream')
+        info_tag_vip.setPlot('Exkluzivní VIP stream pro předplatitele [COLOR limegreen]TALK[/COLOR]u.\n\n[COLOR slategrey]Poznámka: Otevře živý přenos na YouTube kanálu @StandaShowEXTRA.\n\nStream musí být aktivní na talktv.cz.[/COLOR]')
+
+        image_path = get_image_path('fa-video-solid-full.png')
+        list_item_vip.setArt({
+            'thumb': image_path,
+            'icon': image_path
+        })
+
+        # Add the VIP stream directory item
+        vip_url = get_url(action='vip_stream')
+        xbmcplugin.addDirectoryItem(_HANDLE, vip_url, list_item_vip, isFolder=False)
 
         # You're creating a direct link to the YouTube plugin (plugin://plugin.video.youtube/...).
         # When you do this, you're essentially jumping to a different plugin, which breaks the natural directory hierarchy tracking.
-        ADDON_NAME = _ADDON.getAddonInfo('name')
-        plugin_category = f'{ADDON_NAME} / Živě'
+        #ADDON_NAME = _ADDON.getAddonInfo('name')
+        #plugin_category = f'{ADDON_NAME} / Živě'
 
         # Set the plugin category and content type
-        xbmcplugin.setPluginCategory(_HANDLE, plugin_category)
+        #xbmcplugin.setPluginCategory(_HANDLE, plugin_category)
+        xbmcplugin.setPluginCategory(_HANDLE, 'Živě')
+        xbmcplugin.setContent(_HANDLE, 'files')
         xbmcplugin.endOfDirectory(_HANDLE)
 
         return True
@@ -291,6 +310,87 @@ def yt_live():
     except Exception as e:
         log(f'Error in yt_live: {str(e)}', xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Chyba', str(e))
+        return False
+
+def yt_vip_stream():
+    """
+    Check TALK.cz homepage for VIP stream link and open it in YouTube addon
+
+    The VIP stream link is located in:
+    body > div.container > main > a.hero.hero--secondary.hero--link
+    """
+
+    try:
+        # Check if YouTube addon is installed
+        import xbmcaddon
+        try:
+            youtube_addon = xbmcaddon.Addon('plugin.video.youtube')
+        except:
+            log("YouTube addon not installed", xbmc.LOGERROR)
+            xbmcgui.Dialog().ok('Chyba', 'Doplněk YouTube není nainstalován, nainstalujte jej pro zobrazení živých streamů.')
+            return False
+
+        # Get authenticated session
+        session = get_session()
+        if not session:
+            log("Failed to get valid session for VIP stream", xbmc.LOGERROR)
+            if is_cookie_failed():
+                xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
+            return False
+
+        log("Fetching VIP stream from TALK.cz homepage", xbmc.LOGINFO)
+
+        # Fetch the homepage
+        response = session.get('https://www.talktv.cz/')
+        if response.status_code != 200:
+            log(f"Failed to fetch homepage: {response.status_code}", xbmc.LOGERROR)
+            xbmcgui.Dialog().notification('Chyba', 'Nepodařilo se načíst hlavní stránku')
+            return False
+
+        # Parse the HTML
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Find VIP stream link
+        # Looking for: body > div.container > main > a.hero.hero--secondary.hero--link
+        vip_link = soup.select_one('body > div.container > main > a.hero.hero--secondary.hero--link')
+
+        if not vip_link or not vip_link.get('href'):
+            log("VIP stream link not found on homepage", xbmc.LOGWARNING)
+            xbmcgui.Dialog().notification('VIP stream', 'VIP stream momentálně není dostupný')
+            return False
+
+        youtube_url = vip_link['href']
+        log(f"Found VIP stream URL: {youtube_url}", xbmc.LOGINFO)
+
+        # Extract video ID from YouTube URL
+        # Possible formats:
+        # https://youtube.com/live/u7sOFSAJY4Y
+        # https://www.youtube.com/watch?v=u7sOFSAJY4Y
+        video_id = None
+        if '/live/' in youtube_url:
+            video_id = youtube_url.split('/live/')[-1].split('?')[0]
+        elif 'watch?v=' in youtube_url:
+            video_id = youtube_url.split('watch?v=')[-1].split('&')[0]
+
+        if not video_id:
+            log(f"Could not extract video ID from URL: {youtube_url}", xbmc.LOGERROR)
+            xbmcgui.Dialog().notification('Chyba', 'Neplatný formát YouTube URL')
+            return False
+
+        # Construct YouTube plugin URL
+        yt_plugin_url = f'plugin://plugin.video.youtube/play/?video_id={video_id}'
+
+        log(f"Opening VIP stream in YouTube addon: {yt_plugin_url}", xbmc.LOGINFO)
+
+        # Create list item and play
+        list_item = xbmcgui.ListItem(label='VIP stream')
+        xbmc.Player().play(item=yt_plugin_url, listitem=list_item)
+
+        return True
+
+    except Exception as e:
+        log(f'Error in yt_vip_stream: {str(e)}', xbmc.LOGERROR)
+        xbmcgui.Dialog().notification('Chyba', 'Chyba při načítání VIP streamu')
         return False
 
 def resume_from_web(video_url):

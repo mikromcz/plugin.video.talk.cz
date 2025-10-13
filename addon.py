@@ -9,7 +9,7 @@ from resources.lib.menu import list_menu, list_videos, list_popular, list_top, l
 from resources.lib.search import search, list_search_results
 from resources.lib.talknews import list_talknews, show_article, show_news_info
 from resources.lib.utils import log, get_ip
-from resources.lib.video import play_video, select_quality, skip_yt_part, yt_live, resume_from_web
+from resources.lib.video import play_video, select_quality, skip_yt_part, yt_live, yt_vip_stream, resume_from_web
 from resources.lib.monitor import start_monitor, reset_monitor
 
 def router(paramstring):
@@ -34,7 +34,7 @@ def router(paramstring):
         action = params.get('action', '')
 
         # Simple actions that don't require additional parameters
-        if action in ['creators', 'archive', 'test_credentials', 'test_session', 'clear_cache', 'get_ip', 'talknews', 'reset_monitor']:
+        if action in ['creators', 'archive', 'test_credentials', 'test_session', 'clear_cache', 'get_ip', 'talknews', 'reset_monitor', 'vip_stream']:
             action_map = {
                 'creators': list_creators,
                 'archive': list_archive,
@@ -43,7 +43,8 @@ def router(paramstring):
                 'clear_cache': clear_cache,
                 'get_ip': get_ip,
                 'talknews': list_talknews,
-                'reset_monitor': reset_monitor
+                'reset_monitor': reset_monitor,
+                'vip_stream': yt_vip_stream
             }
             action_map[action]()
             return
