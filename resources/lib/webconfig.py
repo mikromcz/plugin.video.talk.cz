@@ -124,10 +124,10 @@ def start_server():
     """
     global _server_instance
 
-    if not _ADDON.getSettingBool('enable_config_page'):
+    if not _ADDON.getSetting('enable_config_page') == 'true':
         return
 
-    port = _ADDON.getSettingInt('config_port')
+    port = int(_ADDON.getSetting('config_port'))
 
     try:
         # Create custom TCPServer class with better socket options

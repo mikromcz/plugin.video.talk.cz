@@ -93,7 +93,7 @@ def get_video_details(session, video_url):
     """
 
     # Check if caching is enabled in settings
-    use_cache = _ADDON.getSettingBool('use_cache')
+    use_cache = _ADDON.getSetting('use_cache')  == 'true'
 
     if use_cache:
         # Load cache

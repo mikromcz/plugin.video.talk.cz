@@ -178,7 +178,7 @@ if __name__ == '__main__':
     """
 
     # Only import and start web server if enabled
-    if _ADDON.getSettingBool('enable_config_page'):
+    if _ADDON.getSetting('enable_config_page') == 'true':
         try:
             import threading
             from resources.lib.webconfig import start_server

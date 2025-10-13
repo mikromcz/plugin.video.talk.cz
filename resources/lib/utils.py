@@ -304,7 +304,7 @@ def get_ip():
     try:
         import xbmcgui
         import socket
-        port = _ADDON.getSettingInt('config_port')
+        port = int(_ADDON.getSetting('config_port'))
 
         # Get all IP addresses
         ips = []

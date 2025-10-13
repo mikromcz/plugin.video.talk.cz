@@ -45,12 +45,12 @@ class TalkNewsMonitor:
         while self.running:
             try:
                 # Check if monitoring is still enabled
-                if not _ADDON.getSettingBool('monitor_talknews'):
+                if not _ADDON.getSetting('monitor_talknews') == 'true':
                     log("TALKNEWS monitoring disabled, stopping", xbmc.LOGINFO)
                     break
 
                 # Get check interval in hours from enum (0=1h, 1=3h, 2=6h, 3=12h, 4=24h, 5=48h)
-                interval_index = _ADDON.getSettingInt('check_interval')
+                interval_index = int(_ADDON.getSetting('check_interval'))
                 interval_options = [1, 3, 6, 12, 24, 48]
 
                 if interval_index < 0 or interval_index >= len(interval_options):
@@ -202,7 +202,7 @@ def start_monitor():
     """Start the TALKNEWS monitor if enabled"""
     global _monitor
 
-    if not _ADDON.getSettingBool('monitor_talknews'):
+    if not _ADDON.getSetting('monitor_talknews') == 'true':
         return
 
     if _monitor and _monitor.running:

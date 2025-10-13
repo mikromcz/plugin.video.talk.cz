@@ -1,0 +1,261 @@
+# Kodi Media Center language file
+# Addon Name: TALK.cz
+# Addon id: plugin.video.talk.cz
+msgid ""
+msgstr ""
+"Project-Id-Version: plugin.video.talk.cz\n"
+"Report-Msgid-Bugs-To: https://github.com/yourrepo\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: \n"
+"Language-Team: English\n"
+"Language: en_us\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Categories
+msgctxt "#30000"
+msgid "Login"
+msgstr "Přihlášení"
+
+msgctxt "#30001"
+msgid "Playback"
+msgstr "Přehrávání"
+
+msgctxt "#30002"
+msgid "Advanced"
+msgstr "Pokročilé"
+
+# Login - Config Page Group
+msgctxt "#30010"
+msgid "Web configuration page for PHPSESSID"
+msgstr "Konfigurační webová stránka pro zadání PHPSESSID"
+
+msgctxt "#30011"
+msgid "Enable configuration page"
+msgstr "Povolit konfigurační stránku"
+
+msgctxt "#30012"
+msgid "Get configuration page address"
+msgstr "Zjistit adresu konfigurační stránky"
+
+# Login - Manual PHPSESSID Group
+msgctxt "#30020"
+msgid "Manual PHPSESSID entry"
+msgstr "Ruční zadání PHPSESSID"
+
+msgctxt "#30021"
+msgid "1. Log in to talktv.cz"
+msgstr "1. Přihlašte se na talktv.cz"
+
+msgctxt "#30022"
+msgid "2. Open DevTools (F12) and find PHPSESSID cookie"
+msgstr "2. Otevřete DevTools (F12) a najděte cookie PHPSESSID"
+
+msgctxt "#30023"
+msgid "3. Copy cookie value here:"
+msgstr "3. Zkopírujte hodnotu cookie sem:"
+
+msgctxt "#30024"
+msgid "Session Cookie"
+msgstr "Session Cookie"
+
+msgctxt "#30025"
+msgid "Test login"
+msgstr "Test přihlášení"
+
+# Playback - Streams Group
+msgctxt "#30030"
+msgid "Streams"
+msgstr "Streamy"
+
+msgctxt "#30031"
+msgid "Preferred stream type"
+msgstr "Preferovaný typ streamu"
+
+msgctxt "#30032"
+msgid "HLS (Adaptive)"
+msgstr "HLS (Adaptive)"
+
+msgctxt "#30033"
+msgid "MP4"
+msgstr "MP4"
+
+msgctxt "#30034"
+msgid "Preferred quality"
+msgstr "Preferovaná kvalita"
+
+msgctxt "#30035"
+msgid "Auto"
+msgstr "Auto"
+
+msgctxt "#30036"
+msgid "1080p"
+msgstr "1080p"
+
+msgctxt "#30037"
+msgid "720p"
+msgstr "720p"
+
+msgctxt "#30038"
+msgid "480p"
+msgstr "480p"
+
+msgctxt "#30039"
+msgid "360p"
+msgstr "360p"
+
+msgctxt "#30040"
+msgid "240p"
+msgstr "240p"
+
+msgctxt "#30041"
+msgid "InputStream Adaptive settings"
+msgstr "Nastavení InputStream Adaptive"
+
+# Playback - YouTube Group
+msgctxt "#30050"
+msgid "YouTube"
+msgstr "YouTube"
+
+msgctxt "#30051"
+msgid "YouTube skip time (minutes)"
+msgstr "Čas přeskočení YouTube části (minuty)"
+
+# Advanced - TALKNEWS Group
+msgctxt "#30060"
+msgid "TALKNEWS"
+msgstr "TALKNEWS"
+
+msgctxt "#30061"
+msgid "Check TALKNEWS"
+msgstr "Kontrolovat TALKNEWS"
+
+msgctxt "#30062"
+msgid "Check interval (hours)"
+msgstr "Interval kontroly (hodiny)"
+
+msgctxt "#30063"
+msgid "[COLOR red]Reset TALKNEWS monitor[/COLOR]"
+msgstr "[COLOR red]Resetovat TALKNEWS monitor[/COLOR]"
+
+msgctxt "#30064"
+msgid "Last seen TALKNEWS"
+msgstr "Poslední viděný TALKNEWS"
+
+msgctxt "#30065"
+msgid "1"
+msgstr "1"
+
+msgctxt "#30066"
+msgid "3"
+msgstr "3"
+
+msgctxt "#30067"
+msgid "6"
+msgstr "6"
+
+msgctxt "#30068"
+msgid "12"
+msgstr "12"
+
+msgctxt "#30069"
+msgid "24"
+msgstr "24"
+
+msgctxt "#30070"
+msgid "48"
+msgstr "48"
+
+# Advanced - Cache Group
+msgctxt "#30080"
+msgid "Cache"
+msgstr "Mezipaměť"
+
+msgctxt "#30081"
+msgid "Cache show data"
+msgstr "Ukládat data pořadů do mezipaměti"
+
+msgctxt "#30082"
+msgid "[COLOR red]Clear cache[/COLOR]"
+msgstr "[COLOR red]Vymazat mezipaměť[/COLOR]"
+
+# Advanced - Config Server Group
+msgctxt "#30090"
+msgid "Web configuration page"
+msgstr "Konfigurační webová stránka"
+
+msgctxt "#30091"
+msgid "Configuration server port"
+msgstr "Port konfiguračního serveru"
+
+# Advanced - Logging Group
+msgctxt "#30100"
+msgid "Logging"
+msgstr "Logování"
+
+msgctxt "#30101"
+msgid "Enable debug logging"
+msgstr "Povolit detailní logování"
+
+# Help texts
+msgctxt "#30110"
+msgid "Starts a local web server that helps you easily enter the PHPSESSID cookie. The server automatically shuts down after 10 minutes."
+msgstr "Spustí lokální webový server, který vám pomůže snadno zadat PHPSESSID cookie. Server se automaticky vypne po 10 minutách."
+
+msgctxt "#30111"
+msgid "Displays the IP address and port where the configuration server is running. Open this address in your browser."
+msgstr "Zobrazí IP adresu a port, na kterém běží konfigurační server. Otevřete tuto adresu ve vašem prohlížeči."
+
+msgctxt "#30112"
+msgid "Enter the PHPSESSID cookie from your logged-in session on talk.cz:[CR]1. Log in to talktv.cz in your browser[CR]2. Open DevTools (F12) → Application/Storage → Cookies tab[CR]3. Find the PHPSESSID cookie and copy its value here"
+msgstr "Zadejte PHPSESSID cookie z přihlášené session na talk.cz:[CR]1. Přihlaste se na talktv.cz ve vašem prohlížeči[CR]2. Otevřete DevTools (F12) → záložka Application/Storage → Cookies[CR]3. Najděte cookie PHPSESSID a zkopírujte jeho hodnotu sem"
+
+msgctxt "#30113"
+msgid "Verifies whether the entered PHPSESSID cookie is valid and functional for accessing TALK.cz content"
+msgstr "Ověří, zda je zadaná PHPSESSID cookie platná a funkční pro přístup k obsahu TALK.cz"
+
+msgctxt "#30114"
+msgid "HLS (Adaptive) - automatically adjusts quality based on connection speed (recommended). MP4 - fixed quality, option to select specific resolution."
+msgstr "HLS (Adaptive) - automaticky přizpůsobí kvalitu podle rychlosti připojení (doporučeno). MP4 - fixní kvalita, možnost vybrat konkrétní rozlišení."
+
+msgctxt "#30115"
+msgid "Select the preferred resolution for MP4 streams. Only available when MP4 is selected as the preferred stream type."
+msgstr "Vyberte preferované rozlišení pro MP4 streamy. Dostupné pouze při výběru MP4 jako preferovaného typu streamu."
+
+msgctxt "#30116"
+msgid "Opens the InputStream Adaptive addon settings for advanced HLS streaming configuration."
+msgstr "Otevře nastavení doplňku InputStream Adaptive pro pokročilou konfiguraci HLS streamování."
+
+msgctxt "#30117"
+msgid "Some videos start with a YouTube portion. Set the time in minutes to skip when starting the video."
+msgstr "Některá videa začínají YouTube částí. Nastavte čas v minutách, který se má přeskočit při spuštění videa."
+
+msgctxt "#30118"
+msgid "Automatically checks for new TALKNEWS articles in the background and displays notifications. Also keeps your session active."
+msgstr "Automaticky kontroluje nové TALKNEWS články na pozadí a zobrazuje notifikace. Také udržuje vaši session aktivní."
+
+msgctxt "#30119"
+msgid "How often the addon should check for new TALKNEWS articles. Shorter interval = faster notifications, but more frequent server requests."
+msgstr "Jak často má doplněk kontrolovat nové TALKNEWS články. Kratší interval = rychlejší notifikace, ale častější požadavky na server."
+
+msgctxt "#30120"
+msgid "Resets the TALKNEWS monitor state. Use this if you want to see notifications for all articles again."
+msgstr "Resetuje stav TALKNEWS monitoru. Použijte pokud chcete znovu zobrazit notifikace pro všechny články."
+
+msgctxt "#30121"
+msgid "Stores video metadata in cache for faster loading and reduced server load. Recommended to keep enabled."
+msgstr "Ukládá metadata videí do mezipaměti pro rychlejší načítání a menší zatížení serveru. Doporučeno zapnuto."
+
+msgctxt "#30122"
+msgid "Clears all stored data from cache. Use this if you're experiencing outdated information or errors."
+msgstr "Vymaže všechna uložená data z mezipaměti. Použijte pokud se objevují zastaralé informace nebo chyby."
+
+msgctxt "#30123"
+msgid "Port on which the configuration web server runs. Change only if the default port 47447 is already in use."
+msgstr "Port, na kterém běží konfigurační webový server. Změňte pouze pokud je výchozí port 47447 již obsazen."
+
+msgctxt "#30124"
+msgid "Enables detailed logging to the kodi.log file. Useful for diagnosing problems. May slow down the addon."
+msgstr "Zapne podrobné logování do souboru kodi.log. Užitečné pro diagnostiku problémů. Může zpomalit doplněk."
