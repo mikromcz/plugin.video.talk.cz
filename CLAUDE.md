@@ -35,7 +35,7 @@ Main categories defined in `constants.py`:
 - Creators (STANDASHOW, TECH GUYS, JADRNÁ VĚDA, etc.)
 - Archive & Video Lists
 - Search functionality
-- Live streams (via YouTube plugin)
+- Live streams (via YouTube plugin) - both public "Čumil stream" and VIP stream for subscribers
 
 ### Video Streaming & Progress Monitoring
 - Supports both HLS (adaptive) and MP4 streams with quality selection
@@ -112,7 +112,11 @@ The plugin scrapes TALK.cz website and uses internal JSON APIs:
 ## File Structure Notes
 
 - `resources/media/` - Custom icons and images for shows/categories
+  - `fa-*.png` - Font Awesome solid icons for unified menu appearance
+  - `creator-*.jpg` - Creator profile images for cast information
 - `resources/screenshot-*.jpg` - Plugin screenshots for Kodi addon browser
+- `resources/settings.xml` - Settings definition using Kodi 19+ format (version="1") with localization support
+- `resources/language/` - Localization files for settings (cs_cz, en_gb, en_us)
 - `dev/` - Development tools, notes, and shortcuts
 - `dev/NOTES.md` - Detailed development notes and API documentation
 
@@ -124,13 +128,17 @@ The plugin scrapes TALK.cz website and uses internal JSON APIs:
 - `utils.log()` provides automatic function name detection and traceback support
 - Error notifications avoid interrupting video playback
 
-### ListItem Enhancement
+### ListItem Enhancement & Kodi API Updates
 Recent improvements to Kodi integration include:
 - Enhanced art properties (fanart, poster) for better visual presentation
 - Rich metadata (genres, studios, countries, year extraction)
 - Custom properties for advanced Kodi skins
 - Unique IDs for external tool integration
 - Cast member integration with profile images
+- Migration from deprecated API methods:
+  - `ListItem.setInfo("video", {...})` replaced with `InfoTagVideo` methods
+  - `ListItem.setProperty("StartOffset", ...)` replaced with `InfoTagVideo.setResumePoint()`
+  - `ListItem.setProperty("TotalTime", ...)` replaced with `InfoTagVideo.setResumePoint()`
 
 ## Resource Management
 
@@ -155,16 +163,30 @@ Recent improvements to Kodi integration include:
 ## Cast & Creator System
 
 ### Cast Member Integration
-- `constants.py` defines cast members in dictionary format with optional profile images
+- `constants.py` defines cast members in dictionary format with optional profile images and YouTube channel URLs
 - `utils.get_creator_cast()` supports both legacy string format and new dictionary format for backward compatibility
 - Cast members appear in video information with profile pictures located in `resources/media/creator-*.jpg`
+- Context menu integration allows jumping to creator's YouTube channel when available
 
 ### Image Naming Convention
 Creator profile images follow the pattern: `creator-[name-with-hyphens].jpg`
 - Examples: `creator-standa-hruska.jpg`, `creator-kicom.jpg`, `creator-leos-kysa.jpg`
+- Menu icons use Font Awesome solid style: `fa-[icon-name]-solid-full.png`
 - Images are automatically converted to full Kodi paths via `utils.get_image_path()`
 - Missing images gracefully fall back to empty string without breaking functionality
 
-## Localization
+### YouTube Integration
+- Live streams support both public "Čumil stream" (via YouTube plugin) and VIP stream for subscribers
+- VIP stream detection via scraping TALK.cz homepage for active stream link
+- Context menu option to open creator's YouTube channel directly from video list
+- YouTube channel URLs stored in creator definitions in `constants.py`
+
+## Localization & Settings
 
 Plugin is Czech-only (`lang="cs"`) as it targets Czech TALK.cz content exclusively.
+
+### Settings System
+- Uses Kodi 19+ settings format (`<settings version="1">`)
+- Localized strings in `resources/language/resource.language.*/strings.po`
+- Settings organized into categories: Základní (Basic), Pokročilé (Advanced), Přehrávání (Playback)
+- Full description support with `help` attribute for detailed explanations

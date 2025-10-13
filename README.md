@@ -70,11 +70,13 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
     * **Optimalizované session management** - cache s 1hodinovou platností snižuje zátěž serveru o 40-60%
     * **Kešování popisů epizod a datumů** - menší zátěž pro server Talku, značné zrychlení doplňku
     * **Skok na čas, kdy skončila YouTube část videa** (Tak trochu. Jen spustí video od času nastaveného v nastavení - průměrná délka YouTube části je cca 22 minut)
-    * **Živé streamy** - aktuálně přes otevření doplňku YouTube
+    * **Živé streamy** - veřejný "Čumil stream" i exkluzivní VIP stream pro předplatitele (přes doplněk YouTube)
     * **Podpora ukládání pozice přehrávání** - Obousměrně: při přehrávání v Kodi se posílá pozice na web, a pokud je rozkoukáno na webu, tak se v Kodi přehraje od té pozice
     * **Automatické sledování TALKNEWS** - Na pozadí kontroluje novinky a upozorní na ně. Zároveň udržuje session cookie aktivní
     * **Inteligentní notifikace** - Během přehrávání videa se zobrazí jen diskrétní upozornění, detailní informace se zobrazí až po skončení přehrávání
     * **Obsazení s fotografiemi** - Informace o videu obsahují moderátory s jejich fotografiemi pro lepší vizuální zážitek
+    * **Kontextové menu** - Přechod na YouTube kanál tvůrce přímo z menu videa (pokud je dostupný)
+    * **Sjednocené ikony** - Jednotný vzhled menu s ikonami Font Awesome
 
 * **Menu**
     * **Hledání**
@@ -84,6 +86,7 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
     * **Pokračovat v přehrávání** - Neaktualizuje se při sledování přes Kodi 😌. (Zatím? 🤔)
     * **Tvůrci** - V podmenu jsou všechny aktuální pořady od STANDASHOW po DESIGN TALK.
     * **Archiv** - V podmenu jsou seznamy videí (IRL, HODNOCENÍ HOSTŮ, VOLBY, ...) a archivované pořady (JARDA VS. NAOMI 🪦).
+    * **Živě** - Veřejný "Čumil stream" na YouTube + exkluzivní VIP stream pro předplatitele
 
 ## Automatické sledování TALKNEWS
 
