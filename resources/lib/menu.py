@@ -6,6 +6,7 @@ from .auth import get_session, is_cookie_failed
 from .cache import get_video_details
 from .constants import _HANDLE, _ADDON, ADDON_ID, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
 from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name, clean_url, get_creator_name_from_coloring, get_creator_cast, get_creator_url
+from .video import check_web_resume
 
 def list_menu():
     """
@@ -420,9 +421,10 @@ def list_continue():
             if not item:
                 continue
 
-            result = process_video_item(item, session)
+            result = process_video_item(item, session, auto_resume=True)
             if result:
                 list_item, video_url = result
+                # Use standard play action - resume point is already set in the ListItem
                 url = get_url(action='play', video_url=video_url)
                 xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
 
@@ -437,7 +439,7 @@ def list_continue():
 
 # In process_video_item(), update how we handle cast:
 
-def process_video_item(item, session, show_creator_in_title=True):
+def process_video_item(item, session, show_creator_in_title=True, auto_resume=False):
     """
     Helper function to process a video item and create a ListItem.
 
@@ -448,6 +450,7 @@ def process_video_item(item, session, show_creator_in_title=True):
         item (BeautifulSoup object): The video item to process.
         session (requests.Session): The session for making HTTP requests.
         show_creator_in_title (bool): Whether to show the creator in the title.
+        auto_resume (bool): Whether to automatically set resume point from web (for continue watching).
     """
 
     title_element = item.find('div', class_='media__name')
@@ -532,7 +535,16 @@ def process_video_item(item, session, show_creator_in_title=True):
 
     # Add useful properties for Kodi integration
     # Note: TotalTime is deprecated - using setResumePoint() instead
-    info_tag.setResumePoint(0.0, duration_seconds)  # Resume from 0, with total duration
+
+    # Check for web resume position if auto_resume is enabled
+    resume_position = 0.0
+    if auto_resume:
+        web_position = check_web_resume(video_url)
+        if web_position and web_position > 0:
+            resume_position = float(web_position)
+            log(f"Auto-resume enabled: setting resume position to {resume_position}s for {video_url}", xbmc.LOGINFO)
+
+    info_tag.setResumePoint(resume_position, duration_seconds)  # Resume from position, with total duration
     list_item.setProperty('Creator', creator_name)
     list_item.setProperty('Duration', duration_text)  # Original format like "1h42m"
 
