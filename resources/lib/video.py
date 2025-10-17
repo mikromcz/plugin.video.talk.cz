@@ -362,6 +362,12 @@ def yt_vip_stream():
         youtube_url = vip_link['href']
         log(f"Found VIP stream URL: {youtube_url}", xbmc.LOGINFO)
 
+        # Check if the URL is actually a YouTube URL
+        if 'youtube.com' not in youtube_url and 'youtu.be' not in youtube_url:
+            log(f"Link is not a YouTube URL: {youtube_url}", xbmc.LOGWARNING)
+            xbmcgui.Dialog().notification('VIP stream', 'VIP stream momentálně není dostupný')
+            return False
+
         # Extract video ID from YouTube URL
         # Possible formats:
         # https://youtube.com/live/u7sOFSAJY4Y
