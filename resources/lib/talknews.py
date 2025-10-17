@@ -50,7 +50,7 @@ def list_talknews():
 
             # Get tag text if exists
             tag_elem = item.find('span', class_='embed__tag')
-            tag_text = tag_elem.get_text(strip=True) if tag_elem else ""
+            tag_text = tag_elem.get_text(strip=True).upper() if tag_elem else ""
 
             # Add tag and meta to plot
             plot = f"[COLOR limegreen]{tag_text}[/COLOR]" if tag_text else ""
@@ -186,7 +186,7 @@ def show_news_info(title, meta):
         meta (str): Dialog content
     """
 
-    content = title.replace(" • ", "\n")
+    content = title.replace(" • ", "\n").upper()
     if meta:
         content = f"{content}\n\n{meta}"
 
