@@ -168,6 +168,7 @@ def start_server():
         #xbmcgui.Dialog().notification(
         #    'Chyba',
         #    f'Nelze spustit konfigurační server: {str(e)}',
+        #    _ADDON.getAddonInfo('icon'),
         #    time=5000
         #)
     finally:
@@ -191,6 +192,7 @@ def _auto_shutdown_server():
         xbmcgui.Dialog().notification(
             'Konfigurační server',
             'Server byl automaticky vypnut po 10 minutách',
+            _ADDON.getAddonInfo('icon'),
             time=5000
         )
 
