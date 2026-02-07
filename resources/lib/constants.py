@@ -85,10 +85,22 @@ ARCHIVE_CATEGORIES = [
         'image': 'archiv-hodnoceni-hostu.jpg'
     },
     {
+        'name': 'Duely [COLOR limegreen]STANDASHOW[/COLOR]',
+        'url': 'https://www.talktv.cz/seznam-videi/duely',
+        'description': 'Duelové rozhovory mezi duelisty [COLOR limegreen]STANDASHOW[/COLOR]. Gregorová, Stropnický, Roud, Kyša, Urza, Kicom a další. Politika, společnost, kontroverzní témata a názory z různých úhlů pohledu.',
+        'image': 'archiv-duely.jpg'
+    },
+    {
         'name': 'Charita',
         'url': 'https://www.talktv.cz/seznam-videi/charita',
         'description': 'Pomáháme. Podcast má být především zábava, ale někde je třeba probrat i vážné téma. A díky skvělé komunitě, která se kolem [COLOR limegreen]STANDASHOW[/COLOR] vytvořila, můžeme pomoct dobré věci.',
         'image': 'archiv-charita.jpg'
+    },
+    {
+        'name': 'Volby 2025',
+        'url': 'https://www.talktv.cz/seznam-videi/seznam-5jt5hlfg',
+        'description': '9 předvolebních hostů, každý z nich zastupuje jinou stranu. Jaké mají názory? Co zajímavého Standovi řekli? A jak jim vyšla volební kalkulačka? Přidáváme i 3 speciální předvolební streamy bez hostů. Příjemný poslech :)',
+        'image': 'archiv-volby-2025.jpg'
     },
     {
         'name': 'Prezidentské volby 2023',
