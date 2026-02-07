@@ -1,5 +1,4 @@
 import threading
-import time
 import xbmc
 import xbmcgui
 from bs4 import BeautifulSoup
@@ -16,8 +15,13 @@ class TalkNewsMonitor:
     def __init__(self):
         self.running = False
         self.thread = None
+        self.kodi_monitor = xbmc.Monitor()
         self.last_seen_title = None
         self.pending_notifications = []
+
+    def _should_stop(self):
+        """Check if the monitor should stop (Kodi exit or manual stop)"""
+        return not self.running or self.kodi_monitor.abortRequested()
 
     def start(self):
         """Start the background monitoring"""
@@ -42,7 +46,7 @@ class TalkNewsMonitor:
         # Load last seen item from settings
         self.last_seen_title = _ADDON.getSetting('last_talknews_title')
 
-        while self.running:
+        while not self._should_stop():
             try:
                 # Check if monitoring is still enabled
                 if not _ADDON.getSetting('monitor_talknews') == 'true':
@@ -66,21 +70,23 @@ class TalkNewsMonitor:
                 # Check for pending notifications to show
                 self._check_and_show_pending()
 
-                # Wait for the specified interval
-                # Check every 5 minutes if we should stop, to be responsive
-                interval_seconds = interval_hours * 3600  # Convert hours to seconds
+                # Wait for the specified interval using Kodi's waitForAbort
+                # which returns True immediately when Kodi is shutting down
+                interval_seconds = interval_hours * 3600
                 for _ in range(interval_seconds // 300):  # 5-minute intervals
-                    if not self.running:
+                    if self._should_stop():
                         break
-                    time.sleep(300)  # 5 minutes
+                    if self.kodi_monitor.waitForAbort(300):
+                        break  # Kodi is shutting down
 
                     # Check for pending notifications during wait periods too
                     self._check_and_show_pending()
 
             except Exception as e:
                 log(f"Error in TALKNEWS monitor loop: {str(e)}", xbmc.LOGERROR)
-                # Wait a bit before retrying
-                time.sleep(60)
+                # Wait a bit before retrying, but respect Kodi shutdown
+                if self.kodi_monitor.waitForAbort(60):
+                    break
 
         self.running = False
 
@@ -140,8 +146,8 @@ class TalkNewsMonitor:
                 meta = first_item.find('div', class_='embed__meta')
                 meta_text = meta.get_text(strip=True) if meta else ""
 
-                # Show simple notification
-                self._show_simple_notification(current_title, meta_text)
+                # Show notification
+                self._show_notification(tag_text, title_text, meta_text)
 
                 # Update last seen title
                 self.last_seen_title = current_title
@@ -150,25 +156,38 @@ class TalkNewsMonitor:
         except Exception as e:
             log(f"Error checking TALKNEWS: {str(e)}", xbmc.LOGERROR)
 
-    def _show_simple_notification(self, title, meta_text=""):
-        """Show simple notification for new TALKNEWS item"""
+    def _show_notification(self, show_name, title_text, meta_text=""):
+        """Show notification for new TALKNEWS item
+
+        Args:
+            show_name (str): Show/tag name (e.g. "livestream standashow")
+            title_text (str): Article title (e.g. "Host: Petr Ludwig ...")
+            meta_text (str): Additional meta info (date, etc.)
+        """
         try:
-            # Format content similar to show_news_info
-            content = title.replace(" • ", "\n")
+            if self._should_stop():
+                return
+
+            # Build full content for ok() dialog
+            ok_content = f"[COLOR limegreen]{show_name.upper()}[/COLOR]\n{title_text}" if show_name else title_text
             if meta_text:
-                content = f"{content}\n{meta_text}"
+                ok_content = f"{ok_content}\n{meta_text}"
+
+            # Build short content for toast notification (uppercased show name, title)
+            toast_content = f"[COLOR limegreen]{show_name.upper()}[/COLOR]\n{title_text}" if show_name else title_text
 
             # Check if video is playing
             player = xbmc.Player()
             if player.isPlayingVideo():
-                # Show non-intrusive notification during playback
-                xbmcgui.Dialog().notification('TALKNEWS', content, time=8000)
+                # Show non-intrusive toast notification during playback
+                icon = _ADDON.getAddonInfo('icon')
+                xbmcgui.Dialog().notification('TALKNEWS', toast_content, icon, time=8000)
 
-                # Store notification for later display when playback stops
-                self._store_pending_notification(content)
+                # Store full content for later display when playback stops
+                self._store_pending_notification(ok_content)
             else:
                 # Show modal dialog when not playing video
-                xbmcgui.Dialog().ok('TALKNEWS', content)
+                xbmcgui.Dialog().ok('TALKNEWS', ok_content)
 
         except Exception as e:
             log(f"Error showing TALKNEWS notification: {str(e)}", xbmc.LOGERROR)
@@ -181,10 +200,15 @@ class TalkNewsMonitor:
     def _check_and_show_pending(self):
         """Check if playback stopped and show any pending notifications"""
         try:
+            if self._should_stop():
+                return
+
             player = xbmc.Player()
             if not player.isPlayingVideo() and self.pending_notifications:
                 # Show all pending notifications
                 for content in self.pending_notifications:
+                    if self._should_stop():
+                        break
                     xbmcgui.Dialog().ok('TALKNEWS', content)
 
                 # Clear pending notifications
@@ -210,14 +234,6 @@ def start_monitor():
 
     _monitor = TalkNewsMonitor()
     _monitor.start()
-
-def stop_monitor():
-    """Stop the TALKNEWS monitor"""
-    global _monitor
-
-    if _monitor:
-        _monitor.stop()
-        _monitor = None
 
 def reset_monitor():
     """Reset the TALKNEWS monitor (clear last seen title and restart)"""

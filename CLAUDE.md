@@ -48,8 +48,10 @@ Main categories defined in `constants.py`:
 ### Background Monitoring System
 - `monitor.py` contains `TalkNewsMonitor` class for background TALKNEWS monitoring
 - Runs in daemon thread with configurable intervals (1-48 hours)
+- Uses `xbmc.Monitor().waitForAbort()` instead of `time.sleep()` for Kodi-friendly shutdown
+- `_should_stop()` helper checks both manual stop and `abortRequested()` for clean Kodi exit
 - Maintains session keep-alive functionality
-- Smart notification system that avoids interrupting video playback
+- Smart notification system that avoids interrupting video playback (toast with addon icon during playback, modal dialog otherwise)
 - Implements pending notification queue for post-playback display
 
 ## Development Commands
@@ -148,6 +150,7 @@ Recent improvements to Kodi integration include:
 
 ### Thread Safety
 - Proper cleanup patterns implemented for all background threads
+- `xbmc.Monitor().waitForAbort()` used in all background loops for clean Kodi shutdown
 - Context manager support for `ProgressMonitor` class
 - Global singleton management with thread-safe locks
 - Timeout protection for thread joins to prevent blocking

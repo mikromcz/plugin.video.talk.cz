@@ -13,11 +13,6 @@ from .utils import get_url, log, get_image_path
 _progress_monitor = None
 _monitor_lock = threading.Lock()
 
-# Cleanup handler for Kodi shutdown
-def cleanup_on_exit():
-    """Cleanup function to be called on Kodi shutdown"""
-    clear_progress_monitor()
-
 def play_video(video_url, requested_quality=None, start_time=None):
     """
     Play a video from the provided URL with optional quality and start time

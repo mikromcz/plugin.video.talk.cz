@@ -72,8 +72,8 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
     * **Skok na čas, kdy skončila YouTube část videa** (Tak trochu. Jen spustí video od času nastaveného v nastavení - průměrná délka YouTube části je cca 22 minut)
     * **Živé streamy** - veřejný "Čumil stream" i exkluzivní VIP stream pro předplatitele (přes doplněk YouTube)
     * **Podpora ukládání pozice přehrávání** - Obousměrně: při přehrávání v Kodi se posílá pozice na web, a pokud je rozkoukáno na webu, tak se v Kodi přehraje od té pozice
-    * **Automatické sledování TALKNEWS** - Na pozadí kontroluje novinky a upozorní na ně. Zároveň udržuje session cookie aktivní
-    * **Inteligentní notifikace** - Během přehrávání videa se zobrazí jen diskrétní upozornění, detailní informace se zobrazí až po skončení přehrávání
+    * **Automatické sledování TALKNEWS** - Na pozadí kontroluje novinky a upozorní na ně. Zároveň udržuje session cookie aktivní. Neblokuje ukončení Kodi
+    * **Inteligentní notifikace** - Během přehrávání videa se zobrazí jen diskrétní upozornění s ikonou doplňku, detailní informace se zobrazí až po skončení přehrávání
     * **Obsazení s fotografiemi** - Informace o videu obsahují moderátory s jejich fotografiemi pro lepší vizuální zážitek
     * **Kontextové menu** - Přechod na YouTube kanál tvůrce přímo z menu videa (pokud je dostupný)
     * **Sjednocené ikony** - Jednotný vzhled menu s ikonami Font Awesome
@@ -92,8 +92,8 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
 
 Doplněk umí na pozadí sledovat sekci TALKNEWS a upozornit na novinky. Tato funkce má několik výhod:
 
-* **Automatické notifikace** - Při objevení novinky se zobrazí upozornění
-* **Inteligentní upozorňování** - Během přehrávání videa jen diskrétní notifikace, po skončení detailní informace
+* **Automatické notifikace** - Při objevení novinky se zobrazí upozornění s ikonou doplňku
+* **Inteligentní upozorňování** - Během přehrávání videa jen diskrétní notifikace (název pořadu + titulek), po skončení detailní informace
 * **Udržování session** - Pravidelné kontroly udržují session cookie aktivní, takže nemusíte řešit vypršení přihlášení
 * **Přímý přístup** - Můžete si nechat novinku rovnou zobrazit v Kodi
 
