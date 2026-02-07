@@ -45,7 +45,8 @@ def play_video(video_url, requested_quality=None, start_time=None):
             log("Video player element not found in page", xbmc.LOGERROR)
             return
 
-        # Get quality preference if not specified
+        # Get stream type and quality preferences
+        prefer_hls = int(_ADDON.getSetting('preferred_stream')) == 0  # 0=HLS, 1=MP4
         if not requested_quality:
             quality_index = int(_ADDON.getSetting('video_quality'))
             qualities = ['Auto', '1080p', '720p', '480p', '360p', '240p']
@@ -56,8 +57,8 @@ def play_video(video_url, requested_quality=None, start_time=None):
         selected_url = None
         use_hls = False
 
-        # First try HLS for Auto quality
-        if requested_quality.lower() == 'auto':
+        # Try HLS for Auto quality when HLS is preferred
+        if requested_quality.lower() == 'auto' and prefer_hls:
             for source in sources:
                 if source.get('type') == 'application/x-mpegURL':
                     selected_url = source['src']
@@ -65,7 +66,7 @@ def play_video(video_url, requested_quality=None, start_time=None):
                     log("Selected HLS stream for auto quality", xbmc.LOGINFO)
                     break
 
-        # If no HLS or specific quality requested, try MP4
+        # If no HLS selected or MP4 preferred, try MP4
         if not selected_url:
             qualities = ['1080p', '720p', '480p', '360p', '240p']
             if requested_quality != 'Auto':

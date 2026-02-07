@@ -42,7 +42,7 @@ Main categories defined in `constants.py`:
 - Live streams (via YouTube plugin) - both public "Čumil stream" and VIP stream for subscribers
 
 ### Video Streaming & Progress Monitoring
-- Supports both HLS (adaptive) and MP4 streams with quality selection
+- Supports both HLS (adaptive) and MP4 streams with quality selection, controlled by `preferred_stream` setting
 - Features YouTube part skipping and position synchronization with the web platform
 - `video.py` contains `ProgressMonitor` class that extends `xbmc.Player` with threaded progress tracking
 - Progress monitoring uses singleton pattern with proper resource cleanup and thread management
