@@ -4,7 +4,7 @@ import xbmcplugin
 from bs4 import BeautifulSoup
 from .auth import require_session
 from .cache import get_video_details
-from .constants import _HANDLE, _ADDON, ADDON_ID, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
+from .constants import _HANDLE, _ADDON, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
 from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name, clean_url, get_creator_name_from_coloring, get_creator_cast, get_creator_url
 from .video import check_web_resume
 

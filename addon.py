@@ -2,7 +2,7 @@ import sys
 from urllib.parse import parse_qsl
 import xbmc
 import xbmcgui
-from resources.lib.auth import test_credentials, test_session
+from resources.lib.auth import test_session
 from resources.lib.cache import clear_cache
 from resources.lib.constants import _HANDLE, _ADDON
 from resources.lib.menu import list_menu, list_videos, list_popular, list_top, list_continue, list_creators, list_archive
@@ -34,11 +34,10 @@ def router(paramstring):
         action = params.get('action', '')
 
         # Simple actions that don't require additional parameters
-        if action in ['creators', 'archive', 'test_credentials', 'test_session', 'clear_cache', 'get_ip', 'talknews', 'reset_monitor', 'vip_stream']:
+        if action in ['creators', 'archive', 'test_session', 'clear_cache', 'get_ip', 'talknews', 'reset_monitor', 'vip_stream']:
             action_map = {
                 'creators': list_creators,
                 'archive': list_archive,
-                'test_credentials': test_credentials,
                 'test_session': test_session,
                 'clear_cache': clear_cache,
                 'get_ip': get_ip,

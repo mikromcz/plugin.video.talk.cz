@@ -164,13 +164,6 @@ def start_server():
 
     except Exception as e:
         log(f'Config server error: {str(e)}', xbmc.LOGERROR)
-        import xbmcgui
-        #xbmcgui.Dialog().notification(
-        #    'Chyba',
-        #    f'Nelze spustit konfigurační server: {str(e)}',
-        #    _ADDON.getAddonInfo('icon'),
-        #    time=5000
-        #)
     finally:
         _cleanup_server()
 

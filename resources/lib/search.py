@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from .auth import require_session
 from .constants import _HANDLE
 from .menu import process_video_item
-from .utils import get_url, log, clean_text, convert_duration_to_seconds, parse_date, clean_url
+from .utils import get_url, log
 
 def search():
     """

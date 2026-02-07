@@ -286,13 +286,7 @@ def yt_live():
         vip_url = get_url(action='vip_stream')
         xbmcplugin.addDirectoryItem(_HANDLE, vip_url, list_item_vip, isFolder=False)
 
-        # You're creating a direct link to the YouTube plugin (plugin://plugin.video.youtube/...).
-        # When you do this, you're essentially jumping to a different plugin, which breaks the natural directory hierarchy tracking.
-        #ADDON_NAME = _ADDON.getAddonInfo('name')
-        #plugin_category = f'{ADDON_NAME} / Živě'
-
         # Set the plugin category and content type
-        #xbmcplugin.setPluginCategory(_HANDLE, plugin_category)
         xbmcplugin.setPluginCategory(_HANDLE, 'Živě')
         xbmcplugin.setContent(_HANDLE, 'files')
         xbmcplugin.endOfDirectory(_HANDLE)

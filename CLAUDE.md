@@ -23,9 +23,13 @@ This is an unofficial Kodi video plugin for TALK.cz (formerly TALKTV.cz), a Czec
 - `resources/lib/utils.py` - Utility functions for data processing and formatting
 
 ### Authentication System
-The plugin uses PHPSESSID cookie authentication due to reCAPTCHA protection on the login page. Two methods available:
-1. Manual cookie extraction from browser DevTools
-2. Web configuration interface (`webconfig.py`) that runs a local server for easier setup
+The plugin uses PHPSESSID cookie-only authentication (email/password login is not possible due to reCAPTCHA). Two setup methods:
+1. Web configuration interface (preferred) - `webconfig.py` runs a local HTTP server with auto-shutdown
+2. Manual cookie extraction from browser DevTools
+
+Key auth patterns:
+- `require_session()` - standard way to get an authenticated session; shows error dialog if cookie is invalid/expired. Used by all menu/listing functions
+- `get_session()` - silent session retrieval (used internally by monitor.py, video.py)
 
 ### Menu Structure
 Main categories defined in `constants.py`:
@@ -53,6 +57,10 @@ Main categories defined in `constants.py`:
 - Maintains session keep-alive functionality
 - Smart notification system that avoids interrupting video playback (toast with addon icon during playback, modal dialog otherwise)
 - Implements pending notification queue for post-playback display
+
+### Common Module Patterns
+- `_API_HEADERS` constant in `menu.py` for TALK.cz AJAX API requests
+- All menu listing functions follow the same pattern: `require_session()` + fetch + parse + addDirectoryItem + endOfDirectory
 
 ## Development Commands
 
