@@ -92,6 +92,10 @@ Users must provide PHPSESSID cookie from authenticated TALK.cz session:
 
 ### Session Management
 - `auth.py` implements session caching with 1-hour TTL to reduce validation requests
+- `require_session()` is the standard entry point for authenticated operations (shows error dialog on failure)
+- `get_session()` for silent session retrieval (background monitoring, internal use)
+- Network errors (ConnectionError) are distinguished from invalid cookies - no false "expired cookie" dialogs on network issues
+- Automatic retry on transient network failures (1 retry after 2s, 10s timeout)
 - Automatic session refresh during background monitoring
 - Thread-safe session management with proper cleanup
 

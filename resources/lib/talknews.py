@@ -2,7 +2,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
-from .auth import get_session, is_cookie_failed
+from .auth import require_session
 from .constants import _HANDLE
 from .utils import log, get_url, clean_text
 
@@ -19,11 +19,8 @@ def list_talknews():
     """
 
     # Get a session for making HTTP requests
-    session = get_session()
+    session = require_session()
     if not session:
-        log("Failed to get valid session", xbmc.LOGERROR)
-        if is_cookie_failed():
-            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
         xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return
 
@@ -115,11 +112,8 @@ def show_article(article_url):
     """
 
     # Get a session for making HTTP requests
-    session = get_session()
+    session = require_session()
     if not session:
-        log("Failed to get valid session", xbmc.LOGERROR)
-        if is_cookie_failed():
-            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
         xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return
 

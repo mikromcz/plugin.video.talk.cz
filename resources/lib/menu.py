@@ -2,11 +2,18 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
-from .auth import get_session, is_cookie_failed
+from .auth import require_session
 from .cache import get_video_details
 from .constants import _HANDLE, _ADDON, ADDON_ID, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
 from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name, clean_url, get_creator_name_from_coloring, get_creator_cast, get_creator_url
 from .video import check_web_resume
+
+# Common headers for TALK.cz API requests
+_API_HEADERS = {
+    'Accept': 'application/json, text/javascript, */*; q=0.01',
+    'X-Requested-With': 'XMLHttpRequest',
+    'Referer': 'https://www.talktv.cz/'
+}
 
 def list_menu():
     """
@@ -131,11 +138,8 @@ def list_videos(category_url):
     """
 
     # Get a session for making HTTP requests
-    session = get_session()
+    session = require_session()
     if not session:
-        log("Failed to get valid session", xbmc.LOGERROR)
-        if is_cookie_failed():
-            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
         xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return
 
@@ -242,11 +246,8 @@ def list_popular(page=1):
     """
 
     # Get a session for making HTTP requests
-    session = get_session()
+    session = require_session()
     if not session:
-        log("Failed to get valid session", xbmc.LOGERROR)
-        if is_cookie_failed():
-            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
         xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return
 
@@ -255,13 +256,7 @@ def list_popular(page=1):
         api_url = f'https://www.talktv.cz/srv/videos/home?pages={page}'
         log(f"Fetching popular videos from API: {api_url}", xbmc.LOGINFO)
 
-        headers = {
-            'Accept': 'application/json, text/javascript, */*; q=0.01',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Referer': 'https://www.talktv.cz/'
-        }
-
-        response = session.get(api_url, headers=headers)
+        response = session.get(api_url, headers=_API_HEADERS)
         if response.status_code != 200:
             log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
             return
@@ -327,11 +322,8 @@ def list_top():
     """
 
     # Get a session for making HTTP requests
-    session = get_session()
+    session = require_session()
     if not session:
-        log("Failed to get valid session", xbmc.LOGERROR)
-        if is_cookie_failed():
-            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
         xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return
 
@@ -339,13 +331,7 @@ def list_top():
         api_url = 'https://www.talktv.cz/srv/videos/home'
         log(f"Fetching top videos from API: {api_url}", xbmc.LOGINFO)
 
-        headers = {
-            'Accept': 'application/json, text/javascript, */*; q=0.01',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Referer': 'https://www.talktv.cz/'
-        }
-
-        response = session.get(api_url, headers=headers)
+        response = session.get(api_url, headers=_API_HEADERS)
         if response.status_code != 200:
             log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
             return
@@ -385,11 +371,8 @@ def list_continue():
     """
 
     # Get a session for making HTTP requests
-    session = get_session()
+    session = require_session()
     if not session:
-        log("Failed to get valid session", xbmc.LOGERROR)
-        if is_cookie_failed():
-            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
         xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return
 
@@ -397,13 +380,7 @@ def list_continue():
         api_url = 'https://www.talktv.cz/srv/videos/home'
         log(f"Fetching continue watching videos from API: {api_url}", xbmc.LOGINFO)
 
-        headers = {
-            'Accept': 'application/json, text/javascript, */*; q=0.01',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Referer': 'https://www.talktv.cz/'
-        }
-
-        response = session.get(api_url, headers=headers)
+        response = session.get(api_url, headers=_API_HEADERS)
         if response.status_code != 200:
             log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
             return

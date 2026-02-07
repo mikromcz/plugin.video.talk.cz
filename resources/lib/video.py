@@ -5,7 +5,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
-from .auth import get_session, is_cookie_failed
+from .auth import get_session, require_session
 from .constants import _HANDLE, _ADDON
 from .utils import get_url, log, get_image_path
 
@@ -32,11 +32,8 @@ def play_video(video_url, requested_quality=None, start_time=None):
     """
 
     # Get a session for making HTTP requests
-    session = get_session()
+    session = require_session()
     if not session:
-        log("Failed to get valid session for video playback", xbmc.LOGERROR)
-        if is_cookie_failed():
-            xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
         return
 
     try:
@@ -331,11 +328,8 @@ def yt_vip_stream():
             return False
 
         # Get authenticated session
-        session = get_session()
+        session = require_session()
         if not session:
-            log("Failed to get valid session for VIP stream", xbmc.LOGERROR)
-            if is_cookie_failed():
-                xbmcgui.Dialog().ok('Chyba autentizace', 'Neplatná nebo prošlá session cookie.\n\nProsím aktualizujte cookie v nastavení doplňku.')
             return False
 
         log("Fetching VIP stream from TALK.cz homepage", xbmc.LOGINFO)
