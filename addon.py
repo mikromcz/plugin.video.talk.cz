@@ -4,7 +4,7 @@ import xbmc
 import xbmcgui
 from resources.lib.auth import test_session
 from resources.lib.cache import clear_cache
-from resources.lib.constants import _HANDLE, _ADDON
+from resources.lib.constants import _ADDON
 from resources.lib.menu import list_menu, list_videos, list_popular, list_top, list_continue, list_creators, list_archive
 from resources.lib.search import search, list_search_results
 from resources.lib.talknews import list_talknews, show_article, show_news_info
@@ -153,8 +153,8 @@ def router(paramstring):
             resume_from_web(video_url)
             return
 
-        # Handle notification
-        if params['action'] == 'notification':
+        # Handle notification (context menu separator trick)
+        if action == 'notification':
             xbmcgui.Dialog().notification('TALK', 'Já nic, já jen oddělovač', time=2000)
 
         # If we get here, the action was not recognized
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     """
 
     # Only import and start web server if enabled
-    if _ADDON.getSetting('enable_config_page') == 'true':
+    if _ADDON.getSettingBool('enable_config_page'):
         try:
             import threading
             from resources.lib.webconfig import start_server

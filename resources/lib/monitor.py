@@ -39,6 +39,7 @@ class TalkNewsMonitor:
         self.running = False
         if self.thread:
             self.thread.join(timeout=5)
+        _KODI_WINDOW.clearProperty(_MONITOR_PROP)
         log("TALKNEWS monitor stopped", xbmc.LOGINFO)
 
     def _monitor_loop(self):
@@ -49,7 +50,7 @@ class TalkNewsMonitor:
         while not self._should_stop():
             try:
                 # Check if monitoring is still enabled
-                if not _ADDON.getSetting('monitor_talknews') == 'true':
+                if not _ADDON.getSettingBool('monitor_talknews'):
                     log("TALKNEWS monitoring disabled, stopping", xbmc.LOGINFO)
                     break
 
@@ -89,6 +90,7 @@ class TalkNewsMonitor:
                     break
 
         self.running = False
+        _KODI_WINDOW.clearProperty(_MONITOR_PROP)
 
     def _check_talknews(self):
         """Check TALKNEWS page for new items"""
@@ -99,7 +101,7 @@ class TalkNewsMonitor:
                 log("Could not get session for TALKNEWS check", xbmc.LOGWARNING)
                 return
 
-            response = session.get('https://www.talktv.cz/talknews')
+            response = session.get('https://www.talktv.cz/talknews', timeout=10)
             if response.status_code != 200:
                 log(f"Failed to fetch TALKNEWS page: {response.status_code}", xbmc.LOGWARNING)
                 return
@@ -222,19 +224,32 @@ class TalkNewsMonitor:
 
 # Global monitor instance
 _monitor = None
+_monitor_lock = threading.Lock()
+
+# Cross-invocation singleton guard.
+# xbmcgui.Window(10000) is the Kodi Home screen — its properties live in
+# Kodi's own memory and survive Python context restarts (reuselanguageinvoker=false).
+_KODI_WINDOW = xbmcgui.Window(10000)
+_MONITOR_PROP = 'plugin.video.talk.cz.monitor_running'
 
 def start_monitor():
     """Start the TALKNEWS monitor if enabled"""
     global _monitor
 
-    if not _ADDON.getSetting('monitor_talknews') == 'true':
+    if not _ADDON.getSettingBool('monitor_talknews'):
         return
 
-    if _monitor and _monitor.running:
-        return  # Already running
+    with _monitor_lock:
+        # Primary guard: window property persists across plugin Python contexts
+        if _KODI_WINDOW.getProperty(_MONITOR_PROP) == 'true':
+            return
+        # Secondary guard: in-process check (reuselanguageinvoker=true or same context)
+        if _monitor and _monitor.running:
+            return
 
-    _monitor = TalkNewsMonitor()
-    _monitor.start()
+        _KODI_WINDOW.setProperty(_MONITOR_PROP, 'true')
+        _monitor = TalkNewsMonitor()
+        _monitor.start()
 
 def reset_monitor():
     """Reset the TALKNEWS monitor (clear last seen title and restart)"""

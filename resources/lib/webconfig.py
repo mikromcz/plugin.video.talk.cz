@@ -76,14 +76,14 @@ class ConfigHandler(http.server.SimpleHTTPRequestHandler):
         elif parsed_path.path == '/talk/test':
             log('Path matched /talk/test, processing request', xbmc.LOGINFO)
 
-            session = requests.Session()
             success = False
             message = 'Cookie není platné nebo je expirované'
 
             try:
                 session_cookie = _ADDON.getSetting('session_cookie')
-                session.cookies.set('PHPSESSID', session_cookie, domain='www.talktv.cz')
-                response = session.get('https://www.talktv.cz/videa')
+                with requests.Session() as session:
+                    session.cookies.set('PHPSESSID', session_cookie, domain='www.talktv.cz')
+                    response = session.get('https://www.talktv.cz/videa', timeout=10)
 
                 if 'popup-account__header-email' in response.text:
                     success = True
@@ -124,7 +124,7 @@ def start_server():
     """
     global _server_instance
 
-    if not _ADDON.getSetting('enable_config_page') == 'true':
+    if not _ADDON.getSettingBool('enable_config_page'):
         return
 
     port = int(_ADDON.getSetting('config_port'))

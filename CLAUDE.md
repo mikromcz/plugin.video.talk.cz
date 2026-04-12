@@ -57,10 +57,16 @@ Main categories defined in `constants.py`:
 - Maintains session keep-alive functionality
 - Smart notification system that avoids interrupting video playback (toast with addon icon during playback, modal dialog otherwise)
 - Implements pending notification queue for post-playback display
+- **Singleton guard (three layers)**:
+  1. `_KODI_WINDOW = xbmcgui.Window(10000)` property (`_MONITOR_PROP`) — persists in Kodi's C++ memory across Python context restarts (`reuselanguageinvoker=false`), primary cross-invocation guard
+  2. `_monitor_lock` threading lock — in-process guard for the same Python context
+  3. Save `last_seen_title` to settings *before* showing notification — prevents duplicate dialogs from race between multiple threads detecting the same new item
+- `_KODI_WINDOW.clearProperty(_MONITOR_PROP)` called in both `stop()` and at end of `_monitor_loop()` to release the guard on clean exit
 
 ### Common Module Patterns
 - `_API_HEADERS` constant in `menu.py` for TALK.cz AJAX API requests
 - All menu listing functions follow the same pattern: `require_session()` + fetch + parse + addDirectoryItem + endOfDirectory
+- **Critical**: `xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)` must be called on every early-return error path inside listing functions, or Kodi will show a permanent busy spinner. This includes both explicit `return` statements and `except` handlers.
 
 ## Development Commands
 
@@ -103,11 +109,12 @@ Users must provide PHPSESSID cookie from authenticated TALK.cz session:
 ### Session Management
 - `auth.py` implements session caching with 1-hour TTL to reduce validation requests
 - `require_session()` is the standard entry point for authenticated operations (shows error dialog on failure)
-- `get_session()` for silent session retrieval (background monitoring, internal use)
+- `get_session()` for silent session retrieval (background monitoring, internal use); returns `None` on failure (not `False`)
 - Network errors (ConnectionError) are distinguished from invalid cookies - no false "expired cookie" dialogs on network issues
 - Automatic retry on transient network failures (1 retry after 2s, 10s timeout)
 - Automatic session refresh during background monitoring
 - Thread-safe session management with proper cleanup
+- **Session ownership**: the `requests.Session` object is owned and cached by `auth.py`. Other modules (e.g. `ProgressMonitor`) must not call `.close()` on the session they receive from `get_session()` — doing so would break all subsequent auth calls in the same Kodi session.
 
 ### Important Settings
 - `preferred_stream` - HLS (Adaptive) vs MP4
@@ -141,6 +148,8 @@ The plugin scrapes TALK.cz website and uses internal JSON APIs:
 - Czech user notifications, English developer logs
 - `utils.log()` provides automatic function name detection and traceback support
 - Error notifications avoid interrupting video playback
+- No bare `except:` clauses — always catch specific exception types (e.g. `except (ValueError, IndexError):`, `except OSError:`)
+- All HTTP calls use `timeout=10` to prevent indefinite hangs on slow connections
 
 ### ListItem Enhancement & Kodi API Updates
 Recent improvements to Kodi integration include:
@@ -164,7 +173,8 @@ Recent improvements to Kodi integration include:
 - Timeout protection for thread joins to prevent blocking
 
 ### Memory Management
-- Session cleanup with proper `session.close()` calls
+- Auth session is owned by `auth.py`'s cache — never call `.close()` on it from other modules
+- `webconfig.py` test handler creates its own short-lived `requests.Session()` via context manager (`with requests.Session() as s:`) — this is the only place a session is explicitly closed
 - Destructor methods (`__del__`) for automatic resource cleanup
 - Cache size management and TTL-based invalidation
 

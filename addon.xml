@@ -19,7 +19,7 @@ Doplněk vyžaduje aktivní předplatné na TALK.cz.</description>
         <platform>all</platform>
         <license>MIT</license>
         <language>cs</language>
-        <reuselanguageinvoker>true</reuselanguageinvoker>
+        <reuselanguageinvoker>false</reuselanguageinvoker>
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>
@@ -29,6 +29,19 @@ Doplněk vyžaduje aktivní předplatné na TALK.cz.</description>
             <screenshot>resources/screenshot-4.png</screenshot>
         </assets>
         <news>[COLOR slategrey]Poznámka: Neumím programovat, a už vůbec ne v Pythonu. Drtivou většinu kódu vygeneroval Claude.AI. A leccos také GitHub Copilot :)[/COLOR]
+1.7.0 (2026-04-12)
+• Oprava: duplicitní TALKNEWS notifikace — window property mutex (xbmcgui.Window) zabraňuje spuštění více monitorů napříč Python kontexty
+• Oprava: vyhledávání — zrušení nyní správně vrací na předchozí obrazovku místo hlavního menu
+• Oprava: sdílená auth session nebyla nesprávně uzavírána při cleanup ProgressMonitoru
+• Výkon: opraveno spolehlivé fungování cache metadat (getSettingBool) — výrazné zrychlení procházení menu
+• Přidán timeout 10s pro všechna HTTP volání — plugin se již nezasekne při pomalém připojení
+• Nahrazení xbmc.sleep() za waitForAbort() v progress monitoru pro čisté ukončení Kodi
+• Sjednocení: getSetting() == 'true' → getSettingBool() pro všechna boolean nastavení
+• Odstraněny bare except bloky — specifické typy výjimek napříč všemi moduly
+• Oprava: context manager pro requests.Session() v webconfig test handleru
+• Odstraněn mrtvý kód: fallback pro xbmc.translatePath() (Kodi &lt; 19 není podporováno)
+• Oprava chybějících endOfDirectory volání na chybových cestách (Kodi se zasekával při chybě načítání)
+
 1.6.0 (2025-10-14)
 • Přidání podpory pro VIP streamy
 • Do kontextového menu přidána možnost přejít na YouTube kanál tvůrce (pokud je dostupný)

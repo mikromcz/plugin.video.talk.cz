@@ -33,7 +33,7 @@ def play_video(video_url, requested_quality=None, start_time=None):
 
     try:
         log(f"Attempting to play video: {video_url}", xbmc.LOGINFO)
-        response = session.get(video_url)
+        response = session.get(video_url, timeout=10)
         if response.status_code != 200:
             log(f"Failed to fetch video page: {response.status_code}", xbmc.LOGERROR)
             return
@@ -146,9 +146,11 @@ def play_video(video_url, requested_quality=None, start_time=None):
         except Exception as e:
             log(f"Failed to set video metadata: {str(e)}", xbmc.LOGWARNING)
 
+        # Get monitor reference once for this playback session
+        monitor = get_progress_monitor()
+
         # Handle start time if specified
         if start_time:
-            monitor = get_progress_monitor()
             monitor.initial_position = start_time
             log(f"Setting initial position to {start_time}s", xbmc.LOGINFO)
 
@@ -175,7 +177,6 @@ def play_video(video_url, requested_quality=None, start_time=None):
                 if script.string and 'initPlayerComponent' in script.string:
                     match = re.search(r'"videoId":(\d+)', script.string)
                     if match:
-                        monitor = get_progress_monitor()
                         monitor.video_id = match.group(1)
                         break
         except Exception as e:
@@ -203,9 +204,7 @@ def select_quality(video_url):
 
     if selected >= 0:  # If user didn't cancel
         quality = qualities[selected]
-        # Create a new list item and play it
-        play_item = xbmcgui.ListItem(path=get_url(action='play', video_url=video_url, quality=quality))
-        xbmc.Player().play(item=get_url(action='play', video_url=video_url, quality=quality), listitem=play_item)
+        xbmc.Player().play(get_url(action='play', video_url=video_url, quality=quality))
 
 def skip_yt_part(video_url):
     """
@@ -247,7 +246,7 @@ def yt_live():
         import xbmcaddon
         try:
             youtube_addon = xbmcaddon.Addon('plugin.video.youtube')
-        except:
+        except Exception:
             log("YouTube addon not installed", xbmc.LOGERROR)
             xbmcgui.Dialog().ok('Chyba', 'Doplněk YouTube není nainstalován, nainstalujte jej pro zobrazení živých streamů.')
             return False
@@ -312,7 +311,7 @@ def yt_vip_stream():
         import xbmcaddon
         try:
             youtube_addon = xbmcaddon.Addon('plugin.video.youtube')
-        except:
+        except Exception:
             log("YouTube addon not installed", xbmc.LOGERROR)
             xbmcgui.Dialog().ok('Chyba', 'Doplněk YouTube není nainstalován, nainstalujte jej pro zobrazení živých streamů.')
             return False
@@ -325,7 +324,7 @@ def yt_vip_stream():
         log("Fetching VIP stream from TALK.cz homepage", xbmc.LOGINFO)
 
         # Fetch the homepage
-        response = session.get('https://www.talktv.cz/')
+        response = session.get('https://www.talktv.cz/', timeout=10)
         if response.status_code != 200:
             log(f"Failed to fetch homepage: {response.status_code}", xbmc.LOGERROR)
             xbmcgui.Dialog().notification('Chyba', 'Nepodařilo se načíst hlavní stránku')
@@ -336,7 +335,7 @@ def yt_vip_stream():
 
         # Find VIP stream link
         # Looking for: body > div.container > main > a.hero.hero--secondary.hero--link
-        vip_link = soup.select_one('body > div.container > main > a.hero.hero--secondary.hero--link')
+        vip_link = soup.select_one('a.hero.hero--secondary.hero--link')
 
         if not vip_link or not vip_link.get('href'):
             log("VIP stream link not found on homepage", xbmc.LOGWARNING)
@@ -469,7 +468,7 @@ def check_web_resume(video_url):
         if not session:
             return None
 
-        response = session.get(video_url)
+        response = session.get(video_url, timeout=10)
         if response.status_code != 200:
             return None
 
@@ -603,13 +602,8 @@ class ProgressMonitor(xbmc.Player):
             except Exception as e:
                 log(f"Error joining progress thread: {str(e)}", xbmc.LOGERROR)
 
-        # Close session if it exists
-        if self.session:
-            try:
-                self.session.close()
-                log("Session closed", xbmc.LOGDEBUG)
-            except Exception as e:
-                log(f"Error closing session: {str(e)}", xbmc.LOGWARNING)
+        # Release session reference — session is owned by auth.py's cache, not closed here
+        # Closing it would invalidate the shared cached session used by the rest of the plugin
 
         # Reset all attributes
         self._video_id = None
@@ -635,7 +629,8 @@ class ProgressMonitor(xbmc.Player):
         # Wait for playback to start
         attempt = 0
         while attempt < 10 and (not self.isPlaying() or not self.isPlayingVideo()):
-            xbmc.sleep(1000)
+            if self.monitor.waitForAbort(1):
+                return
             attempt += 1
             log(f"Waiting for playback to start (attempt {attempt})", xbmc.LOGINFO)
 
@@ -643,7 +638,8 @@ class ProgressMonitor(xbmc.Player):
         if self.initial_position > 0 and self.isPlaying() and self.isPlayingVideo():
             log(f"Seeking to initial position: {self.initial_position}", xbmc.LOGINFO)
             self.seekTime(self.initial_position)
-            xbmc.sleep(1000)  # Give time for seek to complete
+            if self.monitor.waitForAbort(1):  # Give time for seek to complete
+                return
 
         while not self.monitor.abortRequested() and not self.stop_thread:
             try:
@@ -671,7 +667,8 @@ class ProgressMonitor(xbmc.Player):
                             log(f"Failed to update progress: {response.status_code}", xbmc.LOGWARNING)
                 else:
                     if not self.isPlaying() or not self.isPlayingVideo():
-                        xbmc.sleep(1000)  # Wait a bit before checking again
+                        if self.monitor.waitForAbort(1):
+                            return
                         continue
             except Exception as e:
                 log(f"Error in progress monitoring: {str(e)}", xbmc.LOGWARNING)

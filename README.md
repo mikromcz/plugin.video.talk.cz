@@ -66,11 +66,12 @@ Přidal jsem proto ulehčení ve formě zadání přes prohlížeč. V praxi to 
     * **Přihlášení přes PHPSESSID** (cookie vykopírované z prohlížeče) - buď ručně, nebo přes webový konfigurační server
     * **Automatický konfigurační server** - webové rozhraní pro jednoduché zadání PHPSESSID s automatickým vypnutím po 10 minutách
     * **Optimalizované session management** - cache s 1hodinovou platností snižuje zátěž serveru o 40-60%, automatický retry při dočasném výpadku sítě
-    * **Kešování popisů epizod a datumů** - menší zátěž pro server Talku, značné zrychlení doplňku
+    * **Kešování popisů epizod a datumů** - menší zátěž pro server Talku, značné zrychlení doplňku; cache je nyní spolehlivě aktivní
+    * **Timeout 10s pro všechna HTTP volání** - doplněk se nezasekne při pomalém připojení
     * **Skok na čas, kdy skončila YouTube část videa** (Tak trochu. Jen spustí video od času nastaveného v nastavení - průměrná délka YouTube části je cca 22 minut)
     * **Živé streamy** - veřejný "Čumil stream" i exkluzivní VIP stream pro předplatitele (přes doplněk YouTube)
     * **Podpora ukládání pozice přehrávání** - Obousměrně: při přehrávání v Kodi se posílá pozice na web, a pokud je rozkoukáno na webu, tak se v Kodi přehraje od té pozice
-    * **Automatické sledování TALKNEWS** - Na pozadí kontroluje novinky a upozorní na ně. Zároveň udržuje session cookie aktivní. Neblokuje ukončení Kodi
+    * **Automatické sledování TALKNEWS** - Na pozadí kontroluje novinky a upozorní na ně. Zároveň udržuje session cookie aktivní. Neblokuje ukončení Kodi. Garantovaně běží pouze jedna instance monitoru, i po restartu Python kontextu
     * **Inteligentní notifikace** - Během přehrávání videa se zobrazí jen diskrétní upozornění s ikonou doplňku, detailní informace se zobrazí až po skončení přehrávání
     * **Obsazení s fotografiemi** - Informace o videu obsahují moderátory s jejich fotografiemi pro lepší vizuální zážitek
     * **Kontextové menu** - Přechod na YouTube kanál tvůrce přímo z menu videa (pokud je dostupný)

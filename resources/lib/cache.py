@@ -15,13 +15,8 @@ def get_cache_path():
         str: The full path to the cache file
     """
 
-    try:
-        # For Kodi 19+ use xbmcvfs.translatePath
-        import xbmcvfs
-        profile_path = xbmcvfs.translatePath(_ADDON.getAddonInfo('profile'))
-    except ImportError:
-        # Fallback for older Kodi versions
-        profile_path = xbmc.translatePath(_ADDON.getAddonInfo('profile'))
+    import xbmcvfs
+    profile_path = xbmcvfs.translatePath(_ADDON.getAddonInfo('profile'))
 
     if not os.path.exists(profile_path):
         os.makedirs(profile_path)
@@ -93,7 +88,7 @@ def get_video_details(session, video_url):
     """
 
     # Check if caching is enabled in settings
-    use_cache = _ADDON.getSetting('use_cache')  == 'true'
+    use_cache = _ADDON.getSettingBool('use_cache')
 
     if use_cache:
         # Load cache
@@ -109,7 +104,7 @@ def get_video_details(session, video_url):
 
     try:
         log(f"Fetching details for video: {video_url}", xbmc.LOGDEBUG)
-        video_response = session.get(video_url)
+        video_response = session.get(video_url, timeout=10)
         video_soup = BeautifulSoup(video_response.text, 'html.parser')
 
         # Get the main details info

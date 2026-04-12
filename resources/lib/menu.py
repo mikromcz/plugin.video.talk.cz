@@ -52,8 +52,6 @@ def list_menu():
         # Add the directory item to the Kodi plugin
         xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=True)
 
-    # Set the plugin category and content type
-    #xbmcplugin.setPluginCategory(_HANDLE, 'Hlavní menu') # Kategorie
     xbmcplugin.setContent(_HANDLE, 'files')
     xbmcplugin.endOfDirectory(_HANDLE)
 
@@ -154,9 +152,10 @@ def list_videos(category_url):
         log(f"Show creator names: {show_creator} for URL: {category_url}", xbmc.LOGINFO)
 
         # Make the HTTP GET request
-        response = session.get(category_url)
+        response = session.get(category_url, timeout=10)
         if response.status_code != 200:
             log(f"Failed to fetch category page: {response.status_code}", xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         video_items = []
@@ -183,9 +182,11 @@ def list_videos(category_url):
                     log(f"Found {len(video_items)} videos in paginated response", xbmc.LOGDEBUG)
                 else:
                     log("No content field in paginated response", xbmc.LOGERROR)
+                    xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
                     return
             except Exception as e:
                 log("Failed to parse JSON response for paginated content", xbmc.LOGERROR)
+                xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
                 return
         else:
             log("Processing regular HTML response", xbmc.LOGDEBUG)
@@ -198,6 +199,7 @@ def list_videos(category_url):
                 log(f"Found {len(video_items)} videos in container", xbmc.LOGDEBUG)
             else:
                 log("Could not find video container in HTML", xbmc.LOGERROR)
+                xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
                 return
 
         for item in video_items:
@@ -238,6 +240,7 @@ def list_videos(category_url):
     except Exception as e:
         log(f"Error in list_videos: {str(e)}", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Chyba', 'Chyba při načítání videi')
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
 
 def list_popular(page=1):
     """
@@ -256,14 +259,16 @@ def list_popular(page=1):
         api_url = f'https://www.talktv.cz/srv/videos/home?pages={page}'
         log(f"Fetching popular videos from API: {api_url}", xbmc.LOGINFO)
 
-        response = session.get(api_url, headers=_API_HEADERS)
+        response = session.get(api_url, headers=_API_HEADERS, timeout=10)
         if response.status_code != 200:
             log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         data = response.json()
         if 'c2' not in data:
             log("No popular videos section in response", xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         # Get all items
@@ -314,6 +319,7 @@ def list_popular(page=1):
     except Exception as e:
         log("Error in list_popular", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Chyba', str(e))
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
 
 def list_top():
     """
@@ -331,14 +337,16 @@ def list_top():
         api_url = 'https://www.talktv.cz/srv/videos/home'
         log(f"Fetching top videos from API: {api_url}", xbmc.LOGINFO)
 
-        response = session.get(api_url, headers=_API_HEADERS)
+        response = session.get(api_url, headers=_API_HEADERS, timeout=10)
         if response.status_code != 200:
             log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         data = response.json()
         if 'c3' not in data:
             log("No top videos section in response", xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         # Get c3 items
@@ -363,6 +371,7 @@ def list_top():
     except Exception as e:
         log("Error in list_top", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Chyba', str(e))
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
 
 def list_continue():
     """
@@ -380,14 +389,16 @@ def list_continue():
         api_url = 'https://www.talktv.cz/srv/videos/home'
         log(f"Fetching continue watching videos from API: {api_url}", xbmc.LOGINFO)
 
-        response = session.get(api_url, headers=_API_HEADERS)
+        response = session.get(api_url, headers=_API_HEADERS, timeout=10)
         if response.status_code != 200:
             log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         data = response.json()
         if 'c1' not in data:
             log("No continue watching section in response", xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         # Get c1 items
@@ -413,8 +424,7 @@ def list_continue():
     except Exception as e:
         log("Error in list_continue", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Chyba', str(e))
-
-# In process_video_item(), update how we handle cast:
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
 
 def process_video_item(item, session, show_creator_in_title=True, auto_resume=False):
     """
@@ -495,7 +505,7 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
             if parsed_date:
                 year = int(parsed_date.split('-')[0])
                 info_tag.setYear(year)
-        except:
+        except (ValueError, IndexError):
             pass
 
     # Get cast information

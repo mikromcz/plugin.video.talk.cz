@@ -18,7 +18,7 @@ def log(msg, level=xbmc.LOGDEBUG):
     """
 
     if (level in [xbmc.LOGERROR, xbmc.LOGWARNING] or
-        (_ADDON.getSetting('debug') == 'true')):
+        _ADDON.getSettingBool('debug')):
 
         # Get the caller's frame info
         frame = sys._getframe(1)
@@ -155,7 +155,7 @@ def convert_duration_to_seconds(duration_text):
             # Format: "42m"
             minutes = duration_text.strip('m')
             total_seconds = int(minutes) * 60
-    except:
+    except (ValueError, AttributeError):
         pass
     return total_seconds
 
@@ -318,7 +318,7 @@ def get_ip():
                     ips.append(ip)
             finally:
                 s.close()
-        except:
+        except OSError:
             pass
 
         # Method 2: Try hostname resolution (often returns 127.0.1.1 on Linux)
@@ -327,7 +327,7 @@ def get_ip():
             ip = socket.gethostbyname(hostname)
             if ip and ip not in ips and ip != '127.0.0.1' and not ip.startswith('127.0.1.'):
                 ips.append(ip)
-        except:
+        except OSError:
             pass
 
         # Method 3: Get all network interfaces (comprehensive but may include many IPs)
@@ -341,7 +341,7 @@ def get_ip():
                     not ip.startswith('::') and
                     ':' not in ip):  # Skip IPv6
                     ips.append(ip)
-        except:
+        except OSError:
             pass
 
         # Method 4: If all else fails, include localhost as last resort

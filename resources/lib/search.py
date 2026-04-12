@@ -25,9 +25,8 @@ def search():
         # List the search results from the constructed URL
         list_search_results(search_url)
     else:
-        # User cancelled the search, return to main menu
-        from .menu import list_menu
-        list_menu()
+        # User cancelled — return to the previous screen
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
 
 def list_search_results(search_url):
     """
@@ -49,9 +48,10 @@ def list_search_results(search_url):
     try:
         log(f"Searching with URL: {search_url}", xbmc.LOGINFO)
         # Make the HTTP GET request
-        response = session.get(search_url)
+        response = session.get(search_url, timeout=10)
         if response.status_code != 200:
             log(f"Search request failed: {response.status_code}", xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         # Parse the HTML response
@@ -61,6 +61,7 @@ def list_search_results(search_url):
         if not results_container:
             log("No search results container found", xbmc.LOGWARNING)
             xbmcgui.Dialog().notification('Hledání', 'Žádné výsledky nenalezeny')
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         # Find all video items in the results container
@@ -68,6 +69,7 @@ def list_search_results(search_url):
         if not video_items:
             log("No search results found", xbmc.LOGINFO)
             xbmcgui.Dialog().notification('Hledání', 'Žádné výsledky nenalezeny')
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         for item in video_items:
@@ -75,7 +77,7 @@ def list_search_results(search_url):
             result = process_video_item(item, session)
             if result:
                 list_item, video_url = result
-                url = get_url(action='play', video_url=video_url, search_url=search_url)
+                url = get_url(action='play', video_url=video_url)
                 xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
 
         # Set the plugin category and content type
@@ -86,3 +88,4 @@ def list_search_results(search_url):
     except Exception as e:
         log(f"Error in list_search_results: {str(e)}", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Chyba', 'Chyba při vyhledávání')
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)

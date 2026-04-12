@@ -25,7 +25,7 @@ def list_talknews():
         return
 
     try:
-        response = session.get('https://www.talktv.cz/talknews')
+        response = session.get('https://www.talktv.cz/talknews', timeout=10)
         if response.status_code != 200:
             log(f"Failed to fetch TALKNEWS page: {response.status_code}", xbmc.LOGERROR)
             return
@@ -118,7 +118,7 @@ def show_article(article_url):
         return
 
     try:
-        response = session.get(article_url)
+        response = session.get(article_url, timeout=10)
         if response.status_code != 200:
             log(f"Failed to fetch article: {response.status_code}", xbmc.LOGERROR)
             return

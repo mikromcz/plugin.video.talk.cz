@@ -21,21 +21,21 @@ def get_session():
 
     Returns:
         requests.Session: A session object with authentication cookie set
-        False: Authentication failed (invalid cookie or network error)
+        None: Authentication failed (invalid cookie or network error)
     """
     global _session_cache
-    
+
     current_time = time.time()
     session_cookie = _ADDON.getSetting('session_cookie')
 
     # Check if this is the same cookie that failed before
     if (session_cookie and session_cookie == _session_cache['failed_cookie']):
         log("Using previously failed cookie", xbmc.LOGDEBUG)
-        return False
+        return None
 
     # Check if we have a valid cached session
-    if (_session_cache['session'] and 
-        _session_cache['validated_at'] > 0 and 
+    if (_session_cache['session'] and
+        _session_cache['validated_at'] > 0 and
         current_time - _session_cache['validated_at'] < _session_cache['ttl'] and
         session_cookie):
         log("Using cached session", xbmc.LOGDEBUG)
@@ -43,7 +43,7 @@ def get_session():
 
     if not session_cookie:
         log("No session cookie configured", xbmc.LOGWARNING)
-        return False
+        return None
 
     session = requests.Session()
     session.cookies.set('PHPSESSID', session_cookie, domain='www.talktv.cz')
@@ -67,7 +67,7 @@ def get_session():
                 _session_cache['session'] = None
                 _session_cache['validated_at'] = 0
                 _session_cache['network_error'] = False
-                return False
+                return None
 
         except requests.exceptions.ConnectionError as e:
             if attempt == 0:
@@ -78,7 +78,7 @@ def get_session():
             _session_cache['session'] = None
             _session_cache['validated_at'] = 0
             _session_cache['network_error'] = True
-            return False
+            return None
 
         except Exception as e:
             log(f"Session validation failed: {str(e)}", xbmc.LOGERROR)
@@ -86,9 +86,9 @@ def get_session():
             _session_cache['session'] = None
             _session_cache['validated_at'] = 0
             _session_cache['network_error'] = False
-            return False
+            return None
 
-    return False
+    return None
 
 def require_session():
     """
@@ -144,7 +144,7 @@ def test_session():
         session.cookies.set('PHPSESSID', session_cookie, domain='www.talktv.cz')
 
         # Test the session by requesting the videos page
-        response = session.get('https://www.talktv.cz/videa')
+        response = session.get('https://www.talktv.cz/videa', timeout=10)
 
         # Check if we're properly authenticated
         if 'popup-account__header-email' in response.text:
