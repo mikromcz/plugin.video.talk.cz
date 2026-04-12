@@ -19,7 +19,7 @@ Doplněk vyžaduje aktivní předplatné na TALK.cz.</description>
         <platform>all</platform>
         <license>MIT</license>
         <language>cs</language>
-        <reuselanguageinvoker>false</reuselanguageinvoker>
+        <reuselanguageinvoker>true</reuselanguageinvoker>
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>

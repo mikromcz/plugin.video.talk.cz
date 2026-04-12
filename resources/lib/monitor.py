@@ -142,16 +142,17 @@ class TalkNewsMonitor:
             if current_title != self.last_seen_title:
                 log(f"New TALKNEWS item detected: {current_title}", xbmc.LOGINFO)
 
+                # Update last seen title BEFORE showing notification to prevent
+                # duplicate dialogs if multiple monitor instances are running
+                self.last_seen_title = current_title
+                _ADDON.setSetting('last_talknews_title', current_title)
+
                 # Get meta text if available
                 meta = first_item.find('div', class_='embed__meta')
                 meta_text = meta.get_text(strip=True) if meta else ""
 
                 # Show notification
                 self._show_notification(tag_text, title_text, meta_text)
-
-                # Update last seen title
-                self.last_seen_title = current_title
-                _ADDON.setSetting('last_talknews_title', current_title)
 
         except Exception as e:
             log(f"Error checking TALKNEWS: {str(e)}", xbmc.LOGERROR)
