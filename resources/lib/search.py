@@ -5,8 +5,8 @@ from urllib.parse import quote
 from bs4 import BeautifulSoup
 from .auth import require_session
 from .constants import _HANDLE
-from .menu import process_video_item
-from .utils import get_url, log
+from .menu import add_video_directory_items
+from .utils import log
 
 def search():
     """
@@ -72,13 +72,7 @@ def list_search_results(search_url):
             xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
-        for item in video_items:
-            # Process video item with creator names
-            result = process_video_item(item, session)
-            if result:
-                list_item, video_url = result
-                url = get_url(action='play', video_url=video_url)
-                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
+        add_video_directory_items(video_items, session)
 
         # Set the plugin category and content type
         xbmcplugin.setPluginCategory(_HANDLE, 'Výsledky hledání')

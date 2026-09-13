@@ -1,11 +1,17 @@
 import os
 import json
+import re
+import threading
 import time
 import xbmc
 import xbmcgui
 from bs4 import BeautifulSoup
 from .constants import _ADDON
 from .utils import log
+
+# Guards the cache file against concurrent read-modify-write from parallel
+# video-detail fetches (see menu.add_video_directory_items)
+_cache_lock = threading.Lock()
 
 def get_cache_path():
     """
@@ -75,32 +81,35 @@ def clear_cache():
 
     return True
 
-def get_video_details(session, video_url):
+def get_video_details(session, video_url, need_resume=False):
     """
     Get video details with caching support.
 
     Args:
         session (requests.Session): The session to use for the request
         video_url (str): The URL of the video
+        need_resume (bool): If True, always fetch the page live (bypassing the
+            cache) and also extract the web resume position from it. Resume
+            position changes constantly, so it is never read from or written
+            to the cache; requesting it just means the description/date are
+            re-fetched on the same trip instead of a separate one.
 
     Returns:
-        tuple: A tuple containing the video description and the date when the video was published
+        tuple: (description, date, resume_position). resume_position is 0.0
+        when not requested or not found.
     """
 
     # Check if caching is enabled in settings
     use_cache = _ADDON.getSettingBool('use_cache')
 
-    if use_cache:
-        # Load cache
-        cache = load_cache()
+    if use_cache and not need_resume:
+        with _cache_lock:
+            cache = load_cache()
+            cached_data = cache.get(video_url)
 
-        # Check if we have cached data
-        if video_url in cache:
-            cached_data = cache[video_url]
-
-            # Cache data for 7 days (604800 seconds)
-            if time.time() - cached_data.get('timestamp', 0) < 604800:
-                return cached_data.get('description', ''), cached_data.get('date', '')
+        # Cache data for 7 days (604800 seconds)
+        if cached_data and time.time() - cached_data.get('timestamp', 0) < 604800:
+            return cached_data.get('description', ''), cached_data.get('date', ''), 0.0
 
     try:
         log(f"Fetching details for video: {video_url}", xbmc.LOGDEBUG)
@@ -134,18 +143,28 @@ def get_video_details(session, video_url):
                 else:
                     description = additional_description
 
+        resume_position = 0.0
+        if need_resume:
+            for script in video_soup.find_all('script'):
+                if script.string and 'initPlayerComponent' in script.string:
+                    pos_match = re.search(r'"ssVideoPos":(\d+)', script.string)
+                    if pos_match:
+                        resume_position = float(pos_match.group(1))
+                    break
+
         # Save to cache if enabled
         if use_cache and (description or date):
-            cache = load_cache()
-            cache[video_url] = {
-                'description': description,
-                'date': date,
-                'timestamp': time.time()
-            }
-            save_cache(cache)
+            with _cache_lock:
+                cache = load_cache()
+                cache[video_url] = {
+                    'description': description,
+                    'date': date,
+                    'timestamp': time.time()
+                }
+                save_cache(cache)
 
-        return description, date
+        return description, date, resume_position
 
     except Exception as e:
         log(f"Error fetching video details: {str(e)}", xbmc.LOGERROR)
-        return '', ''
+        return '', '', 0.0

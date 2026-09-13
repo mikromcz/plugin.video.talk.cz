@@ -3,10 +3,10 @@ import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
 from .auth import require_session
+from concurrent.futures import ThreadPoolExecutor
 from .cache import get_video_details
 from .constants import _HANDLE, _ADDON, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
 from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name, clean_url, get_creator_name_from_coloring, get_creator_cast, get_creator_url
-from .video import check_web_resume
 
 # Common headers for TALK.cz API requests
 _API_HEADERS = {
@@ -15,13 +15,19 @@ _API_HEADERS = {
     'Referer': 'https://www.talktv.cz/'
 }
 
-def list_menu():
+def _list_static_categories(categories, category_title, url_builder, context_menu_builder=None):
     """
-    Lists the main menu categories available in the addon
+    Build a simple folder listing from a static category list (constants.py).
+    Shared by list_menu, list_creators, and list_archive.
+
+    Args:
+        categories (list): List of category dicts (name/description/image/url).
+        category_title (str): Plugin category label, or None to skip setting it.
+        url_builder (callable): category -> destination URL for the directory item.
+        context_menu_builder (callable): Optional category -> context menu list.
     """
 
-    for category in MENU_CATEGORIES:
-        # Create a list item for each category
+    for category in categories:
         list_item = xbmcgui.ListItem(label=category['name'])
         image_path = get_image_path(category['image'])
 
@@ -37,94 +43,60 @@ def list_menu():
         info_tag.setCountries(["Česká Republika"])
         info_tag.setGenres(['Directory'])
 
-        # Determine the URL for the category action
-        if category['url'] == 'search':
-            url = get_url(action='search')
-        elif category['url'] == 'popular':
-            url = get_url(action='popular')
-        elif category['url'] == 'creators':
-            url = get_url(action='creators')
-        elif category['url'] == 'archive':
-            url = get_url(action='archive')
-        else:
-            url = get_url(action='listing', category_url=category['url'])
+        if context_menu_builder:
+            context_menu = context_menu_builder(category)
+            if context_menu:
+                list_item.addContextMenuItems(context_menu)
 
-        # Add the directory item to the Kodi plugin
+        url = url_builder(category)
         xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=True)
 
+    if category_title:
+        xbmcplugin.setPluginCategory(_HANDLE, category_title)
     xbmcplugin.setContent(_HANDLE, 'files')
     xbmcplugin.endOfDirectory(_HANDLE)
+
+def list_menu():
+    """
+    Lists the main menu categories available in the addon
+    """
+
+    def build_url(category):
+        # A handful of top-level categories route to their own dedicated action
+        special_actions = {'search', 'popular', 'creators', 'archive'}
+        if category['url'] in special_actions:
+            return get_url(action=category['url'])
+        return get_url(action='listing', category_url=category['url'])
+
+    _list_static_categories(MENU_CATEGORIES, None, build_url)
 
 def list_creators():
     """
     Lists the creators and their content available in the addon
     """
 
-    for creator in CREATOR_CATEGORIES:
-        # Create a list item for each creator
-        list_item = xbmcgui.ListItem(label=creator['name'])
-        image_path = get_image_path(creator['image'])
+    def build_context_menu(creator):
+        yt_channel_id = creator.get('yt_channel_id')
+        if not yt_channel_id:
+            return None
+        yt_url = f'plugin://plugin.video.youtube/channel/{yt_channel_id}'
+        return [('Přejít na YouTube kanál tvůrce', f'Container.Update({yt_url})')]
 
-        list_item.setArt({
-            'thumb': image_path,
-            'icon': image_path
-        })
-
-        # Set the plot and title for the creator
-        info_tag = list_item.getVideoInfoTag()
-        info_tag.setPlot(creator['description'])
-        info_tag.setTitle(creator['name'])
-
-        # Determine the URL for the creator's content
-        url = get_url(action='listing', category_url=creator['url'])
-
-        # Add context menu for YouTube channel if available
-        if 'yt_channel_id' in creator and creator['yt_channel_id']:
-            yt_channel_id = creator['yt_channel_id']
-            yt_url = f'plugin://plugin.video.youtube/channel/{yt_channel_id}'
-            context_menu = [
-                ('Přejít na YouTube kanál tvůrce', f'Container.Update({yt_url})')
-            ]
-            list_item.addContextMenuItems(context_menu)
-
-        # Add the directory item to the Kodi plugin
-        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=True)
-
-    # Set the plugin category and content type
-    xbmcplugin.setPluginCategory(_HANDLE, 'Tvůrci')
-    xbmcplugin.setContent(_HANDLE, 'files')
-    xbmcplugin.endOfDirectory(_HANDLE)
+    _list_static_categories(
+        CREATOR_CATEGORIES, 'Tvůrci',
+        lambda creator: get_url(action='listing', category_url=creator['url']),
+        build_context_menu
+    )
 
 def list_archive():
     """
     Lists the archive items available in the addon
     """
 
-    for item in ARCHIVE_CATEGORIES:
-        # Create a list item for each archive item
-        list_item = xbmcgui.ListItem(label=item['name'])
-        image_path = get_image_path(item['image'])
-
-        list_item.setArt({
-            'thumb': image_path,
-            'icon': image_path
-        })
-
-        # Set the plot and title for the archive item
-        info_tag = list_item.getVideoInfoTag()
-        info_tag.setPlot(item['description'])
-        info_tag.setTitle(item['name'])
-
-        # Determine the URL for the archive item's content
-        url = get_url(action='listing', category_url=item['url'])
-
-        # Add the directory item to the Kodi plugin
-        xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=True)
-
-    # Set the plugin category and content type
-    xbmcplugin.setPluginCategory(_HANDLE, 'Archiv')
-    xbmcplugin.setContent(_HANDLE, 'files')
-    xbmcplugin.endOfDirectory(_HANDLE)
+    _list_static_categories(
+        ARCHIVE_CATEGORIES, 'Archiv',
+        lambda item: get_url(action='listing', category_url=item['url'])
+    )
 
 def list_videos(category_url):
     """
@@ -202,14 +174,8 @@ def list_videos(category_url):
                 xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
                 return
 
-        for item in video_items:
-            #log(f"Processing item: {item.get('class')}", xbmc.LOGINFO)
-            # Process video item with creator names only for main videos section
-            result = process_video_item(item, session, show_creator_in_title=show_creator)
-            if result:
-                list_item, video_url = result
-                url = get_url(action='play', video_url=video_url)
-                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
+        # Process video items with creator names only for the main videos section
+        add_video_directory_items(video_items, session, show_creator_in_title=show_creator)
 
         # No next for "OSTATNÍ"
         if 'filter=ostatni' in category_url:
@@ -242,10 +208,17 @@ def list_videos(category_url):
         xbmcgui.Dialog().notification('Chyba', 'Chyba při načítání videi')
         xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
 
-def list_popular(page=1):
+def _list_home_section(section_key, category_title, auto_resume=False, paginate=False, page=1):
     """
-    Lists the most popular videos, paginated with 24 items per page (24, 48, 72, ...)
-    C2 in https://www.talktv.cz/srv/videos/home
+    Fetch a section (c1/c2/c3) from the /srv/videos/home API and list its videos.
+    Shared by list_popular, list_top, and list_continue.
+
+    Args:
+        section_key (str): Key of the section in the API response ('c1'/'c2'/'c3').
+        category_title (str): Plugin category label to show for this listing.
+        auto_resume (bool): Whether to auto-set resume point from the web position.
+        paginate (bool): Whether to slice the section client-side into pages of 24.
+        page (int): Current page number, only used when paginate is True.
     """
 
     # Get a session for making HTTP requests
@@ -255,9 +228,8 @@ def list_popular(page=1):
         return
 
     try:
-        # Construct API URL with page parameter
-        api_url = f'https://www.talktv.cz/srv/videos/home?pages={page}'
-        log(f"Fetching popular videos from API: {api_url}", xbmc.LOGINFO)
+        api_url = f'https://www.talktv.cz/srv/videos/home?pages={page}' if paginate else 'https://www.talktv.cz/srv/videos/home'
+        log(f"Fetching {section_key} videos from API: {api_url}", xbmc.LOGINFO)
 
         response = session.get(api_url, headers=_API_HEADERS, timeout=10)
         if response.status_code != 200:
@@ -266,40 +238,29 @@ def list_popular(page=1):
             return
 
         data = response.json()
-        if 'c2' not in data:
-            log("No popular videos section in response", xbmc.LOGERROR)
+        if section_key not in data:
+            log(f"No {section_key} section in response", xbmc.LOGERROR)
             xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
-        # Get all items
-        soup = BeautifulSoup(data['c2'], 'html.parser')
+        soup = BeautifulSoup(data[section_key], 'html.parser')
         all_items = soup.find_all('div', class_='list__item')
-        total_items = len(all_items)
 
-        # Calculate slice indices for current page
-        ITEMS_PER_PAGE = 24
-        start_idx = (page - 1) * ITEMS_PER_PAGE
-        end_idx = start_idx + ITEMS_PER_PAGE
+        has_next_page = False
+        if paginate:
+            ITEMS_PER_PAGE = 24
+            total_items = len(all_items)
+            start_idx = (page - 1) * ITEMS_PER_PAGE
+            end_idx = start_idx + ITEMS_PER_PAGE
+            list_item_divs = all_items[start_idx:end_idx]
+            # -1 otherwise there is no "Next page" on the last full page
+            has_next_page = total_items > start_idx + len(list_item_divs) - 1
+            log(f"Page {page}: Processing items {start_idx} to {end_idx} out of {total_items}, has next: {has_next_page}", xbmc.LOGDEBUG)
+        else:
+            list_item_divs = all_items
 
-        # Get only items for current page
-        list_items = all_items[start_idx:end_idx]
-
-        # We have a next page if we have any items beyond our current slice
-        has_next_page = total_items > start_idx + len(list_items) - 1 # -1 otherwise there is no "Next page"
-
-        log(f"Page {page}: Processing items {start_idx} to {end_idx}, total items: {total_items}, has next: {has_next_page}", xbmc.LOGDEBUG)
-        log(f"Page {page}: Processing items {start_idx} to {end_idx} out of {len(all_items)}", xbmc.LOGDEBUG)
-
-        for list_item_div in list_items:
-            item = list_item_div.find('a', class_='media')
-            if not item:
-                continue
-
-            result = process_video_item(item, session)
-            if result:
-                list_item, video_url = result
-                url = get_url(action='play', video_url=video_url)
-                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
+        video_items = [a for div in list_item_divs if (a := div.find('a', class_='media'))]
+        add_video_directory_items(video_items, session, auto_resume=auto_resume)
 
         if has_next_page:  # Add next page only if there are more items available
             next_page = page + 1
@@ -308,123 +269,38 @@ def list_popular(page=1):
                 'icon': get_image_path('fa-folder-next-solid-full.png'),
                 'thumb': get_image_path('fa-folder-next-solid-full.png')
             })
-            url = get_url(action='popular', page=next_page)
-            xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, True)
+            xbmcplugin.addDirectoryItem(_HANDLE, get_url(action='popular', page=next_page), next_item, True)
 
         # Set the plugin category and content type
-        xbmcplugin.setPluginCategory(_HANDLE, 'Populární videa')
+        xbmcplugin.setPluginCategory(_HANDLE, category_title)
         xbmcplugin.setContent(_HANDLE, 'videos')
         xbmcplugin.endOfDirectory(_HANDLE)
 
     except Exception as e:
-        log("Error in list_popular", xbmc.LOGERROR)
+        log(f"Error listing {section_key}: {str(e)}", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Chyba', str(e))
         xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
+
+def list_popular(page=1):
+    """
+    Lists the most popular videos, paginated client-side with 24 items per page.
+    c2 in https://www.talktv.cz/srv/videos/home
+    """
+    _list_home_section('c2', 'Populární videa', paginate=True, page=page)
 
 def list_top():
     """
-    Lists the top videos (no pagination as there are only 16 items)
-    C3 in https://www.talktv.cz/srv/videos/home
+    Lists the top videos (no pagination as there are only 16 items).
+    c3 in https://www.talktv.cz/srv/videos/home
     """
-
-    # Get a session for making HTTP requests
-    session = require_session()
-    if not session:
-        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
-        return
-
-    try:
-        api_url = 'https://www.talktv.cz/srv/videos/home'
-        log(f"Fetching top videos from API: {api_url}", xbmc.LOGINFO)
-
-        response = session.get(api_url, headers=_API_HEADERS, timeout=10)
-        if response.status_code != 200:
-            log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
-            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
-            return
-
-        data = response.json()
-        if 'c3' not in data:
-            log("No top videos section in response", xbmc.LOGERROR)
-            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
-            return
-
-        # Get c3 items
-        soup = BeautifulSoup(data['c3'], 'html.parser')
-        list_items = soup.find_all('div', class_='list__item')
-        for list_item_div in list_items:
-            item = list_item_div.find('a', class_='media')
-            if not item:
-                continue
-
-            result = process_video_item(item, session)
-            if result:
-                list_item, video_url = result
-                url = get_url(action='play', video_url=video_url)
-                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
-
-        # Set the plugin category and content type
-        xbmcplugin.setPluginCategory(_HANDLE, 'Nejlepší videa')
-        xbmcplugin.setContent(_HANDLE, 'videos')
-        xbmcplugin.endOfDirectory(_HANDLE)
-
-    except Exception as e:
-        log("Error in list_top", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', str(e))
-        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
+    _list_home_section('c3', 'Nejlepší videa')
 
 def list_continue():
     """
-    Lists the videos that the user can continue watching (no pagination)
-    C1 in https://www.talktv.cz/srv/videos/home
+    Lists the videos that the user can continue watching (no pagination).
+    c1 in https://www.talktv.cz/srv/videos/home
     """
-
-    # Get a session for making HTTP requests
-    session = require_session()
-    if not session:
-        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
-        return
-
-    try:
-        api_url = 'https://www.talktv.cz/srv/videos/home'
-        log(f"Fetching continue watching videos from API: {api_url}", xbmc.LOGINFO)
-
-        response = session.get(api_url, headers=_API_HEADERS, timeout=10)
-        if response.status_code != 200:
-            log(f"API request failed: {response.status_code}", xbmc.LOGERROR)
-            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
-            return
-
-        data = response.json()
-        if 'c1' not in data:
-            log("No continue watching section in response", xbmc.LOGERROR)
-            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
-            return
-
-        # Get c1 items
-        soup = BeautifulSoup(data['c1'], 'html.parser')
-        list_items = soup.find_all('div', class_='list__item')
-        for list_item_div in list_items:
-            item = list_item_div.find('a', class_='media')
-            if not item:
-                continue
-
-            result = process_video_item(item, session, auto_resume=True)
-            if result:
-                list_item, video_url = result
-                # Use standard play action - resume point is already set in the ListItem
-                url = get_url(action='play', video_url=video_url)
-                xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)
-
-        # Set the plugin category and content type
-        xbmcplugin.setPluginCategory(_HANDLE, 'Pokračovat v přehrávání')
-        xbmcplugin.setContent(_HANDLE, 'videos')
-        xbmcplugin.endOfDirectory(_HANDLE)
-
-    except Exception as e:
-        log("Error in list_continue", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', str(e))
-        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
+    _list_home_section('c1', 'Pokračovat v přehrávání', auto_resume=True)
 
 def process_video_item(item, session, show_creator_in_title=True, auto_resume=False):
     """
@@ -482,8 +358,9 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
         'icon': thumbnail
     })
 
-    # Get additional details
-    description, date = get_video_details(session, video_url)
+    # Get additional details (a single fetch also covers the web resume position
+    # when auto_resume is enabled, instead of fetching the same page twice)
+    description, date, resume_position = get_video_details(session, video_url, need_resume=auto_resume)
     duration_seconds = convert_duration_to_seconds(duration_text)
 
     # Set video info
@@ -522,14 +399,8 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
 
     # Add useful properties for Kodi integration
     # Note: TotalTime is deprecated - using setResumePoint() instead
-
-    # Check for web resume position if auto_resume is enabled
-    resume_position = 0.0
-    if auto_resume:
-        web_position = check_web_resume(video_url)
-        if web_position and web_position > 0:
-            resume_position = float(web_position)
-            log(f"Auto-resume enabled: setting resume position to {resume_position}s for {video_url}", xbmc.LOGINFO)
+    if auto_resume and resume_position > 0:
+        log(f"Auto-resume enabled: setting resume position to {resume_position}s for {video_url}", xbmc.LOGINFO)
 
     info_tag.setResumePoint(resume_position, duration_seconds)  # Resume from position, with total duration
     list_item.setProperty('Creator', creator_name)
@@ -558,3 +429,38 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
     list_item.addContextMenuItems(context_menu)
 
     return list_item, video_url
+
+def add_video_directory_items(video_items, session, show_creator_in_title=True, auto_resume=False):
+    """
+    Process a batch of <a class="media"> items and add them to the Kodi directory.
+
+    Fetching each video's detail page over HTTP is the slow part of building a
+    listing, so items are processed concurrently via a thread pool instead of
+    one HTTP request at a time. Results are added in the original order.
+
+    Args:
+        video_items (list): BeautifulSoup <a class="media"> elements to process.
+        session (requests.Session): The session for making HTTP requests.
+        show_creator_in_title (bool): Whether to show the creator in the title.
+        auto_resume (bool): Whether to auto-set resume point from the web position.
+    """
+
+    if not video_items:
+        return
+
+    results = [None] * len(video_items)
+
+    def _process(index, item):
+        try:
+            results[index] = process_video_item(item, session, show_creator_in_title, auto_resume)
+        except Exception as e:
+            log(f"Error processing video item: {str(e)}", xbmc.LOGERROR)
+
+    with ThreadPoolExecutor(max_workers=min(6, len(video_items))) as executor:
+        list(executor.map(lambda args: _process(*args), enumerate(video_items)))
+
+    for result in results:
+        if result:
+            list_item, video_url = result
+            url = get_url(action='play', video_url=video_url)
+            xbmcplugin.addDirectoryItem(_HANDLE, url, list_item, isFolder=False)

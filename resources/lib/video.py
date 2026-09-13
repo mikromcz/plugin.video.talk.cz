@@ -221,13 +221,10 @@ def skip_yt_part(video_url):
         # Convert minutes to seconds for the seek parameter
         seek_time = skip_time * 60
 
-        # Create a new list item and play it with the seek time
-        play_item = xbmcgui.ListItem(path=get_url(action='play', video_url=video_url))
-        info_tag = play_item.getVideoInfoTag()
-        info_tag.setResumePoint(seek_time)  # Set resume point to skip YouTube portion
-
-        # Start playback from the specified time
-        xbmc.Player().play(item=get_url(action='play', video_url=video_url), listitem=play_item)
+        # Pass the seek time as a URL parameter so play_video() can seek to it once
+        # playback begins (see resume_from_web() for why a ListItem resume point here
+        # would be discarded instead).
+        xbmc.Player().play(get_url(action='play', video_url=video_url, start_time=seek_time))
 
         return True
     except Exception as e:
@@ -408,13 +405,11 @@ def resume_from_web(video_url):
             resume = dialog.yesno('Pokračovat v přehrávání', f'Chcete pokračovat v přehrávání od času {time_str}?')
 
             if resume:
-                # Create a new list item with the start position
-                play_item = xbmcgui.ListItem(path=get_url(action='play', video_url=video_url))
-                info_tag = play_item.getVideoInfoTag()
-                info_tag.setResumePoint(web_position)  # Set resume point to continue from web position
-
-                # Start playback from the specified time
-                xbmc.Player().play(item=get_url(action='play', video_url=video_url), listitem=play_item)
+                # Pass the start time as a URL parameter so play_video() can seek to it
+                # once playback begins (a resume point set on this outer ListItem would be
+                # discarded, since Kodi re-invokes the plugin to resolve the actual stream
+                # and only the ListItem passed to setResolvedUrl() there is used).
+                xbmc.Player().play(get_url(action='play', video_url=video_url, start_time=web_position))
                 return True
             else:
                 return False
@@ -424,9 +419,7 @@ def resume_from_web(video_url):
         start = dialog.yesno('Přehrát od začátku', 'Žádná uložená pozice sledování na webu.\nChcete spustit přehrávání od začátku?')
 
         if start:
-            # Create a new list item without start position
-            play_item = xbmcgui.ListItem(path=get_url(action='play', video_url=video_url))
-            xbmc.Player().play(item=get_url(action='play', video_url=video_url), listitem=play_item)
+            xbmc.Player().play(get_url(action='play', video_url=video_url))
             return True
 
         return False

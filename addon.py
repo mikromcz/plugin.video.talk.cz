@@ -123,7 +123,13 @@ def router(paramstring):
                 return
 
             quality = params.get('quality')
-            play_video(video_url, quality)
+            start_time = params.get('start_time')
+            if start_time is not None:
+                try:
+                    start_time = int(start_time)
+                except ValueError:
+                    start_time = None
+            play_video(video_url, quality, start_time)
             return
 
         # Handle video quality selection
