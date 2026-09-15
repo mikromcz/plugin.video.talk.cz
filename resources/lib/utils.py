@@ -159,6 +159,21 @@ def convert_duration_to_seconds(duration_text):
         pass
     return total_seconds
 
+_CZECH_MONTHS = {
+    'ledna': '1',
+    'února': '2',
+    'března': '3',
+    'dubna': '4',
+    'května': '5',
+    'června': '6',
+    'července': '7',
+    'srpna': '8',
+    'září': '9',
+    'října': '10',
+    'listopadu': '11',
+    'prosince': '12'
+}
+
 def parse_date(date_str):
     """
     Parse Czech date string to ISO format
@@ -173,28 +188,13 @@ def parse_date(date_str):
         parse_date("1. ledna 2021") -> "2021-01-01"
     """
 
-    CZECH_MONTHS = {
-        'ledna': '1',
-        'února': '2',
-        'března': '3',
-        'dubna': '4',
-        'května': '5',
-        'června': '6',
-        'července': '7',
-        'srpna': '8',
-        'září': '9',
-        'října': '10',
-        'listopadu': '11',
-        'prosince': '12'
-    }
-
     if not date_str:
         return ''
 
     try:
         day, month, year = date_str.split(' ')
         day = day.rstrip('.')  # Remove the dot after the day
-        month = CZECH_MONTHS.get(month.lower())
+        month = _CZECH_MONTHS.get(month.lower())
         if not month:
             return ''
 
@@ -202,6 +202,17 @@ def parse_date(date_str):
     except Exception as e:
         log(f"Error parsing date {date_str}: {str(e)}", xbmc.LOGWARNING)
         return ''
+
+def _find_creator(creator_name):
+    """
+    Find a CREATOR_CATEGORIES entry by name.
+    """
+    if not creator_name:
+        return None
+    for creator in CREATOR_CATEGORIES:
+        if creator['name'] == creator_name:
+            return creator
+    return None
 
 def get_creator_name_from_coloring(coloring_class):
     """
@@ -285,13 +296,14 @@ def get_creator_clearlogo(creator_name):
     Returns:
         str: Local clearlogo image path, or '' if disabled/not found
     """
-    if not creator_name or not _clearlogo_enabled():
+    if not _clearlogo_enabled():
         return ''
 
-    for creator in CREATOR_CATEGORIES:
-        if creator['name'] == creator_name:
-            return get_image_path(creator.get('clearlogo') or _DEFAULT_CLEARLOGO)
-    return ''
+    creator = _find_creator(creator_name)
+    if not creator:
+        return ''
+
+    return get_image_path(creator.get('clearlogo') or _DEFAULT_CLEARLOGO)
 
 def get_creator_cast(creator_name):
     """
@@ -301,40 +313,38 @@ def get_creator_cast(creator_name):
 
     cast_list = []
 
-    if not creator_name:
+    creator = _find_creator(creator_name)
+    if not creator:
         return cast_list
 
-    for creator in CREATOR_CATEGORIES:
-        if creator['name'] == creator_name:
-            # Create proper Actor objects
-            for i, actor_data in enumerate(creator.get('cast', [])):
-                try:
-                    # Handle both string and dictionary format
-                    if isinstance(actor_data, str):
-                        # Old format: just actor name as string
-                        actor_name = actor_data
-                        actor_image = ''
-                    elif isinstance(actor_data, dict):
-                        # New format: dictionary with name and optional image
-                        actor_name = actor_data.get('name', '')
-                        actor_image = actor_data.get('image', '')
+    # Create proper Actor objects
+    for i, actor_data in enumerate(creator.get('cast', [])):
+        try:
+            # Handle both string and dictionary format
+            if isinstance(actor_data, str):
+                # Old format: just actor name as string
+                actor_name = actor_data
+                actor_image = ''
+            elif isinstance(actor_data, dict):
+                # New format: dictionary with name and optional image
+                actor_name = actor_data.get('name', '')
+                actor_image = actor_data.get('image', '')
 
-                        # Convert image filename to full path if provided
-                        if actor_image:
-                            actor_image = get_image_path(actor_image)
-                    else:
-                        log(f"Invalid cast data format: {actor_data}", xbmc.LOGWARNING)
-                        continue
+                # Convert image filename to full path if provided
+                if actor_image:
+                    actor_image = get_image_path(actor_image)
+            else:
+                log(f"Invalid cast data format: {actor_data}", xbmc.LOGWARNING)
+                continue
 
-                    if not actor_name:
-                        continue
+            if not actor_name:
+                continue
 
-                    # Create Actor object with name, role, order, and thumbnail
-                    actor = xbmc.Actor(actor_name, 'Moderátor', i, actor_image)
-                    cast_list.append(actor)
-                except Exception as e:
-                    log(f"Error creating actor {actor_data}: {str(e)}", xbmc.LOGERROR)
-            break
+            # Create Actor object with name, role, order, and thumbnail
+            actor = xbmc.Actor(actor_name, 'Moderátor', i, actor_image)
+            cast_list.append(actor)
+        except Exception as e:
+            log(f"Error creating actor {actor_data}: {str(e)}", xbmc.LOGERROR)
 
     return cast_list
 
@@ -348,13 +358,8 @@ def get_creator_url(creator_name):
     Returns:
         str: URL of the creator's page or None if not found
     """
-    if not creator_name:
-        return None
-
-    for creator in CREATOR_CATEGORIES:
-        if creator['name'] == creator_name:
-            return creator['url']
-    return None
+    creator = _find_creator(creator_name)
+    return creator['url'] if creator else None
 
 def get_ip():
     """
@@ -411,12 +416,10 @@ def get_ip():
         if not ips:
             ips.append('127.0.0.1')
 
-        if ips:
-            message = 'Konfigurační stránka je dostupná na adresách:\n\n'
-            for ip in ips:
-                message += f'http://{ip}:{port}/talk\n'
-        else:
-            message = 'Nepodařilo se zjistit IP adresu'
+        # Method 4 above guarantees ips is never empty here
+        message = 'Konfigurační stránka je dostupná na adresách:\n\n'
+        for ip in ips:
+            message += f'http://{ip}:{port}/talk\n'
 
         xbmcgui.Dialog().ok('IP Adresy', message)
 

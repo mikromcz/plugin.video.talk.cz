@@ -4,6 +4,7 @@ import xbmcgui
 from bs4 import BeautifulSoup
 from .auth import get_session
 from .constants import _ADDON
+from .talknews import parse_talknews_item
 from .utils import log
 
 class TalkNewsMonitor:
@@ -118,18 +119,13 @@ class TalkNewsMonitor:
 
             first_item = news_items[0]
 
-            # Get title element
-            title_elem = first_item.find('h2')
-            if not title_elem:
+            parsed = parse_talknews_item(first_item)
+            if not parsed:
                 log("No title found in first TALKNEWS item", xbmc.LOGDEBUG)
                 return
-
-            # Get tag text if exists (show name)
-            tag_elem = first_item.find('span', class_='embed__tag')
-            tag_text = tag_elem.get_text(strip=True) if tag_elem else ""
+            tag_text, title_text, meta_text, _link = parsed
 
             # Build full title like in talknews.py with green color formatting
-            title_text = title_elem.text.strip()
             current_title = f"[COLOR limegreen]{tag_text}[/COLOR] • {title_text}" if tag_text else title_text
             log(f"Current TALKNEWS title: {current_title[:50]}...", xbmc.LOGDEBUG)
 
@@ -149,10 +145,6 @@ class TalkNewsMonitor:
                 self.last_seen_title = current_title
                 _ADDON.setSetting('last_talknews_title', current_title)
 
-                # Get meta text if available
-                meta = first_item.find('div', class_='embed__meta')
-                meta_text = meta.get_text(strip=True) if meta else ""
-
                 # Show notification
                 self._show_notification(tag_text, title_text, meta_text)
 
@@ -171,13 +163,10 @@ class TalkNewsMonitor:
             if self._should_stop():
                 return
 
-            # Build full content for ok() dialog
-            ok_content = f"[COLOR limegreen]{show_name.upper()}[/COLOR]\n{title_text}" if show_name else title_text
-            if meta_text:
-                ok_content = f"{ok_content}\n{meta_text}"
-
-            # Build short content for toast notification (uppercased show name, title)
+            # Toast notification uses just the show name + title; the ok() dialog
+            # (shown immediately, or later from the pending queue) also gets meta_text
             toast_content = f"[COLOR limegreen]{show_name.upper()}[/COLOR]\n{title_text}" if show_name else title_text
+            ok_content = f"{toast_content}\n{meta_text}" if meta_text else toast_content
 
             # Check if video is playing
             player = xbmc.Player()

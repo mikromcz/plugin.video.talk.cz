@@ -10,6 +10,7 @@ from .constants import _HANDLE, _ADDON
 from .utils import get_url, log, get_image_path, get_clearlogo_path
 
 _COLORING_RE = re.compile(r'^coloring-(\d+)$')
+_QUALITIES = ['Auto', '1080p', '720p', '480p', '360p', '240p']
 
 def _find_coloring_number(soup):
     """
@@ -57,6 +58,7 @@ def play_video(video_url, requested_quality=None, start_time=None):
     # Get a session for making HTTP requests
     session = require_session()
     if not session:
+        xbmcplugin.setResolvedUrl(_HANDLE, False, xbmcgui.ListItem())
         return
 
     try:
@@ -64,6 +66,7 @@ def play_video(video_url, requested_quality=None, start_time=None):
         response = session.get(video_url, timeout=10)
         if response.status_code != 200:
             log(f"Failed to fetch video page: {response.status_code}", xbmc.LOGERROR)
+            xbmcplugin.setResolvedUrl(_HANDLE, False, xbmcgui.ListItem())
             return
 
         # Parse the HTML response
@@ -71,14 +74,14 @@ def play_video(video_url, requested_quality=None, start_time=None):
         video_element = soup.find('video-js')
         if not video_element:
             log("Video player element not found in page", xbmc.LOGERROR)
+            xbmcplugin.setResolvedUrl(_HANDLE, False, xbmcgui.ListItem())
             return
 
         # Get stream type and quality preferences
         prefer_hls = int(_ADDON.getSetting('preferred_stream')) == 0  # 0=HLS, 1=MP4
         if not requested_quality:
             quality_index = int(_ADDON.getSetting('video_quality'))
-            qualities = ['Auto', '1080p', '720p', '480p', '360p', '240p']
-            requested_quality = qualities[quality_index]
+            requested_quality = _QUALITIES[quality_index]
 
         # Find the best available source
         sources = video_element.find_all('source')
@@ -231,12 +234,11 @@ def select_quality(video_url):
     """
 
     # Handle quality selection via dialog
-    qualities = ['Auto', '1080p', '720p', '480p', '360p', '240p']
     dialog = xbmcgui.Dialog()
-    selected = dialog.select('Vyberte kvalitu', qualities)
+    selected = dialog.select('Vyberte kvalitu', _QUALITIES)
 
     if selected >= 0:  # If user didn't cancel
-        quality = qualities[selected]
+        quality = _QUALITIES[selected]
         xbmc.Player().play(get_url(action='play', video_url=video_url, quality=quality))
 
 def skip_yt_part(video_url):
@@ -264,6 +266,22 @@ def skip_yt_part(video_url):
         log(f'Error in skip_yt_part: {str(e)}', xbmc.LOGERROR)
         return False
 
+def _require_youtube_addon():
+    """
+    Check if the YouTube addon is installed, showing an error dialog if not.
+
+    Returns:
+        bool: True if the YouTube addon is available
+    """
+    import xbmcaddon
+    try:
+        xbmcaddon.Addon('plugin.video.youtube')
+        return True
+    except Exception:
+        log("YouTube addon not installed", xbmc.LOGERROR)
+        xbmcgui.Dialog().ok('Chyba', 'Doplněk YouTube není nainstalován, nainstalujte jej pro zobrazení živých streamů.')
+        return False
+
 def yt_live():
     """
     Create directory with two stream options: public (Čumilové) and VIP
@@ -272,13 +290,7 @@ def yt_live():
     """
 
     try:
-        # Check if YouTube addon is installed
-        import xbmcaddon
-        try:
-            youtube_addon = xbmcaddon.Addon('plugin.video.youtube')
-        except Exception:
-            log("YouTube addon not installed", xbmc.LOGERROR)
-            xbmcgui.Dialog().ok('Chyba', 'Doplněk YouTube není nainstalován, nainstalujte jej pro zobrazení živých streamů.')
+        if not _require_youtube_addon():
             return False
 
         # STANDASHOW YouTube channel ID
@@ -289,7 +301,7 @@ def yt_live():
         # Construct the URL for the public live streams page
         youtube_url = f'plugin://plugin.video.youtube/channel/{channel_id}/live/'
 
-        log(f"Creating directory items for live streams", xbmc.LOGINFO)
+        log("Creating directory items for live streams", xbmc.LOGINFO)
 
         # Create list item for public stream (Čumilové stream)
         list_item_public = xbmcgui.ListItem(label='Čumil stream')
@@ -337,13 +349,7 @@ def yt_vip_stream():
     """
 
     try:
-        # Check if YouTube addon is installed
-        import xbmcaddon
-        try:
-            youtube_addon = xbmcaddon.Addon('plugin.video.youtube')
-        except Exception:
-            log("YouTube addon not installed", xbmc.LOGERROR)
-            xbmcgui.Dialog().ok('Chyba', 'Doplněk YouTube není nainstalován, nainstalujte jej pro zobrazení živých streamů.')
+        if not _require_youtube_addon():
             return False
 
         # Get authenticated session
@@ -519,17 +525,6 @@ def get_progress_monitor():
             _progress_monitor = ProgressMonitor()
             log("Created new ProgressMonitor instance", xbmc.LOGINFO)
         return _progress_monitor
-
-def clear_progress_monitor():
-    """
-    Clear the global progress monitor instance after cleanup.
-    """
-    global _progress_monitor
-    with _monitor_lock:
-        if _progress_monitor is not None:
-            _progress_monitor.cleanup()
-            _progress_monitor = None
-            log("Cleared global ProgressMonitor instance", xbmc.LOGINFO)
 
 class ProgressMonitor(xbmc.Player):
     """

@@ -132,31 +132,18 @@ def router(paramstring):
             play_video(video_url, quality, start_time)
             return
 
-        # Handle video quality selection
-        if action == 'select_quality':
+        # Actions that take a single video_url parameter and call func(video_url)
+        if action in ['select_quality', 'skip_yt_part', 'resume_web']:
             video_url = params.get('video_url')
             if not video_url:
                 log("Missing video_url parameter", xbmc.LOGERROR)
                 return
-            select_quality(video_url)
-            return
-
-        # Handle YouTube part skipping
-        if action == 'skip_yt_part':
-            video_url = params.get('video_url')
-            if not video_url:
-                log("Missing video_url parameter", xbmc.LOGERROR)
-                return
-            skip_yt_part(video_url)
-            return
-
-        # Handle resuming video from web
-        if action == 'resume_web':
-            video_url = params.get('video_url')
-            if not video_url:
-                log("Missing video_url parameter", xbmc.LOGERROR)
-                return
-            resume_from_web(video_url)
+            action_map = {
+                'select_quality': select_quality,
+                'skip_yt_part': skip_yt_part,
+                'resume_web': resume_from_web
+            }
+            action_map[action](video_url)
             return
 
         # Handle notification (context menu separator trick)

@@ -6,6 +6,35 @@ from .auth import require_session
 from .constants import _HANDLE
 from .utils import log, get_url, clean_text
 
+def parse_talknews_item(item):
+    """
+    Extract the raw tag/title/meta fields from an 'embed__item' element on the
+    TALKNEWS page.
+
+    Args:
+        item (BeautifulSoup element): An 'embed__item' div or a tag
+
+    Returns:
+        tuple: (tag_text, title_text, meta_text, link) or None if the item has
+        no title (not a real entry). tag_text/meta_text are '' when absent.
+        link is the <a> element for this item, or None.
+    """
+    title_elem = item.find('h2')
+    if not title_elem:
+        return None
+
+    tag_elem = item.find('span', class_='embed__tag')
+    tag_text = tag_elem.get_text(strip=True) if tag_elem else ''
+
+    meta_elem = item.find('div', class_='embed__meta')
+    meta_text = meta_elem.get_text(strip=True) if meta_elem else ''
+
+    title_text = title_elem.text.strip()
+
+    link = item if item.name == 'a' else item.find('a', class_='embed__item')
+
+    return tag_text, title_text, meta_text, link
+
 def list_talknews():
     """
     Lists TALKNEWS headlines from the main TALKNEWS page
@@ -28,6 +57,7 @@ def list_talknews():
         response = session.get('https://www.talktv.cz/talknews', timeout=10)
         if response.status_code != 200:
             log(f"Failed to fetch TALKNEWS page: {response.status_code}", xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -36,25 +66,18 @@ def list_talknews():
         news_items = soup.find_all(['div', 'a'], class_='embed__item')
 
         for item in news_items:
-            # Get meta text if exists
-            meta = item.find('div', class_='embed__meta')
-            meta_text = meta.get_text(strip=True) if meta else ""
-
-            # Get title element
-            title_elem = item.find('h2')
-            if not title_elem:
+            parsed = parse_talknews_item(item)
+            if not parsed:
                 continue
-
-            # Get tag text if exists
-            tag_elem = item.find('span', class_='embed__tag')
-            tag_text = tag_elem.get_text(strip=True).upper() if tag_elem else ""
+            tag_text, title_text, meta_text, link = parsed
+            tag_text = tag_text.upper()
 
             # Add tag and meta to plot
             plot = f"[COLOR limegreen]{tag_text}[/COLOR]" if tag_text else ""
             if meta_text:
                 plot = f"{plot}\n\n{meta_text}" if plot else meta_text
 
-            title = clean_text(title_elem.text)
+            title = clean_text(title_text)
             title = f"[COLOR limegreen]{tag_text}[/COLOR] • {title} " if tag_text else title
 
             # Create a list item for the headline
@@ -76,10 +99,6 @@ def list_talknews():
                     'thumb': thumbnail,
                     'icon': thumbnail
                 })
-
-            # Check if item itself is a link or contains a link
-            is_link = item.name == 'a'
-            link = item if is_link else item.find('a', class_='embed__item')
 
             # Set URL and folder status
             if link and link.get('href'):

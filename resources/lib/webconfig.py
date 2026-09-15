@@ -5,7 +5,6 @@ import socketserver
 import json
 import requests
 import threading
-import time
 import xbmc
 from urllib.parse import urlparse
 from .constants import _ADDON
@@ -60,18 +59,27 @@ class ConfigHandler(http.server.SimpleHTTPRequestHandler):
         if parsed_path.path == '/talk/save':
             log('Path matched /talk/save, processing request', xbmc.LOGINFO)
 
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data)
-
-            if 'cookie' in data:
-                _ADDON.setSetting('session_cookie', data['cookie'])
-
-                self.send_response(200)
-                self.send_header('Content-Type', 'application/json; charset=utf-8')
-                self.end_headers()
-                self.wfile.write(json.dumps({'status': 'success'}).encode('utf-8'))
+            try:
+                content_length = int(self.headers.get('Content-Length', 0))
+                post_data = self.rfile.read(content_length)
+                data = json.loads(post_data)
+            except (TypeError, ValueError, json.JSONDecodeError) as e:
+                log(f'Invalid /talk/save request: {str(e)}', xbmc.LOGWARNING)
+                self.send_error(400, 'Invalid request body')
                 return
+
+            if 'cookie' not in data:
+                log('Missing cookie field in /talk/save request', xbmc.LOGWARNING)
+                self.send_error(400, "Missing 'cookie' field")
+                return
+
+            _ADDON.setSetting('session_cookie', data['cookie'])
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success'}).encode('utf-8'))
+            return
 
         elif parsed_path.path == '/talk/test':
             log('Path matched /talk/test, processing request', xbmc.LOGINFO)
@@ -169,8 +177,6 @@ def start_server():
 
 def _auto_shutdown_server():
     """Auto-shutdown the server after timeout and disable the setting"""
-    global _server_instance
-
     try:
         log('Config server auto-shutdown triggered (10 minutes timeout)', xbmc.LOGINFO)
 

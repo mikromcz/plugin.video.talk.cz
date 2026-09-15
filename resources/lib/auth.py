@@ -23,8 +23,6 @@ def get_session():
         requests.Session: A session object with authentication cookie set
         None: Authentication failed (invalid cookie or network error)
     """
-    global _session_cache
-
     current_time = time.time()
     session_cookie = _ADDON.getSetting('session_cookie')
 

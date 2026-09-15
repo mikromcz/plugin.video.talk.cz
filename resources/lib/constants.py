@@ -143,8 +143,7 @@ CREATOR_CATEGORIES = [
         'image': 'show-standashow.jpg',
         'clearlogo': 'clearlogo-standashow.png',
         'coloring': '1',
-        'yt_channel_url': 'https://www.youtube.com/@StandaShow',
-        'yt_channel_id': 'UCeDNCzyWtX6Y1ThbVuxbrtw',
+        'yt_channel_id': 'UCeDNCzyWtX6Y1ThbVuxbrtw',  # https://www.youtube.com/@StandaShow
         'cast': [
             {'name': 'Standa Hruška', 'image': 'creator-standa-hruska.jpg'},
             {'name': 'Tomáš Roud', 'image': 'creator-tomas-roud.jpg'},
@@ -158,14 +157,13 @@ CREATOR_CATEGORIES = [
         'image': 'show-tech-guys.jpg',
         'clearlogo': 'clearlogo-tech-guys.png',
         'coloring': '6',
-        'yt_channel_url': 'https://www.youtube.com/@tech_guys',
-        'yt_channel_id': 'UCHbtK9X37exjwg4gL-77sFQ',
+        'yt_channel_id': 'UCHbtK9X37exjwg4gL-77sFQ',  # https://www.youtube.com/@tech_guys
         'cast': [
             {'name': 'Standa Hruška', 'image': 'creator-standa-hruska.jpg'},
             {'name': 'Kicom', 'image': 'creator-kicom.jpg'},
             {'name': 'David Grudl', 'image': 'creator-david-grudl.jpg'},
-            {'name': 'Honza Březina'},  # No image available
-            {'name': 'Tesláček'}  # No image available
+            {'name': 'Honza Březina'}, # No image available
+            {'name': 'Tesláček'}       # No image available
         ]
     },
     {
@@ -175,8 +173,7 @@ CREATOR_CATEGORIES = [
         'image': 'show-jadrna-veda.jpg',
         'clearlogo': 'clearlogo-jadrna-veda.png',
         'coloring': '3',
-        'yt_channel_url': 'https://www.youtube.com/@jadrnaveda',
-        'yt_channel_id': 'UC_Gfj6_6fuKdiC75-1cZaSQ',
+        'yt_channel_id': 'UC_Gfj6_6fuKdiC75-1cZaSQ',  # https://www.youtube.com/@jadrnaveda
         'cast': [
             {'name': 'Leoš Kyša', 'image': 'creator-leos-kysa.jpg'},
             {'name': 'Jelena Lenka Příplatová', 'image': 'creator-jelena-lenka-priplatova.jpg'},
@@ -190,8 +187,7 @@ CREATOR_CATEGORIES = [
         'image': 'show-za-hranici.jpg',
         'clearlogo': 'clearlogo-za-hranici.png',
         'coloring': '4',
-        'yt_channel_url': 'https://www.youtube.com/@za_hranici',
-        'yt_channel_id': 'UCL-wgUdQVoVzGduOFi-zVIw',
+        'yt_channel_id': 'UCL-wgUdQVoVzGduOFi-zVIw',  # https://www.youtube.com/@za_hranici
         'cast': [
             {'name': 'Vladimír Váchal', 'image': 'creator-vladimir-vachal.jpg'}
         ]
@@ -202,8 +198,7 @@ CREATOR_CATEGORIES = [
         'description': 'Tři holky [COLOR limegreen]Bety[/COLOR] + [COLOR limegreen]Baty[/COLOR] + [COLOR limegreen]Shial[/COLOR] si povídají o filmech, které si to zaslouží. Od vzpomínek přes zajímavosti a shrnutí děje.',
         'image': 'show-movie-witches.jpg',
         'coloring': '7',
-        'yt_channel_url': 'https://www.youtube.com/@moviewitches',
-        'yt_channel_id': 'UCJh7nyRigiHHloNLkfN6sbA',
+        'yt_channel_id': 'UCJh7nyRigiHHloNLkfN6sbA',  # https://www.youtube.com/@moviewitches
         'cast': [
             {'name': 'Bety'}, # No image available
             {'name': 'Baty'}, # No image available
@@ -216,8 +211,7 @@ CREATOR_CATEGORIES = [
         'description': '[COLOR limegreen]Lukáš Veverka[/COLOR] a jeho hosté diskutují o věcech, kterým většina diváků vůbec nevěnuje pozornost. Filmy, grafika, motion design i největší faily v dějinách designu a kinematografie.',
         'image': 'show-design-talk.jpg',
         'coloring': '8',
-        'yt_channel_url': 'https://www.youtube.com/@DesignTalking',
-        'yt_channel_id': 'UChh0IDlacwp07iGd-9ZT_bw',
+        'yt_channel_id': 'UChh0IDlacwp07iGd-9ZT_bw',  # https://www.youtube.com/@DesignTalking
         'cast': [
             {'name': 'Lukáš Veverka', 'image': 'creator-lukas-veverka.jpg'}
         ]
