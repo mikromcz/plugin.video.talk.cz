@@ -124,7 +124,9 @@ ARCHIVE_CATEGORIES = [
         'name': '[COLOR limegreen]JARDA VS. NAOMI[/COLOR]',
         'url': 'https://www.talktv.cz/jarda-a-naomi',
         'description': 'Herní novinář [COLOR limegreen]Jarda Möwald[/COLOR] a fanynka japonské popkultury [COLOR limegreen]Naomi Adachi[/COLOR]. Diskuse o zajímavostech ze světa her, filmů a seriálů. Celé záznamy pro předplatitele na talktv.cz.',
-        'image': 'show-jarda-vs-naomi.jpg'
+        'image': 'show-jarda-vs-naomi.jpg',
+        'clearlogo': 'clearlogo-jarda-vs-naomi.png',
+        'coloring': '2'
     },
     {
         'name': 'Zákulisí [COLOR limegreen]TALK[/COLOR]u',
@@ -147,6 +149,7 @@ CREATOR_CATEGORIES = [
         'url': 'https://www.talktv.cz/standashow',
         'description': 'Výstup z vaší názorové bubliny. Politika, společnost, kauzy a Bruntál. Obsahují minimálně jednoho [COLOR limegreen]Standu[/COLOR].',
         'image': 'show-standashow.jpg',
+        'clearlogo': 'clearlogo-standashow.png',
         'coloring': '1',
         'yt_channel_url': 'https://www.youtube.com/@StandaShow',
         'yt_channel_id': 'UCeDNCzyWtX6Y1ThbVuxbrtw',
@@ -161,13 +164,14 @@ CREATOR_CATEGORIES = [
         'url': 'https://www.talktv.cz/techguys',
         'description': 'Kde unboxingy končí, my začínáme. Apple, kryptoměny, umělá inteligence a pak zase Apple. Každý týden s [COLOR limegreen]Kicomem[/COLOR], [COLOR limegreen]Davidem Grudlem[/COLOR] a [COLOR limegreen]Standou[/COLOR] (dříve s [COLOR limegreen]Tesláčkem[/COLOR] a [COLOR limegreen]Honzou Březinou[/COLOR]).',
         'image': 'show-tech-guys.jpg',
+        'clearlogo': 'clearlogo-tech-guys.png',
         'coloring': '6',
         'yt_channel_url': 'https://www.youtube.com/@tech_guys',
         'yt_channel_id': 'UCHbtK9X37exjwg4gL-77sFQ',
         'cast': [
+            {'name': 'Standa Hruška', 'image': 'creator-standa-hruska.jpg'},
             {'name': 'Kicom', 'image': 'creator-kicom.jpg'},
             {'name': 'David Grudl', 'image': 'creator-david-grudl.jpg'},
-            {'name': 'Standa Hruška', 'image': 'creator-standa-hruska.jpg'},
             {'name': 'Honza Březina'},  # No image available
             {'name': 'Tesláček'}  # No image available
         ]
@@ -177,6 +181,7 @@ CREATOR_CATEGORIES = [
         'url': 'https://www.talktv.cz/jadrna-veda',
         'description': 'Pořad, který 9 z 10 diváků nepochopí (a ten desátý je [COLOR limegreen]Leoš Kyša[/COLOR], který to moderuje). Diskuse se skutečnými vědci o skutečné vědě. Pyramidy, kvantová fyzika nebo objevování vesmíru.',
         'image': 'show-jadrna-veda.jpg',
+        'clearlogo': 'clearlogo-jadrna-veda.png',
         'coloring': '3',
         'yt_channel_url': 'https://www.youtube.com/@jadrnaveda',
         'yt_channel_id': 'UC_Gfj6_6fuKdiC75-1cZaSQ',
@@ -191,6 +196,7 @@ CREATOR_CATEGORIES = [
         'url': 'https://www.talktv.cz/za-hranici',
         'description': 'Popelář v Londýně, letuška v Kataru nebo podnikatel v Gambii. Češi žijící v zahraničí a cestovatel [COLOR limegreen]Vladimír Váchal[/COLOR], který ví o cestování (skoro) vše. A na zbytek se nebojí zeptat.',
         'image': 'show-za-hranici.jpg',
+        'clearlogo': 'clearlogo-za-hranici.png',
         'coloring': '4',
         'yt_channel_url': 'https://www.youtube.com/@za_hranici',
         'yt_channel_id': 'UCL-wgUdQVoVzGduOFi-zVIw',

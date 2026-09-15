@@ -259,3 +259,15 @@ msgstr "Port, na kterém běží konfigurační webový server. Změňte pouze p
 msgctxt "#30124"
 msgid "Enables detailed logging to the kodi.log file. Useful for diagnosing problems. May slow down the addon."
 msgstr "Zapne podrobné logování do souboru kodi.log. Užitečné pro diagnostiku problémů. Může zpomalit doplněk."
+
+msgctxt "#30125"
+msgid "Display"
+msgstr "Zobrazení"
+
+msgctxt "#30126"
+msgid "Show creator's clearlogo"
+msgstr "Zobrazovat clearlogo tvůrce"
+
+msgctxt "#30127"
+msgid "Shows the creator's clearlogo image (e.g. when video is paused) instead of relying on the title text alone. Disable to show only the title."
+msgstr "Zobrazí clearlogo tvůrce (např. při pozastavení videa) místo spoléhání pouze na text názvu. Vypněte pro zobrazení pouze názvu."

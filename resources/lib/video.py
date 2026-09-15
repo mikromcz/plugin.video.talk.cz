@@ -7,7 +7,35 @@ import xbmcplugin
 from bs4 import BeautifulSoup
 from .auth import get_session, require_session
 from .constants import _HANDLE, _ADDON
-from .utils import get_url, log, get_image_path
+from .utils import get_url, log, get_image_path, get_clearlogo_path
+
+_COLORING_RE = re.compile(r'^coloring-(\d+)$')
+
+def _find_coloring_number(soup):
+    """
+    Find the show's "coloring" number on a video page, used to pick the
+    matching clearlogo (https://www.talktv.cz/images/logo-<coloring>.svg).
+
+    Prefers the video's own detail wrapper over unrelated coloring-N classes
+    that can appear further down the page in a "related videos" section.
+    """
+    for class_name in ('video__detail--box', 'podcasts__player', 'details__info'):
+        element = soup.find(class_=class_name)
+        if element:
+            for css_class in element.get('class', []):
+                match = _COLORING_RE.match(css_class)
+                if match:
+                    return match.group(1)
+
+    # Fallback: first coloring-N class found anywhere on the page
+    element = soup.find(class_=_COLORING_RE)
+    if element:
+        for css_class in element.get('class', []):
+            match = _COLORING_RE.match(css_class)
+            if match:
+                return match.group(1)
+
+    return None
 
 # Global progress monitor instance
 _progress_monitor = None
@@ -142,6 +170,11 @@ def play_video(video_url, requested_quality=None, start_time=None):
                 info_tag.setPlot(description)
             if title:
                 info_tag.setTitle(title)
+
+            # Set clearlogo based on the show's "coloring" class, if found
+            coloring_number = _find_coloring_number(soup)
+            if coloring_number:
+                play_item.setArt({'clearlogo': get_clearlogo_path(coloring_number)})
 
         except Exception as e:
             log(f"Failed to set video metadata: {str(e)}", xbmc.LOGWARNING)

@@ -230,6 +230,69 @@ def get_creator_name_from_coloring(coloring_class):
 
     return ''
 
+# Generic clearlogo shown for a recognized show/coloring that has no
+# dedicated one of its own (see the 'clearlogo' field on CREATOR_CATEGORIES /
+# ARCHIVE_CATEGORIES entries).
+_DEFAULT_CLEARLOGO = 'clearlogo.png'
+
+def _clearlogo_enabled():
+    return _ADDON.getSettingBool('show_clearlogo')
+
+def _find_coloring_entry(coloring):
+    """
+    Find the CREATOR_CATEGORIES/ARCHIVE_CATEGORIES entry for a coloring number.
+    """
+    coloring = str(coloring)
+    for entries in (CREATOR_CATEGORIES, ARCHIVE_CATEGORIES):
+        for entry in entries:
+            if entry.get('coloring') == coloring:
+                return entry
+    return None
+
+def get_clearlogo_path(coloring):
+    """
+    Get the clearlogo image path for a given "coloring" number, matching the
+    same numbering TALK.cz uses for its own coloring-N CSS classes. Falls back
+    to a generic TALK logo when the matched entry has no clearlogo of its own.
+
+    Local PNGs are used instead of TALK.cz's own remote
+    https://www.talktv.cz/images/logo-N.svg assets because Kodi's texture
+    cache can't reliably rasterize remote SVGs (art silently fails to load).
+
+    Args:
+        coloring (str): Coloring number, e.g. '1' (see CREATOR_CATEGORIES)
+
+    Returns:
+        str: Local clearlogo image path, or '' if disabled/unrecognized
+    """
+    if not coloring or not _clearlogo_enabled():
+        return ''
+
+    entry = _find_coloring_entry(coloring)
+    if not entry:
+        return ''
+
+    return get_image_path(entry.get('clearlogo') or _DEFAULT_CLEARLOGO)
+
+def get_creator_clearlogo(creator_name):
+    """
+    Get a creator's clearlogo image path, looked up by name from CREATOR_CATEGORIES.
+    Falls back to a generic TALK logo when the creator has no clearlogo of its own.
+
+    Args:
+        creator_name (str): Name of the creator
+
+    Returns:
+        str: Local clearlogo image path, or '' if disabled/not found
+    """
+    if not creator_name or not _clearlogo_enabled():
+        return ''
+
+    for creator in CREATOR_CATEGORIES:
+        if creator['name'] == creator_name:
+            return get_image_path(creator.get('clearlogo') or _DEFAULT_CLEARLOGO)
+    return ''
+
 def get_creator_cast(creator_name):
     """
     Get cast list as xbmc.Actor objects for a given creator name

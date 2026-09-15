@@ -6,7 +6,7 @@ from .auth import require_session
 from concurrent.futures import ThreadPoolExecutor
 from .cache import get_video_details
 from .constants import _HANDLE, _ADDON, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
-from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name, clean_url, get_creator_name_from_coloring, get_creator_cast, get_creator_url
+from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name, clean_url, get_creator_name_from_coloring, get_creator_cast, get_creator_url, get_creator_clearlogo
 
 # Common headers for TALK.cz API requests
 _API_HEADERS = {
@@ -355,7 +355,8 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
     # Set art for the list item
     list_item.setArt({
         'thumb': thumbnail,
-        'icon': thumbnail
+        'icon': thumbnail,
+        'clearlogo': get_creator_clearlogo(creator_name)
     })
 
     # Get additional details (a single fetch also covers the web resume position
@@ -373,7 +374,7 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
     info_tag.setStudios(["TALK"])
     info_tag.setCountries(["Česká Republika"])
     info_tag.setGenres(['Podcast', 'Talk Show'])
-    info_tag.setTags(['Czech', 'Interview', 'TALKTV'])
+    info_tag.setTags(['Czech', 'Interview', 'TALKTV', 'Bruntal'])
 
     # Extract year from date if available
     if date:

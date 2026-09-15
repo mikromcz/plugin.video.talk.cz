@@ -94,6 +94,14 @@
                     </constraints>
                 </setting>
             </group>
+
+            <group id="group_display" label="30125">
+                <setting id="show_clearlogo" type="boolean" label="30126" help="30127">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle" />
+                </setting>
+            </group>
         </category>
 
         <category id="category_advanced" label="30002">
