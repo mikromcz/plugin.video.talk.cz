@@ -151,7 +151,9 @@ CREATOR_CATEGORIES = [
         'yt_channel_url': 'https://www.youtube.com/@StandaShow',
         'yt_channel_id': 'UCeDNCzyWtX6Y1ThbVuxbrtw',
         'cast': [
-            {'name': 'Standa Hruška', 'image': 'creator-standa-hruska.jpg'}
+            {'name': 'Standa Hruška', 'image': 'creator-standa-hruska.jpg'},
+            {'name': 'Tomáš Roud', 'image': 'creator-tomas-roud.jpg'},
+            {'name': 'Richard Kraus', 'image': 'creator-richard-kraus.jpg'}
         ]
     },
     {
