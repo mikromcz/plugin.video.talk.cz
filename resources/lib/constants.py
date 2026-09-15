@@ -231,8 +231,8 @@ CREATOR_CATEGORIES = [
         'clearlogo': 'clearlogo-jarda-vs-naomi.png',
         #'yt_channel_id': '',  # https://www.youtube.com/playlist?list=PLewDwxqAudONDgRocaXmIgDoCWiFNl_BB
         'cast': [
-            {'name': 'Jarda Möwald', 'image': 'creator-jarda-mowald.jpg'},
-            {'name': 'Naomi Adachi', 'image': 'creator-naomi-adachi.jpg'}
+            {'name': 'Jarda Möwald'}, # No image available
+            {'name': 'Naomi Adachi'}  # No image available
         ]
     },
 ]
