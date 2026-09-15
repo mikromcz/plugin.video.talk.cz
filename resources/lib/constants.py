@@ -144,10 +144,14 @@ CREATOR_CATEGORIES = [
         'clearlogo': 'clearlogo-standashow.png',
         'coloring': '1',
         'yt_channel_id': 'UCeDNCzyWtX6Y1ThbVuxbrtw',  # https://www.youtube.com/@StandaShow
+        # Regular 1-on-1 episodes only feature Standa; the full panel below only
+        # appears on Sunday news-roundup episodes (title has '•', see get_creator_cast())
+        'primary_cast': ['Standa Hruška'],
         'cast': [
             {'name': 'Standa Hruška', 'image': 'creator-standa-hruska.jpg'},
             {'name': 'Tomáš Roud', 'image': 'creator-tomas-roud.jpg'},
-            {'name': 'Richard Kraus', 'image': 'creator-richard-kraus.jpg'}
+            {'name': 'Richard Kraus', 'image': 'creator-richard-kraus.jpg'},
+            {'name': 'Leoš Kyša'}  # No image for those who left the show, but they are still part of the cast
         ]
     },
     {
@@ -162,8 +166,8 @@ CREATOR_CATEGORIES = [
             {'name': 'Standa Hruška', 'image': 'creator-standa-hruska.jpg'},
             {'name': 'Kicom', 'image': 'creator-kicom.jpg'},
             {'name': 'David Grudl', 'image': 'creator-david-grudl.jpg'},
-            {'name': 'Honza Březina'}, # No image available
-            {'name': 'Tesláček'}       # No image available
+            {'name': 'Honza Březina'},  # No image for those who left the show
+            {'name': 'Tesláček'}  # No image for those who left the show
         ]
     },
     {
@@ -200,9 +204,9 @@ CREATOR_CATEGORIES = [
         'coloring': '7',
         'yt_channel_id': 'UCJh7nyRigiHHloNLkfN6sbA',  # https://www.youtube.com/@moviewitches
         'cast': [
-            {'name': 'Bety'}, # No image available
-            {'name': 'Baty'}, # No image available
-            {'name': 'Shial'} # No image available
+            {'name': 'Bety'},  # No image available
+            {'name': 'Baty'},  # No image available
+            {'name': 'Shial'}  # No image available
         ]
     },
     {
@@ -225,8 +229,8 @@ CREATOR_CATEGORIES = [
         'clearlogo': 'clearlogo-jarda-vs-naomi.png',
         #'yt_channel_id': '',  # https://www.youtube.com/playlist?list=PLewDwxqAudONDgRocaXmIgDoCWiFNl_BB
         'cast': [
-            {'name': 'Jarda Möwald'}, # No image available
-            {'name': 'Naomi Adachi'}  # No image available
+            {'name': 'Jarda Möwald'},  # No image for those who left the show
+            {'name': 'Naomi Adachi'}  # No image for those who left the show
         ]
     },
 ]

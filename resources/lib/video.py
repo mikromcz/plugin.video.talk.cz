@@ -7,7 +7,7 @@ import xbmcplugin
 from bs4 import BeautifulSoup
 from .auth import get_session, require_session
 from .constants import _HANDLE, _ADDON
-from .utils import get_url, log, get_image_path, get_clearlogo_path
+from .utils import get_url, log, get_image_path, get_clearlogo_path, normalize_title
 
 _COLORING_RE = re.compile(r'^coloring-(\d+)$')
 _QUALITIES = ['Auto', '1080p', '720p', '480p', '360p', '240p']
@@ -164,7 +164,7 @@ def play_video(video_url, requested_quality=None, start_time=None):
             # Get title if available
             title = soup.find('h1', class_='details__header')
             if title:
-                title = title.text.strip()
+                title = normalize_title(title.text)
 
             # Set video metadata
             info_tag = play_item.getVideoInfoTag()

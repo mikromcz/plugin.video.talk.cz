@@ -6,7 +6,7 @@ from .auth import require_session
 from concurrent.futures import ThreadPoolExecutor
 from .cache import get_video_details
 from .constants import _HANDLE, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
-from .utils import get_url, get_image_path, log, clean_text, convert_duration_to_seconds, parse_date, get_category_name, clean_url, get_creator_name_from_coloring, get_creator_cast, get_creator_url, get_creator_clearlogo
+from .utils import get_url, get_image_path, log, normalize_title, convert_duration_to_seconds, parse_date, get_category_name, clean_url, get_creator_name_from_coloring, get_creator_cast, get_creator_url, get_creator_clearlogo
 
 # Common headers for TALK.cz API requests
 _API_HEADERS = {
@@ -329,7 +329,7 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
     creator_name = get_creator_name_from_coloring(coloring_class)
 
     # Get basic video info
-    raw_title = clean_text(title_element.p.text)
+    raw_title = normalize_title(title_element.p.text)
     full_title = f"[COLOR limegreen]{creator_name}[/COLOR] • {raw_title}" if creator_name else raw_title
 
     # Use either full title with creator or raw title based on parameter
@@ -387,7 +387,7 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
             pass
 
     # Get cast information
-    cast = get_creator_cast(creator_name)
+    cast = get_creator_cast(creator_name, title=raw_title)
     if cast:
         try:
             info_tag.setCast(cast)

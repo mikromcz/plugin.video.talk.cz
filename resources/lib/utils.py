@@ -129,6 +129,25 @@ def clean_text(text):
         return ''
     return text.replace('\x00', '').strip()
 
+def normalize_title(text):
+    """
+    Clean a scraped video title and normalize TALK.cz's topic separator to a
+    single '•'. Multi-topic episodes (e.g. STANDASHOW's Sunday news roundup)
+    join several short topics in the title, inconsistently using either a
+    literal '->' or a unicode '→' arrow; this collapses both to '•' so the
+    rest of the addon has one consistent marker to detect that format.
+
+    Args:
+        text (str): Raw title text
+
+    Returns:
+        str: Cleaned title with '->' / '→' replaced by '•'
+
+    Example:
+        normalize_title('Topic A -> Topic B → Topic C') -> 'Topic A • Topic B • Topic C'
+    """
+    return clean_text(text).replace('→', '•').replace('->', '•')
+
 def convert_duration_to_seconds(duration_text):
     """
     Convert duration string (e.g., "1h42m" or "42m") to seconds
@@ -305,10 +324,24 @@ def get_creator_clearlogo(creator_name):
 
     return get_image_path(creator.get('clearlogo') or _DEFAULT_CLEARLOGO)
 
-def get_creator_cast(creator_name):
+def get_creator_cast(creator_name, title=None):
     """
-    Get cast list as xbmc.Actor objects for a given creator name
-    Supports both string and dictionary format for cast members with optional images
+    Get cast list as xbmc.Actor objects for a given creator name.
+    Supports both string and dictionary format for cast members with optional images.
+
+    Some shows mix formats under one creator — e.g. STANDASHOW's regular
+    1-on-1 episodes only feature Standa, while its Sunday news-roundup
+    episodes (title normalized to use '•' as topic separator, see
+    normalize_title()) feature the full panel. When a creator defines
+    'primary_cast' and title has no '•', only those cast members are kept.
+
+    Args:
+        creator_name (str): Name of the creator
+        title (str): Optional normalized video title, used to detect the
+            multi-topic/news-roundup format via the '•' separator
+
+    Returns:
+        list: xbmc.Actor objects
     """
 
     cast_list = []
@@ -317,8 +350,15 @@ def get_creator_cast(creator_name):
     if not creator:
         return cast_list
 
+    cast_data = creator.get('cast', [])
+    primary_cast = creator.get('primary_cast')
+    if primary_cast and title is not None and '•' not in title:
+        def _cast_name(actor_data):
+            return actor_data if isinstance(actor_data, str) else actor_data.get('name', '')
+        cast_data = [actor_data for actor_data in cast_data if _cast_name(actor_data) in primary_cast]
+
     # Create proper Actor objects
-    for i, actor_data in enumerate(creator.get('cast', [])):
+    for i, actor_data in enumerate(cast_data):
         try:
             # Handle both string and dictionary format
             if isinstance(actor_data, str):
