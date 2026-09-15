@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.talk.cz" name="TALK" provider-name="mikrom" version="1.6.0">
+<addon id="plugin.video.talk.cz" name="TALK" provider-name="mikrom" version="1.7.0">
     <requires>
         <import addon="xbmc.python" version="3.0.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -29,6 +29,20 @@ Doplněk vyžaduje aktivní předplatné na TALK.cz.</description>
             <screenshot>resources/screenshot-4.png</screenshot>
         </assets>
         <news>[COLOR slategrey]Poznámka: Neumím programovat, a už vůbec ne v Pythonu. Drtivou většinu kódu vygeneroval Claude.AI. A leccos také GitHub Copilot :)[/COLOR]
+1.8.0 (2026-09-15)
+• Oprava: "Pokračovat od pozice na webu" a "Přeskočit YouTube část" nyní skutečně spustí video od zadaného času (dříve se přehrávání vždy spustilo od začátku)
+• Oprava: přehrávání videa nyní správně hlásí Kodi chybu při selhání načtení (dříve mohlo zůstat "viset")
+• Oprava: TALKNEWS se již nezasekne na načítání při selhání stažení stránky
+• Oprava: konfigurační webserver nyní vrací srozumitelnou chybu při neplatném/neúplném požadavku na uložení cookie
+• Přidání: clearlogo (logo pořadu) v přehrávači i v seznamech videí, lze vypnout v nastavení
+• Přidání: Tomáš Roud a Richard Kraus do obsazení STANDASHOW
+• Přidání: JARDA VS. NAOMI mezi tvůrce
+• Vylepšení: u nedělních souhrnů STANDASHOW se zobrazuje celé obsazení, u běžných rozhovorů jen Standa
+• Výkon: souběžné stahování detailů videí při načítání seznamů — výrazně rychlejší procházení
+• Výkon: odstranění zbytečného duplicitního načítání stránky videa v "Pokračovat v přehrávání"
+• Výkon: optimalizace velikosti obrázků doplňku
+• Refaktoring a úklid kódu: odstranění nepoužívaného kódu a sjednocení duplicitní logiky napříč doplňkem
+
 1.7.0 (2026-04-12)
 • Oprava: duplicitní TALKNEWS notifikace — window property mutex (xbmcgui.Window) zabraňuje spuštění více monitorů napříč Python kontexty
 • Oprava: vyhledávání — zrušení nyní správně vrací na předchozí obrazovku místo hlavního menu
