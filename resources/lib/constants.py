@@ -121,14 +121,6 @@ ARCHIVE_CATEGORIES = [
         'image': 'archiv-volby-2021.jpg'
     },
     {
-        'name': '[COLOR limegreen]JARDA VS. NAOMI[/COLOR]',
-        'url': 'https://www.talktv.cz/jarda-a-naomi',
-        'description': 'Herní novinář [COLOR limegreen]Jarda Möwald[/COLOR] a fanynka japonské popkultury [COLOR limegreen]Naomi Adachi[/COLOR]. Diskuse o zajímavostech ze světa her, filmů a seriálů. Celé záznamy pro předplatitele na talktv.cz.',
-        'image': 'show-jarda-vs-naomi.jpg',
-        'clearlogo': 'clearlogo-jarda-vs-naomi.png',
-        'coloring': '2'
-    },
-    {
         'name': 'Zákulisí [COLOR limegreen]TALK[/COLOR]u',
         'url': 'https://www.talktv.cz/seznam-videi/zakulisi-talk-tv',
         'description': 'Toto jsme my. Váš/náš :D [COLOR limegreen]TALK[/COLOR]. A toto jsou všechna videa ze zákulisí.',
@@ -229,5 +221,18 @@ CREATOR_CATEGORIES = [
         'cast': [
             {'name': 'Lukáš Veverka', 'image': 'creator-lukas-veverka.jpg'}
         ]
-    }
+    },
+    {
+        'name': '[COLOR limegreen]JARDA VS. NAOMI[/COLOR]',
+        'url': 'https://www.talktv.cz/jarda-a-naomi',
+        'description': 'Herní novinář [COLOR limegreen]Jarda Möwald[/COLOR] a fanynka japonské popkultury [COLOR limegreen]Naomi Adachi[/COLOR]. Diskuse o zajímavostech ze světa her, filmů a seriálů. Celé záznamy pro předplatitele na talktv.cz.',
+        'image': 'show-jarda-vs-naomi.jpg',
+        'coloring': '2',
+        'clearlogo': 'clearlogo-jarda-vs-naomi.png',
+        #'yt_channel_id': '',  # https://www.youtube.com/playlist?list=PLewDwxqAudONDgRocaXmIgDoCWiFNl_BB
+        'cast': [
+            {'name': 'Jarda Möwald', 'image': 'creator-jarda-mowald.jpg'},
+            {'name': 'Naomi Adachi', 'image': 'creator-naomi-adachi.jpg'}
+        ]
+    },
 ]
