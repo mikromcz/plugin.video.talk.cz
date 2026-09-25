@@ -391,9 +391,15 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
 
     # Add useful properties for Kodi integration
     # Note: TotalTime is deprecated - using setResumePoint() instead
-    if auto_resume and resume_position > 0:
-        log(f"Auto-resume enabled: setting resume position to {resume_position}s for {video_url}", xbmc.LOGINFO)
-    info_tag.setResumePoint(resume_position, duration_seconds)  # Resume from position, with total duration
+    #
+    # Only stamp a resume point when we actually have one from the web (that is,
+    # in "Pokračovat v přehrávání", the only listing fetched with need_resume).
+    # Calling setResumePoint(0, ...) on every item overwrites the resume position
+    # Kodi tracks by itself, which hides the partially-watched icon and makes
+    # playback restart from the beginning.
+    if resume_position > 0:
+        log(f"Setting web resume position to {resume_position}s for {video_url}", xbmc.LOGINFO)
+        info_tag.setResumePoint(resume_position, duration_seconds)  # Resume from position, with total duration
 
     list_item.setProperty('Creator', creator_name)
     list_item.setProperty('Duration', duration_text)  # Original format like "1h42m"
