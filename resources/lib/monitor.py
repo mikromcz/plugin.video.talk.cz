@@ -35,19 +35,8 @@ class TalkNewsMonitor:
         self.thread.start()
         log("TALKNEWS monitor started", xbmc.LOGINFO)
 
-    def stop(self):
-        """Stop the background monitoring"""
-        self.running = False
-        if self.thread:
-            self.thread.join(timeout=5)
-        _KODI_WINDOW.clearProperty(_MONITOR_PROP)
-        log("TALKNEWS monitor stopped", xbmc.LOGINFO)
-
     def _monitor_loop(self):
         """Main monitoring loop"""
-        # Load last seen item from settings
-        self.last_seen_title = _ADDON.getSetting('last_talknews_title')
-
         while not self._should_stop():
             try:
                 # Check if monitoring is still enabled
@@ -114,6 +103,12 @@ class TalkNewsMonitor:
             if not news_items:
                 log("No TALKNEWS items found", xbmc.LOGDEBUG)
                 return
+
+            # Re-read the last seen title from settings on every check rather
+            # than holding it for the lifetime of the thread: reset_monitor()
+            # usually runs in a different Python context and can only reach this
+            # thread through the setting.
+            self.last_seen_title = _ADDON.getSetting('last_talknews_title')
 
             first_item = news_items[0]
 
@@ -243,20 +238,17 @@ def start_monitor():
         _monitor.start()
 
 def reset_monitor():
-    """Reset the TALKNEWS monitor (clear last seen title and restart)"""
-    global _monitor
+    """
+    Reset the TALKNEWS monitor by forgetting the last seen item.
+
+    No restart is needed (and none would work): the running thread lives in
+    whichever Python context started it, and re-reads this setting on every
+    check, so clearing it makes the next check re-initialize from scratch.
+    """
 
     try:
-        # Clear the last seen title
         _ADDON.setSetting('last_talknews_title', '')
         log("TALKNEWS monitor reset - cleared last seen title", xbmc.LOGINFO)
-
-        # Restart monitor if it was running
-        if _monitor and _monitor.running:
-            _monitor.stop()
-            _monitor = None
-            start_monitor()
-            log("TALKNEWS monitor restarted", xbmc.LOGINFO)
 
         xbmcgui.Dialog().notification('TALKNEWS Monitor', 'Monitor byl resetován', time=3000)
 
