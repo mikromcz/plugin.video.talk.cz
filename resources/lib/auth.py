@@ -14,6 +14,7 @@ LOGIN_CHECK_MARKER = 'popup-account__header-email'
 # Session caching
 _session_cache = {
     'session': None,
+    'cookie': None,  # The cookie 'session' was validated with
     'validated_at': 0,
     'ttl': 3600,  # 1 hour cache
     'failed_cookie': None,  # Track failed cookies to show error each time
@@ -37,11 +38,15 @@ def get_session():
         log("Using previously failed cookie", xbmc.LOGDEBUG)
         return None
 
-    # Check if we have a valid cached session
+    # Check if we have a valid cached session for this exact cookie. Comparing
+    # the cookie matters because the user can change it mid-session (settings or
+    # the web config page) while a long-lived context - the TALKNEWS monitor -
+    # still holds a session validated with the previous one.
     if (_session_cache['session'] and
+        session_cookie and
+        _session_cache['cookie'] == session_cookie and
         _session_cache['validated_at'] > 0 and
-        current_time - _session_cache['validated_at'] < _session_cache['ttl'] and
-        session_cookie):
+        current_time - _session_cache['validated_at'] < _session_cache['ttl']):
         log("Using cached session", xbmc.LOGDEBUG)
         return _session_cache['session']
 
@@ -59,13 +64,14 @@ def get_session():
 
             if LOGIN_CHECK_MARKER in response.text:
                 log("Session cookie valid", xbmc.LOGINFO)
-                _session_cache.update({'session': session, 'validated_at': current_time,
+                _session_cache.update({'session': session, 'cookie': session_cookie,
+                                       'validated_at': current_time,
                                        'failed_cookie': None, 'network_error': False})
                 return session
 
             # Session invalid - mark cookie as failed
             log("Session cookie invalid", xbmc.LOGWARNING)
-            _session_cache.update({'session': None, 'validated_at': 0,
+            _session_cache.update({'session': None, 'cookie': None, 'validated_at': 0,
                                    'failed_cookie': session_cookie, 'network_error': False})
             return None
 
@@ -76,12 +82,13 @@ def get_session():
                 xbmc.Monitor().waitForAbort(2)
                 continue
             log(f"Session validation failed (network error): {str(e)}", xbmc.LOGERROR)
-            _session_cache.update({'session': None, 'validated_at': 0, 'network_error': True})
+            _session_cache.update({'session': None, 'cookie': None, 'validated_at': 0,
+                                   'network_error': True})
             return None
 
         except Exception as e:
             log(f"Session validation failed: {str(e)}", xbmc.LOGERROR)
-            _session_cache.update({'session': None, 'validated_at': 0,
+            _session_cache.update({'session': None, 'cookie': None, 'validated_at': 0,
                                    'failed_cookie': session_cookie, 'network_error': False})
             return None
 
@@ -111,7 +118,7 @@ def is_cookie_failed():
         bool: True if current cookie is marked as failed
     """
     session_cookie = _ADDON.getSetting('session_cookie')
-    return session_cookie and session_cookie == _session_cache.get('failed_cookie')
+    return bool(session_cookie) and session_cookie == _session_cache.get('failed_cookie')
 
 def test_session():
     """

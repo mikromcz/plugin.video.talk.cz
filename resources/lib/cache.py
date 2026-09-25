@@ -12,6 +12,15 @@ from .utils import find_player_value, log, parse_video_description
 # video-detail fetches (see menu.add_video_directory_items)
 _cache_lock = threading.Lock()
 
+# Cached entries are good for 7 days
+_CACHE_TTL = 604800
+
+# In-memory copy of the cache file for lookups within this invocation, so a
+# listing reads the file once instead of once per video. Writes still go
+# through a fresh read of the file, since another Kodi invocation may have
+# written to it in the meantime.
+_cache_snapshot = None
+
 def get_cache_path():
     """
     Get the path to the cache file.
@@ -23,8 +32,7 @@ def get_cache_path():
     import xbmcvfs
     profile_path = xbmcvfs.translatePath(_ADDON.getAddonInfo('profile'))
 
-    if not os.path.exists(profile_path):
-        os.makedirs(profile_path)
+    os.makedirs(profile_path, exist_ok=True)
 
     return os.path.join(profile_path, 'video_cache.json')
 
@@ -66,18 +74,24 @@ def clear_cache():
     Clear the video description cache.
     """
 
+    global _cache_snapshot
+
     cache_path = get_cache_path()
+    _cache_snapshot = None
     if os.path.exists(cache_path):
         try:
             os.remove(cache_path)
-            xbmcgui.Dialog().notification('Cache', 'Mezipaměť byla vymazána')
             log("Cache cleared successfully", xbmc.LOGINFO)
-            return True
-        except Exception as e:
+        except OSError as e:
             log(f"Error clearing cache: {str(e)}", xbmc.LOGERROR)
             xbmcgui.Dialog().notification('Chyba', 'Chyba při mazání mezipaměti', time=5000)
             return False
+    else:
+        log("Cache already empty", xbmc.LOGINFO)
 
+    # Confirm either way - an already empty cache is still a successful clear,
+    # and a button press with no feedback reads as broken
+    xbmcgui.Dialog().notification('Cache', 'Mezipaměť byla vymazána')
     return True
 
 def get_video_details(session, video_url, need_resume=False):
@@ -98,16 +112,18 @@ def get_video_details(session, video_url, need_resume=False):
         when not requested or not found.
     """
 
+    global _cache_snapshot
+
     # Check if caching is enabled in settings
     use_cache = _ADDON.getSettingBool('use_cache')
 
     if use_cache and not need_resume:
         with _cache_lock:
-            cache = load_cache()
-            cached_data = cache.get(video_url)
+            if _cache_snapshot is None:
+                _cache_snapshot = load_cache()
+            cached_data = _cache_snapshot.get(video_url)
 
-        # Cache data for 7 days (604800 seconds)
-        if cached_data and time.time() - cached_data.get('timestamp', 0) < 604800:
+        if cached_data and time.time() - cached_data.get('timestamp', 0) < _CACHE_TTL:
             return cached_data.get('description', ''), cached_data.get('date', ''), 0.0
 
     try:
@@ -125,14 +141,23 @@ def get_video_details(session, video_url, need_resume=False):
 
         # Save to cache if enabled
         if use_cache and (description or date):
+            now = time.time()
             with _cache_lock:
                 cache = load_cache()
+
+                # Drop expired entries while we are rewriting the file anyway,
+                # otherwise it grows for every video ever listed
+                cutoff = now - _CACHE_TTL
+                cache = {url: entry for url, entry in cache.items()
+                         if entry.get('timestamp', 0) >= cutoff}
+
                 cache[video_url] = {
                     'description': description,
                     'date': date,
-                    'timestamp': time.time()
+                    'timestamp': now
                 }
                 save_cache(cache)
+                _cache_snapshot = cache
 
         return description, date, resume_position
 
