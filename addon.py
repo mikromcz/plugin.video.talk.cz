@@ -2,15 +2,51 @@ import sys
 from urllib.parse import parse_qsl
 import xbmc
 import xbmcgui
+import xbmcplugin
 from resources.lib.auth import test_session
 from resources.lib.cache import clear_cache
-from resources.lib.constants import _ADDON
+from resources.lib.constants import _ADDON, _HANDLE
 from resources.lib.menu import list_menu, list_videos, list_popular, list_top, list_continue, list_creators, list_archive
 from resources.lib.search import search, list_search_results
 from resources.lib.talknews import list_talknews, show_article, show_news_info
 from resources.lib.utils import log, get_ip
 from resources.lib.video import play_video, select_quality, skip_yt_part, yt_live, yt_vip_stream, resume_from_web
 from resources.lib.monitor import start_monitor, reset_monitor
+
+# Actions that take no parameters. A handful of these are also reachable as
+# 'listing' category_urls from the main menu (see constants.MENU_CATEGORIES),
+# which is why the listing branch below dispatches through this same table.
+_SIMPLE_ACTIONS = {
+    'creators': list_creators,
+    'archive': list_archive,
+    'test_session': test_session,
+    'clear_cache': clear_cache,
+    'get_ip': get_ip,
+    'talknews': list_talknews,
+    'reset_monitor': reset_monitor,
+    'vip_stream': yt_vip_stream,
+    'top': list_top,
+    'continue': list_continue,
+    'live': yt_live
+}
+
+# Actions that take a single video_url parameter and call func(video_url)
+_VIDEO_URL_ACTIONS = {
+    'select_quality': select_quality,
+    'skip_yt_part': skip_yt_part,
+    'resume_web': resume_from_web
+}
+
+def _end_failed_directory():
+    """
+    Close the directory as failed so Kodi doesn't sit on a busy spinner.
+
+    Only meaningful when the addon was invoked to build a listing; RunPlugin()
+    calls get handle -1, where endOfDirectory() has nothing to close.
+    """
+
+    if _HANDLE >= 0:
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
 
 def router(paramstring):
     """
@@ -34,33 +70,13 @@ def router(paramstring):
         action = params.get('action', '')
 
         # Simple actions that don't require additional parameters
-        if action in ['creators', 'archive', 'test_session', 'clear_cache', 'get_ip', 'talknews', 'reset_monitor', 'vip_stream']:
-            action_map = {
-                'creators': list_creators,
-                'archive': list_archive,
-                'test_session': test_session,
-                'clear_cache': clear_cache,
-                'get_ip': get_ip,
-                'talknews': list_talknews,
-                'reset_monitor': reset_monitor,
-                'vip_stream': yt_vip_stream
-            }
-            action_map[action]()
+        if action in _SIMPLE_ACTIONS:
+            _SIMPLE_ACTIONS[action]()
             return
 
-        # Actions that might use page parameter
-        if action in ['popular']:
-            page = int(params.get('page', 1))
-            list_popular(page)
-            return
-
-        # Actions that don't use page parameter anymore
-        if action in ['top', 'continue']:
-            action_map = {
-                'top': list_top,
-                'continue': list_continue
-            }
-            action_map[action]()
+        # The only paginated listing
+        if action == 'popular':
+            list_popular(int(params.get('page', 1)))
             return
 
         # Handle TALKNEWS article display
@@ -68,15 +84,14 @@ def router(paramstring):
             article_url = params.get('article_url')
             if not article_url:
                 log("Missing article_url parameter", xbmc.LOGERROR)
+                _end_failed_directory()
                 return
             show_article(article_url)
             return
 
         # Handle TALKNEWS info display
         if action == 'talknews_info':
-            title = params.get('title', '')
-            meta = params.get('meta', '')
-            show_news_info(title, meta)
+            show_news_info(params.get('title', ''), params.get('meta', ''))
             return
 
         # Handle search functionality
@@ -87,75 +102,63 @@ def router(paramstring):
                 search()
             return
 
-         # Handle video listing
+        # Handle video listing
         if action == 'listing':
             category_url = params.get('category_url', '')
             if not category_url:
                 log("Missing category_url parameter", xbmc.LOGERROR)
-                return
-
-            # Handle special category URLs
-            if category_url == 'top':
-                list_top()
-                return
-            elif category_url == 'continue':
-                list_continue()
-                return
-            elif category_url == 'live':
-                yt_live()
-                return
-            elif category_url == 'talknews':
-                list_talknews()
-                return
+                _end_failed_directory()
             elif category_url.startswith('http'):
                 list_videos(category_url)
-                return
+            elif category_url in _SIMPLE_ACTIONS:
+                # Special menu entries (top, continue, live, talknews) that are
+                # listings to the user but have their own dedicated handler
+                _SIMPLE_ACTIONS[category_url]()
             else:
                 log(f"Invalid category URL: {category_url}", xbmc.LOGERROR)
                 xbmcgui.Dialog().notification('Chyba', f'Neplatné URL kategorie: {category_url}')
-                return
+                _end_failed_directory()
+            return
 
         # Handle video playback
         if action == 'play':
             video_url = params.get('video_url')
             if not video_url:
                 log("Missing video_url parameter", xbmc.LOGERROR)
+                xbmcplugin.setResolvedUrl(_HANDLE, False, xbmcgui.ListItem())
                 return
 
-            quality = params.get('quality')
             start_time = params.get('start_time')
             if start_time is not None:
                 try:
                     start_time = int(start_time)
                 except ValueError:
                     start_time = None
-            play_video(video_url, quality, start_time)
+            play_video(video_url, params.get('quality'), start_time)
             return
 
         # Actions that take a single video_url parameter and call func(video_url)
-        if action in ['select_quality', 'skip_yt_part', 'resume_web']:
+        if action in _VIDEO_URL_ACTIONS:
             video_url = params.get('video_url')
             if not video_url:
                 log("Missing video_url parameter", xbmc.LOGERROR)
                 return
-            action_map = {
-                'select_quality': select_quality,
-                'skip_yt_part': skip_yt_part,
-                'resume_web': resume_from_web
-            }
-            action_map[action](video_url)
+            _VIDEO_URL_ACTIONS[action](video_url)
             return
 
         # Handle notification (context menu separator trick)
         if action == 'notification':
             xbmcgui.Dialog().notification('TALK', 'Já nic, já jen oddělovač', time=2000)
+            return
 
         # If we get here, the action was not recognized
         log(f"Unrecognized action: {action}", xbmc.LOGERROR)
+        _end_failed_directory()
 
     except Exception as e:
         log(f"Error in router: {str(e)}", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Chyba', 'Chyba při zpracování požadavku')
+        _end_failed_directory()
 
 if __name__ == '__main__':
     """

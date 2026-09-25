@@ -6,8 +6,10 @@ import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
 from .auth import get_session, require_session
+from .cache import get_video_details
 from .constants import _HANDLE, _ADDON
-from .utils import get_url, log, get_image_path, get_clearlogo_path, normalize_title
+from .utils import (get_url, log, get_image_path, get_clearlogo_path, normalize_title,
+                    find_player_value, parse_video_description)
 
 _COLORING_RE = re.compile(r'^coloring-(\d+)$')
 _QUALITIES = ['Auto', '1080p', '720p', '480p', '360p', '240p']
@@ -20,17 +22,14 @@ def _find_coloring_number(soup):
     Prefers the video's own detail wrapper over unrelated coloring-N classes
     that can appear further down the page in a "related videos" section.
     """
-    for class_name in ('video__detail--box', 'podcasts__player', 'details__info'):
-        element = soup.find(class_=class_name)
-        if element:
-            for css_class in element.get('class', []):
-                match = _COLORING_RE.match(css_class)
-                if match:
-                    return match.group(1)
+    candidates = [soup.find(class_=name)
+                  for name in ('video__detail--box', 'podcasts__player', 'details__info')]
+    # Last resort: first coloring-N class found anywhere on the page
+    candidates.append(soup.find(class_=_COLORING_RE))
 
-    # Fallback: first coloring-N class found anywhere on the page
-    element = soup.find(class_=_COLORING_RE)
-    if element:
+    for element in candidates:
+        if not element:
+            continue
         for css_class in element.get('class', []):
             match = _COLORING_RE.match(css_class)
             if match:
@@ -99,7 +98,7 @@ def play_video(video_url, requested_quality=None, start_time=None):
 
         # If no HLS selected or MP4 preferred, try MP4
         if not selected_url:
-            qualities = ['1080p', '720p', '480p', '360p', '240p']
+            qualities = _QUALITIES[1:]  # everything below 'Auto'
             if requested_quality != 'Auto':
                 # Start from requested quality
                 start_idx = qualities.index(requested_quality)
@@ -138,28 +137,8 @@ def play_video(video_url, requested_quality=None, start_time=None):
         play_item.setContentLookup(False)
 
         try:
-            # Get main details info
-            details = soup.find('div', class_='details__info')
-            description = ''
-
-            if details:
-                main_content = details.text.strip()
-                parts = main_content.split('                -', 1)
-                if len(parts) == 2:
-                    description = parts[1].strip()
-                else:
-                    description = main_content
-
-            # Get additional description if available
-            description_element = soup.find('div', class_='details__description-text')
-            if description_element:
-                additional_description = description_element.text.strip()
-                if additional_description:
-                    # Only add newline if we have both descriptions
-                    if description:
-                        description += '\n\n' + additional_description
-                    else:
-                        description = additional_description
+            # Same description the listing shows, parsed the same way
+            _date, description = parse_video_description(soup)
 
             # Get title if available
             title = soup.find('h1', class_='details__header')
@@ -208,13 +187,9 @@ def play_video(video_url, requested_quality=None, start_time=None):
         #     "ssVideoTime":1735309692
         # });
         try:
-            scripts = soup.find_all('script')
-            for script in scripts:
-                if script.string and 'initPlayerComponent' in script.string:
-                    match = re.search(r'"videoId":(\d+)', script.string)
-                    if match:
-                        monitor.video_id = match.group(1)
-                        break
+            video_id = find_player_value(soup, 'videoId')
+            if video_id:
+                monitor.video_id = video_id
         except Exception as e:
             log(f"Error extracting video ID: {str(e)}", xbmc.LOGERROR)
 
@@ -310,7 +285,7 @@ def yt_live():
         info_tag_public.setPlot('Veřejné živé streamy na YouTube kanálu [COLOR limegreen]STANDASHOW[/COLOR].\n\n[COLOR slategrey]Poznámka: Otevře doplněk YouTube v sekci živých přenosů na kanálu @StandaShow.[/COLOR]')
 
         # Add the public stream directory item
-        xbmcplugin.addDirectoryItem(_HANDLE, youtube_url, list_item_public, True)
+        xbmcplugin.addDirectoryItem(_HANDLE, youtube_url, list_item_public, isFolder=True)
 
         # Create list item for VIP stream
         list_item_vip = xbmcgui.ListItem(label='VIP stream')
@@ -426,6 +401,8 @@ def resume_from_web(video_url):
         video_url (str): URL of the video to resume
     """
 
+    dialog = xbmcgui.Dialog()
+
     try:
         web_position = check_web_resume(video_url)
         if web_position:
@@ -440,7 +417,6 @@ def resume_from_web(video_url):
                 time_str = f'{minutes}:{seconds:02d}'
 
             # Ask user if they want to resume from this position
-            dialog = xbmcgui.Dialog()
             resume = dialog.yesno('Pokračovat v přehrávání', f'Chcete pokračovat v přehrávání od času {time_str}?')
 
             if resume:
@@ -453,8 +429,7 @@ def resume_from_web(video_url):
             else:
                 return False
 
-        # No web position or user declined to resume
-        dialog = xbmcgui.Dialog()
+        # No web position stored (a declined resume already returned above)
         start = dialog.yesno('Přehrát od začátku', 'Žádná uložená pozice sledování na webu.\nChcete spustit přehrávání od začátku?')
 
         if start:
@@ -465,55 +440,30 @@ def resume_from_web(video_url):
 
     except Exception as e:
         log(f'Error in resume_from_web: {str(e)}', xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', str(e))
+        dialog.notification('Chyba', str(e))
         return False
 
 def check_web_resume(video_url):
     """
     Check if there's a resume point on the web.
 
+    The position lives in the initPlayerComponent({... "ssVideoPos":5899 ...})
+    call in the video page footer; get_video_details() already fetches that page
+    and reads it when asked, so this just picks the value out of its result.
+
     Args:
         video_url (str): URL of the video to check
 
     Returns:
-        int: Web resume position in seconds
-
-    Original JS code on the video page footer:
-    initPlayerComponent({
-        "videoTitle":"Marcel Kolaja: regulace AI, cookie lišty, TikTok a bezpečnost, monopoly na trhu a ochrana spotřebitele, papírová brčka...",
-        "posterUrl":"https://static.talktv.cz/upload/videos/gl4vZ6yK-poster-sGox3q.jpg",
-        "videoId":1726,
-        "debugMode":false,
-        "overrideNative":true,
-        "overrideChromecastSource":false,
-        "overrideChromecastSourceOriginal":false,
-        "canShowChromecastWarning":true,
-        "canShowChromecastRevert":false,
-        "videoFallbackUrl":"https://vz-b80bf3f2-495.b-cdn.net/bcdn_token=isq0PSmvxnfa054B4A9CTah_xT-L3gfS9OfvqCMp4do&expires=1735482522&token_path=%2Ffbed3ada-c002-475d-9545-d5e679746370/fbed3ada-c002-475d-9545-d5e679746370/play_720p.mp4",
-    ->  "ssVideoPos":5899,
-        "ssVideoTime":1735309692
-    });
+        int: Web resume position in seconds, or None if unavailable
     """
 
-    try:
-        session = get_session()
-        if not session:
-            return None
+    session = get_session()
+    if not session:
+        return None
 
-        response = session.get(video_url, timeout=10)
-        if response.status_code != 200:
-            return None
-
-        soup = BeautifulSoup(response.text, 'html.parser')
-        scripts = soup.find_all('script')
-        for script in scripts:
-            if script.string and 'initPlayerComponent' in script.string:
-                pos_match = re.search(r'"ssVideoPos":(\d+)', script.string)
-                if pos_match:
-                    return int(pos_match.group(1))
-    except Exception as e:
-        log(f"Error checking web resume point: {str(e)}", xbmc.LOGERROR)
-    return None
+    resume_position = get_video_details(session, video_url, need_resume=True)[2]
+    return int(resume_position) if resume_position else None
 
 def get_progress_monitor():
     """
@@ -580,16 +530,9 @@ class ProgressMonitor(xbmc.Player):
                 log("Failed to get session for monitoring", xbmc.LOGERROR)
                 return
 
-            # Stop existing thread if running
-            if self.progress_thread and self.progress_thread.is_alive():
-                log("Stopping existing progress thread", xbmc.LOGINFO)
-                self.stop_thread = True
-                try:
-                    self.progress_thread.join(timeout=3.0)
-                    if self.progress_thread.is_alive():
-                        log("Previous thread did not stop within timeout", xbmc.LOGWARNING)
-                except Exception as e:
-                    log(f"Error stopping previous thread: {str(e)}", xbmc.LOGERROR)
+            # Stop existing thread if running (shorter timeout than cleanup:
+            # this runs while the user is waiting for playback to start)
+            self._stop_progress_thread(timeout=3.0)
 
             # Start new monitoring thread
             self.stop_thread = False
@@ -600,6 +543,25 @@ class ProgressMonitor(xbmc.Player):
         except Exception as e:
             log(f"Error starting monitoring: {str(e)}", xbmc.LOGERROR)
 
+    def _stop_progress_thread(self, timeout=5.0):
+        """
+        Signal the progress thread to stop and wait for it, with timeout
+        protection so a stuck thread can never block Kodi.
+        """
+        if not (self.progress_thread and self.progress_thread.is_alive()):
+            return
+
+        log("Stopping progress monitoring thread", xbmc.LOGINFO)
+        self.stop_thread = True
+        try:
+            self.progress_thread.join(timeout=timeout)
+            if self.progress_thread.is_alive():
+                log("Progress thread did not stop within timeout", xbmc.LOGWARNING)
+            else:
+                log("Progress monitoring thread stopped successfully", xbmc.LOGINFO)
+        except Exception as e:
+            log(f"Error joining progress thread: {str(e)}", xbmc.LOGERROR)
+
     def cleanup(self):
         """Clean up resources and stop monitoring with proper timeout protection"""
         if self._cleanup_called:
@@ -609,19 +571,7 @@ class ProgressMonitor(xbmc.Player):
         self._cleanup_called = True
 
         # Stop the monitoring thread
-        if self.progress_thread and self.progress_thread.is_alive():
-            log("Stopping progress monitoring thread", xbmc.LOGINFO)
-            self.stop_thread = True
-
-            # Wait for thread to finish with timeout
-            try:
-                self.progress_thread.join(timeout=5.0)
-                if self.progress_thread.is_alive():
-                    log("Thread did not stop within timeout", xbmc.LOGWARNING)
-                else:
-                    log("Progress monitoring thread stopped successfully", xbmc.LOGINFO)
-            except Exception as e:
-                log(f"Error joining progress thread: {str(e)}", xbmc.LOGERROR)
+        self._stop_progress_thread()
 
         # Release session reference — session is owned by auth.py's cache, not closed here
         # Closing it would invalidate the shared cached session used by the rest of the plugin
@@ -664,33 +614,33 @@ class ProgressMonitor(xbmc.Player):
 
         while not self.monitor.abortRequested() and not self.stop_thread:
             try:
-                if self.video_id and self.session and self.isPlaying() and self.isPlayingVideo():
-                    current_time = self.getTime()
+                if not self.isPlaying() or not self.isPlayingVideo():
+                    # Nothing playing yet - wait a second and re-check
+                    if self.monitor.waitForAbort(1):
+                        return
+                    continue
 
-                    # Only send updates if we have a valid time
-                    if current_time > 0:
-                        # Send progress update to server
-                        log(f"Sending progress update for video {self.video_id} at position {int(current_time)}", xbmc.LOGINFO)
-                        response = self.session.get(
-                            'https://www.talktv.cz/srv/log-time',
-                            params={
-                                'vid': self.video_id,
-                                'p': int(current_time),
-                                't': int(time.time()),
-                                's': 30
-                            },
-                            timeout=10
-                        )
+                current_time = self.getTime()
 
-                        if response.status_code == 200:
-                            log(f"Progress updated for video {self.video_id} at position {int(current_time)}", xbmc.LOGINFO)
-                        else:
-                            log(f"Failed to update progress: {response.status_code}", xbmc.LOGWARNING)
-                else:
-                    if not self.isPlaying() or not self.isPlayingVideo():
-                        if self.monitor.waitForAbort(1):
-                            return
-                        continue
+                # Only send updates if we have a valid time
+                if self.video_id and self.session and current_time > 0:
+                    # Send progress update to server
+                    log(f"Sending progress update for video {self.video_id} at position {int(current_time)}", xbmc.LOGINFO)
+                    response = self.session.get(
+                        'https://www.talktv.cz/srv/log-time',
+                        params={
+                            'vid': self.video_id,
+                            'p': int(current_time),
+                            't': int(time.time()),
+                            's': 30
+                        },
+                        timeout=10
+                    )
+
+                    if response.status_code == 200:
+                        log(f"Progress updated for video {self.video_id} at position {int(current_time)}", xbmc.LOGINFO)
+                    else:
+                        log(f"Failed to update progress: {response.status_code}", xbmc.LOGWARNING)
             except Exception as e:
                 log(f"Error in progress monitoring: {str(e)}", xbmc.LOGWARNING)
 

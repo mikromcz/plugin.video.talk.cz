@@ -1,3 +1,4 @@
+import re
 import sys
 import traceback
 from urllib.parse import urlencode
@@ -55,7 +56,7 @@ def get_category_name(url):
     all_categories = MENU_CATEGORIES + CREATOR_CATEGORIES + ARCHIVE_CATEGORIES
     for category in all_categories:
         if category['url'] in url:
-            log(f"category url: {category['url']}, category name: {category['name']}", xbmc.LOGINFO)
+            log(f"category url: {category['url']}, category name: {category['name']}", xbmc.LOGDEBUG)
             return category['name']
 
     # If no category found, return 'Videa' as a fallback
@@ -222,15 +223,81 @@ def parse_date(date_str):
         log(f"Error parsing date {date_str}: {str(e)}", xbmc.LOGWARNING)
         return ''
 
-def _find_creator(creator_name):
+def parse_video_description(soup):
     """
-    Find a CREATOR_CATEGORIES entry by name.
+    Extract the publish date and description from a parsed TALK.cz video page.
+
+    The 'details__info' block holds the date and the short description separated
+    by a run of whitespace and a dash; 'details__description-text' holds the
+    optional longer description shown below it.
+
+    Args:
+        soup (BeautifulSoup): Parsed video page
+
+    Returns:
+        tuple: (date, description), both '' when not present
     """
-    if not creator_name:
+
+    date = ''
+    description = ''
+
+    details_element = soup.find('div', class_='details__info')
+    if details_element:
+        main_content = details_element.text.strip()
+        parts = main_content.split('                -', 1)
+
+        if len(parts) == 2:
+            date = parts[0].strip()
+            description = parts[1].strip()
+        else:
+            description = main_content
+
+    description_element = soup.find('div', class_='details__description-text')
+    if description_element:
+        additional_description = description_element.text.strip()
+        if additional_description:
+            # Only add the separator if we have both descriptions
+            description = f"{description}\n\n{additional_description}" if description else additional_description
+
+    return date, description
+
+def find_player_value(soup, key):
+    """
+    Read a numeric field out of the initPlayerComponent({...}) call in the
+    video page footer, e.g. "videoId":1726 or "ssVideoPos":5899.
+
+    Args:
+        soup (BeautifulSoup): Parsed video page
+        key (str): JSON key to read, e.g. 'videoId' or 'ssVideoPos'
+
+    Returns:
+        str: The raw digits, or None if the call or the key is not present
+    """
+
+    for script in soup.find_all('script'):
+        if script.string and 'initPlayerComponent' in script.string:
+            match = re.search(rf'"{key}":(\d+)', script.string)
+            return match.group(1) if match else None
+    return None
+
+def _find_entry(field, value, sources=(CREATOR_CATEGORIES,)):
+    """
+    Find the first category entry whose `field` equals `value`.
+
+    Args:
+        field (str): Entry key to match on, e.g. 'name' or 'coloring'
+        value: Value to match; a falsy value never matches
+        sources (tuple): Category lists to search, in order
+
+    Returns:
+        dict: The matching entry, or None
+    """
+    if not value:
         return None
-    for creator in CREATOR_CATEGORIES:
-        if creator['name'] == creator_name:
-            return creator
+    for entries in sources:
+        for entry in entries:
+            if entry.get(field) == value:
+                return entry
     return None
 
 def get_creator_name_from_coloring(coloring_class):
@@ -265,19 +332,15 @@ def get_creator_name_from_coloring(coloring_class):
 # ARCHIVE_CATEGORIES entries).
 _DEFAULT_CLEARLOGO = 'clearlogo.png'
 
-def _clearlogo_enabled():
-    return _ADDON.getSettingBool('show_clearlogo')
+def _clearlogo_for(entry):
+    """
+    Resolve a category entry to its clearlogo path, honouring the
+    'show_clearlogo' setting and falling back to the generic TALK logo.
+    """
+    if not entry or not _ADDON.getSettingBool('show_clearlogo'):
+        return ''
 
-def _find_coloring_entry(coloring):
-    """
-    Find the CREATOR_CATEGORIES/ARCHIVE_CATEGORIES entry for a coloring number.
-    """
-    coloring = str(coloring)
-    for entries in (CREATOR_CATEGORIES, ARCHIVE_CATEGORIES):
-        for entry in entries:
-            if entry.get('coloring') == coloring:
-                return entry
-    return None
+    return get_image_path(entry.get('clearlogo') or _DEFAULT_CLEARLOGO)
 
 def get_clearlogo_path(coloring):
     """
@@ -295,14 +358,8 @@ def get_clearlogo_path(coloring):
     Returns:
         str: Local clearlogo image path, or '' if disabled/unrecognized
     """
-    if not coloring or not _clearlogo_enabled():
-        return ''
-
-    entry = _find_coloring_entry(coloring)
-    if not entry:
-        return ''
-
-    return get_image_path(entry.get('clearlogo') or _DEFAULT_CLEARLOGO)
+    return _clearlogo_for(_find_entry('coloring', str(coloring) if coloring else '',
+                                      (CREATOR_CATEGORIES, ARCHIVE_CATEGORIES)))
 
 def get_creator_clearlogo(creator_name):
     """
@@ -315,14 +372,7 @@ def get_creator_clearlogo(creator_name):
     Returns:
         str: Local clearlogo image path, or '' if disabled/not found
     """
-    if not _clearlogo_enabled():
-        return ''
-
-    creator = _find_creator(creator_name)
-    if not creator:
-        return ''
-
-    return get_image_path(creator.get('clearlogo') or _DEFAULT_CLEARLOGO)
+    return _clearlogo_for(_find_entry('name', creator_name))
 
 def get_creator_cast(creator_name, title=None):
     """
@@ -346,45 +396,34 @@ def get_creator_cast(creator_name, title=None):
 
     cast_list = []
 
-    creator = _find_creator(creator_name)
+    creator = _find_entry('name', creator_name)
     if not creator:
         return cast_list
 
-    cast_data = creator.get('cast', [])
+    # Normalize both supported formats (plain name, or dict with optional image)
+    # into (name, image) pairs up front
+    cast_data = []
+    for actor_data in creator.get('cast', []):
+        if isinstance(actor_data, str):
+            cast_data.append((actor_data, ''))
+        elif isinstance(actor_data, dict):
+            cast_data.append((actor_data.get('name', ''), actor_data.get('image', '')))
+        else:
+            log(f"Invalid cast data format: {actor_data}", xbmc.LOGWARNING)
+
     primary_cast = creator.get('primary_cast')
     if primary_cast and title is not None and '•' not in title:
-        def _cast_name(actor_data):
-            return actor_data if isinstance(actor_data, str) else actor_data.get('name', '')
-        cast_data = [actor_data for actor_data in cast_data if _cast_name(actor_data) in primary_cast]
+        cast_data = [(name, image) for name, image in cast_data if name in primary_cast]
 
-    # Create proper Actor objects
-    for i, actor_data in enumerate(cast_data):
+    # Create proper Actor objects with name, role, order and thumbnail
+    for i, (actor_name, actor_image) in enumerate(cast_data):
+        if not actor_name:
+            continue
         try:
-            # Handle both string and dictionary format
-            if isinstance(actor_data, str):
-                # Old format: just actor name as string
-                actor_name = actor_data
-                actor_image = ''
-            elif isinstance(actor_data, dict):
-                # New format: dictionary with name and optional image
-                actor_name = actor_data.get('name', '')
-                actor_image = actor_data.get('image', '')
-
-                # Convert image filename to full path if provided
-                if actor_image:
-                    actor_image = get_image_path(actor_image)
-            else:
-                log(f"Invalid cast data format: {actor_data}", xbmc.LOGWARNING)
-                continue
-
-            if not actor_name:
-                continue
-
-            # Create Actor object with name, role, order, and thumbnail
-            actor = xbmc.Actor(actor_name, 'Moderátor', i, actor_image)
-            cast_list.append(actor)
+            cast_list.append(xbmc.Actor(actor_name, 'Moderátor', i,
+                                        get_image_path(actor_image) if actor_image else ''))
         except Exception as e:
-            log(f"Error creating actor {actor_data}: {str(e)}", xbmc.LOGERROR)
+            log(f"Error creating actor {actor_name}: {str(e)}", xbmc.LOGERROR)
 
     return cast_list
 
@@ -398,7 +437,7 @@ def get_creator_url(creator_name):
     Returns:
         str: URL of the creator's page or None if not found
     """
-    creator = _find_creator(creator_name)
+    creator = _find_entry('name', creator_name)
     return creator['url'] if creator else None
 
 def get_ip():
@@ -429,16 +468,7 @@ def get_ip():
         except OSError:
             pass
 
-        # Method 2: Try hostname resolution (often returns 127.0.1.1 on Linux)
-        try:
-            hostname = socket.gethostname()
-            ip = socket.gethostbyname(hostname)
-            if ip and ip not in ips and ip != '127.0.0.1' and not ip.startswith('127.0.1.'):
-                ips.append(ip)
-        except OSError:
-            pass
-
-        # Method 3: Get all network interfaces (comprehensive but may include many IPs)
+        # Method 2: Get all network interfaces (comprehensive but may include many IPs)
         try:
             hostname = socket.gethostname()
             for info in socket.getaddrinfo(hostname, None):
@@ -452,11 +482,11 @@ def get_ip():
         except OSError:
             pass
 
-        # Method 4: If all else fails, include localhost as last resort
+        # Method 3: If all else fails, include localhost as last resort
         if not ips:
             ips.append('127.0.0.1')
 
-        # Method 4 above guarantees ips is never empty here
+        # Method 3 above guarantees ips is never empty here
         message = 'Konfigurační stránka je dostupná na adresách:\n\n'
         for ip in ips:
             message += f'http://{ip}:{port}/talk\n'

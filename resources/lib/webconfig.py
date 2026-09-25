@@ -7,6 +7,7 @@ import requests
 import threading
 import xbmc
 from urllib.parse import urlparse
+from .auth import LOGIN_CHECK_MARKER, LOGIN_CHECK_URL
 from .constants import _ADDON
 from .utils import log
 
@@ -19,6 +20,13 @@ class ConfigHandler(http.server.SimpleHTTPRequestHandler):
     POST /talk/save - Save the session cookie
     POST /talk/test - Test the session cookie
     """
+
+    def _send_json(self, payload):
+        """Write a JSON body with a 200 response."""
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
+        self.end_headers()
+        self.wfile.write(json.dumps(payload).encode('utf-8'))
 
     # Handle GET requests
     def do_GET(self):
@@ -75,10 +83,7 @@ class ConfigHandler(http.server.SimpleHTTPRequestHandler):
 
             _ADDON.setSetting('session_cookie', data['cookie'])
 
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json; charset=utf-8')
-            self.end_headers()
-            self.wfile.write(json.dumps({'status': 'success'}).encode('utf-8'))
+            self._send_json({'status': 'success'})
             return
 
         elif parsed_path.path == '/talk/test':
@@ -91,29 +96,18 @@ class ConfigHandler(http.server.SimpleHTTPRequestHandler):
                 session_cookie = _ADDON.getSetting('session_cookie')
                 with requests.Session() as session:
                     session.cookies.set('PHPSESSID', session_cookie, domain='www.talktv.cz')
-                    response = session.get('https://www.talktv.cz/videa', timeout=10)
+                    response = session.get(LOGIN_CHECK_URL, timeout=10)
 
-                if 'popup-account__header-email' in response.text:
+                if LOGIN_CHECK_MARKER in response.text:
                     success = True
                     message = 'Cookie je platné!'
 
-                self.send_response(200)
-                self.send_header('Content-Type', 'application/json; charset=utf-8')
-                self.end_headers()
-                self.wfile.write(json.dumps({
-                    'success': success,
-                    'message': message
-                }).encode('utf-8'))
+                self._send_json({'success': success, 'message': message})
                 return
 
             except Exception as e:
-                self.send_response(200)
-                self.send_header('Content-Type', 'application/json; charset=utf-8')
-                self.end_headers()
-                self.wfile.write(json.dumps({
-                    'success': False,
-                    'message': f'Chyba při testování: {str(e)}'
-                }).encode('utf-8'))
+                self._send_json({'success': False,
+                                 'message': f'Chyba při testování: {str(e)}'})
                 return
         else:
             log(f'No matching handler for path: {parsed_path}', xbmc.LOGINFO)

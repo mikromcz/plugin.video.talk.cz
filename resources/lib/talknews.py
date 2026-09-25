@@ -121,10 +121,15 @@ def list_talknews():
     except Exception as e:
         log(f"Error in list_talknews: {str(e)}", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Chyba', 'Chyba při načítání TALKNEWS')
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
 
 def show_article(article_url):
     """
     Shows a TALKNEWS article in a custom window
+
+    The item is registered as a folder, so every exit path must call
+    endOfDirectory() or Kodi keeps spinning. succeeded=False leaves the user on
+    the TALKNEWS listing once the text viewer is closed.
 
     Args:
         article_url (str): URL of the article to show
@@ -140,6 +145,7 @@ def show_article(article_url):
         response = session.get(article_url, timeout=10)
         if response.status_code != 200:
             log(f"Failed to fetch article: {response.status_code}", xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -147,6 +153,7 @@ def show_article(article_url):
         content_div = soup.find('div', class_='post__content')
         if not content_div:
             log("Could not find article content", xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return
 
         # Format content with Kodi text formatting tags
@@ -189,6 +196,8 @@ def show_article(article_url):
     except Exception as e:
         log(f"Error in show_article: {str(e)}", xbmc.LOGERROR)
         xbmcgui.Dialog().notification('Chyba', 'Chyba při zobrazení článku')
+
+    xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
 
 def show_news_info(title, meta):
     """

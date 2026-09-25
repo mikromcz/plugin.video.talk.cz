@@ -55,14 +55,12 @@ class TalkNewsMonitor:
                     log("TALKNEWS monitoring disabled, stopping", xbmc.LOGINFO)
                     break
 
-                # Get check interval in hours from enum (0=1h, 1=3h, 2=6h, 3=12h, 4=24h, 5=48h)
+                # Get check interval in hours from the 'check_interval' enum
                 interval_index = int(_ADDON.getSetting('check_interval'))
-                interval_options = [1, 3, 6, 12, 24, 48]
-
-                if interval_index < 0 or interval_index >= len(interval_options):
-                    interval_hours = 6  # Fallback to default (6 hours)
+                if 0 <= interval_index < len(_INTERVAL_OPTIONS):
+                    interval_hours = _INTERVAL_OPTIONS[interval_index]
                 else:
-                    interval_hours = interval_options[interval_index]
+                    interval_hours = _DEFAULT_INTERVAL_HOURS
 
                 log(f"Checking TALKNEWS (interval: {interval_hours}h)", xbmc.LOGDEBUG)
 
@@ -210,6 +208,10 @@ class TalkNewsMonitor:
 
         except Exception as e:
             log(f"Error showing TALKNEWS notification: {str(e)}", xbmc.LOGERROR)
+
+# Check interval in hours per 'check_interval' setting index
+_INTERVAL_OPTIONS = [1, 3, 6, 12, 24, 48]
+_DEFAULT_INTERVAL_HOURS = 6
 
 # Global monitor instance
 _monitor = None
