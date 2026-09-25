@@ -136,8 +136,8 @@ def test_session():
     if not session_cookie:
         # Inform user they need to save settings first if no cookie is found
         dialog_result = xbmcgui.Dialog().yesno(
-            'Test Session', 
-            'No session cookie found. Make sure you have entered the session cookie and saved the settings.\n\nDo you want to open settings now?'
+            'Ověření cookie',
+            'Není nastaveno žádné session cookie. Zadejte ho v nastavení doplňku a nastavení uložte.\n\nChcete nyní otevřít nastavení?'
         )
         if dialog_result:
             _ADDON.openSettings()
@@ -155,14 +155,14 @@ def test_session():
         # Check if we're properly authenticated
         if LOGIN_CHECK_MARKER in response.text:
             log("Session cookie is valid", xbmc.LOGINFO)
-            xbmcgui.Dialog().ok('Test Session', 'Session cookie is valid! You are logged in.')
+            xbmcgui.Dialog().ok('Ověření cookie', 'Cookie je platné, jste přihlášeni.')
             return True
         else:
             log("Session cookie is invalid", xbmc.LOGERROR)
-            xbmcgui.Dialog().ok('Test Session', 'Session cookie is invalid or expired.\n\nIf you just entered a new cookie, make sure to SAVE the settings first before testing.\n\nOtherwise, please get a new cookie from your browser.')
+            xbmcgui.Dialog().ok('Ověření cookie', 'Cookie není platné nebo je expirované.\n\nPokud jste právě zadali nové cookie, nejdřív nastavení ULOŽTE a teprve potom spusťte test.\n\nJinak si z prohlížeče zkopírujte nové cookie.')
             return False
 
     except Exception as e:
         log(f"Session test failed: {str(e)}", xbmc.LOGERROR)
-        xbmcgui.Dialog().ok('Test Session Error', str(e))
+        xbmcgui.Dialog().ok('Ověření cookie', 'Cookie se nepodařilo ověřit. Zkontrolujte připojení k internetu a zkuste to znovu.')
         return False

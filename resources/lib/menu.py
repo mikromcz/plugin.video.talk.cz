@@ -218,7 +218,7 @@ def list_videos(category_url):
 
     except Exception as e:
         log(f"Error in list_videos: {str(e)}", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', 'Chyba při načítání videi')
+        xbmcgui.Dialog().notification('Chyba', 'Chyba při načítání videí')
         xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
 
 def _list_home_section(section_key, category_title, auto_resume=False, paginate=False, page=1):
@@ -287,7 +287,7 @@ def _list_home_section(section_key, category_title, auto_resume=False, paginate=
 
     except Exception as e:
         log(f"Error listing {section_key}: {str(e)}", xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', str(e))
+        xbmcgui.Dialog().notification('Chyba', 'Chyba při načítání videí')
         xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
 
 def list_popular(page=1):

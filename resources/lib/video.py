@@ -266,6 +266,7 @@ def yt_live():
 
     try:
         if not _require_youtube_addon():
+            xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
             return False
 
         # STANDASHOW YouTube channel ID
@@ -312,7 +313,8 @@ def yt_live():
 
     except Exception as e:
         log(f'Error in yt_live: {str(e)}', xbmc.LOGERROR)
-        xbmcgui.Dialog().notification('Chyba', str(e))
+        xbmcgui.Dialog().notification('Chyba', 'Nepodařilo se načíst živé přenosy')
+        xbmcplugin.endOfDirectory(_HANDLE, succeeded=False)
         return False
 
 def yt_vip_stream():
@@ -440,7 +442,7 @@ def resume_from_web(video_url):
 
     except Exception as e:
         log(f'Error in resume_from_web: {str(e)}', xbmc.LOGERROR)
-        dialog.notification('Chyba', str(e))
+        dialog.notification('Chyba', 'Nepodařilo se pokračovat od pozice na webu')
         return False
 
 def check_web_resume(video_url):
