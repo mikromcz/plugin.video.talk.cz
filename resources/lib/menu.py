@@ -8,6 +8,12 @@ from .cache import get_video_details
 from .constants import _HANDLE, MENU_CATEGORIES, CREATOR_CATEGORIES, ARCHIVE_CATEGORIES
 from .utils import get_url, get_image_path, log, normalize_title, convert_duration_to_seconds, parse_date, get_category_name, clean_url, get_creator_name_from_coloring, get_creator_cast, get_creator_url, get_creator_clearlogo
 
+# Category URLs that render their whole contents in one HTML page: the archive's
+# "seznam-videi" lists hold a fixed number of videos, and the "Ostatní" filter is
+# not paginated either. Offering a next page on these always lands on an empty
+# listing, so it is suppressed.
+_UNPAGINATED_URL_MARKERS = ('/seznam-videi/', 'filter=ostatni')
+
 # Common headers for TALK.cz API requests
 _API_HEADERS = {
     'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -181,7 +187,10 @@ def list_videos(category_url):
             container = soup.find('div', id='videoListContainer')
             if container:
                 video_items = container.find_all('a', class_='media')
-                has_next = True
+                # The HTML first page carries no "is there more" flag (only the
+                # JSON pages that follow do), so assume more unless this is a
+                # listing we know renders in full (see the check further down)
+                has_next = bool(video_items)
                 log(f"Found {len(video_items)} videos in container", xbmc.LOGDEBUG)
             else:
                 log("Could not find video container in HTML", xbmc.LOGERROR)
@@ -191,8 +200,7 @@ def list_videos(category_url):
         # Process video items with creator names only for the main videos section
         add_video_directory_items(video_items, session, show_creator_in_title=show_creator)
 
-        # No next for "OSTATNÍ"
-        if 'filter=ostatni' in category_url:
+        if any(marker in category_url for marker in _UNPAGINATED_URL_MARKERS):
             has_next = False
 
         if has_next:
@@ -258,8 +266,10 @@ def _list_home_section(section_key, category_title, auto_resume=False, paginate=
             start_idx = (page - 1) * ITEMS_PER_PAGE
             end_idx = start_idx + ITEMS_PER_PAGE
             list_item_divs = all_items[start_idx:end_idx]
-            # -1 otherwise there is no "Next page" on the last full page
-            has_next_page = total_items > start_idx + len(list_item_divs) - 1
+            # The API is cumulative (?pages=N returns everything up to N), so a
+            # full page may or may not have more behind it - but a partial page
+            # definitely does not, which is what this rules out
+            has_next_page = len(list_item_divs) == ITEMS_PER_PAGE
             log(f"Page {page}: Processing items {start_idx} to {end_idx} out of {total_items}, has next: {has_next_page}", xbmc.LOGDEBUG)
         else:
             list_item_divs = all_items
