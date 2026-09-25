@@ -12,14 +12,23 @@ from .constants import _ADDON
 from .utils import log
 
 
-class ConfigHandler(http.server.SimpleHTTPRequestHandler):
+class ConfigHandler(http.server.BaseHTTPRequestHandler):
     """
     Custom handler for the config server
 
     GET /talk - Serve the HTML template
     POST /talk/save - Save the session cookie
     POST /talk/test - Test the session cookie
+
+    Deliberately based on BaseHTTPRequestHandler, not SimpleHTTPRequestHandler:
+    the latter's inherited do_HEAD would serve file metadata (existence, size,
+    modification time) for anything under Kodi's working directory. Methods
+    not defined here get a 501.
     """
+
+    def log_message(self, format, *args):
+        """Send the per-request access log to the Kodi log instead of stderr."""
+        log(f"{self.address_string()} {format % args}", xbmc.LOGDEBUG)
 
     def _send_json(self, payload):
         """Write a JSON body with a 200 response."""
@@ -32,30 +41,24 @@ class ConfigHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urlparse(self.path)
         if parsed_path.path == '/talk':
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html; charset=utf-8')
-            self.end_headers()
-
-            # Get current session cookie
-            current_cookie = _ADDON.getSetting('session_cookie')
-
-            # Get the path to webconfig.html
-            current_dir = os.path.dirname(__file__)
-            parent_dir = os.path.dirname(current_dir)
-            html_path = os.path.join(parent_dir, 'webconfig.html')
-
-            # Read the HTML template
+            # Read the template before committing to a status line, so a failure
+            # can still be answered with a clean 500 instead of a broken 200
+            html_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'webconfig.html')
             try:
                 with open(html_path, 'r', encoding='utf-8') as f:
                     html_content = f.read()
-
-                # Replace placeholder with current cookie
-                html_content = html_content.replace('{{CURRENT_COOKIE}}', current_cookie)
-
-                self.wfile.write(html_content.encode('utf-8'))
-            except Exception as e:
+            except (OSError, UnicodeDecodeError) as e:
                 log(f'Error reading HTML template: {str(e)}', xbmc.LOGERROR)
-                self.send_error(500, f"Error reading template: {str(e)}")
+                self.send_error(500, 'Error reading template')
+                return
+
+            # Replace placeholder with current cookie
+            html_content = html_content.replace('{{CURRENT_COOKIE}}', _ADDON.getSetting('session_cookie'))
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(html_content.encode('utf-8'))
             return
 
         self.send_error(404)
@@ -146,12 +149,13 @@ def start_server():
                     pass  # SO_REUSEPORT not available on all systems
                 super().server_bind()
 
-            def service_actions(self):
-                # Check if shutdown was requested
-                if _server_shutdown_event.is_set():
-                    self.shutdown()
-
         _server_instance = ReuseAddrTCPServer(("", port), ConfigHandler)
+
+        # handle_request() blocks until a request arrives unless a timeout is
+        # set, and it never calls service_actions(). Without this the loop below
+        # cannot notice the auto-shutdown event and the port stays bound (and
+        # /talk/save stays reachable) until someone makes one more request.
+        _server_instance.timeout = 1
 
         # Start auto-shutdown timer (10 minutes)
         shutdown_timer = threading.Timer(600.0, _auto_shutdown_server)
