@@ -492,6 +492,8 @@ class ProgressMonitor(xbmc.Player):
         self.progress_thread = None
         self.initial_position = 0  # Add this new property
         self._cleanup_called = False
+        self._last_position = 0  # Polled every second, flushed on playback stop
+        self._final_position_sent = False
         log("ProgressMonitor initialized", xbmc.LOGINFO)
 
     def __del__(self):
@@ -536,6 +538,8 @@ class ProgressMonitor(xbmc.Player):
 
             # Start new monitoring thread
             self.stop_thread = False
+            self._last_position = 0
+            self._final_position_sent = False
             self.progress_thread = threading.Thread(target=self.monitor_progress)
             self.progress_thread.daemon = True
             self.progress_thread.start()
@@ -582,8 +586,65 @@ class ProgressMonitor(xbmc.Player):
         self.progress_thread = None
         self.stop_thread = False
         self.initial_position = 0
+        self._last_position = 0
+        self._final_position_sent = False
 
         log("ProgressMonitor cleanup completed", xbmc.LOGINFO)
+
+    def _send_progress(self, position):
+        """
+        Report a playback position to TALK.cz.
+
+        Args:
+            position (float): Position in seconds
+        """
+
+        if not (self.video_id and self.session and position > 0):
+            return
+
+        try:
+            log(f"Sending progress update for video {self.video_id} at position {int(position)}", xbmc.LOGINFO)
+            response = self.session.get(
+                'https://www.talktv.cz/srv/log-time',
+                params={
+                    'vid': self.video_id,
+                    'p': int(position),
+                    't': int(time.time()),
+                    's': 30
+                },
+                timeout=10
+            )
+
+            if response.status_code == 200:
+                log(f"Progress updated for video {self.video_id} at position {int(position)}", xbmc.LOGINFO)
+            else:
+                log(f"Failed to update progress: {response.status_code}", xbmc.LOGWARNING)
+        except Exception as e:
+            log(f"Error sending progress update: {str(e)}", xbmc.LOGWARNING)
+
+    def _flush_final_position(self):
+        """
+        Send the last polled position once playback ends.
+
+        The monitoring loop only reports every 30 seconds, so without this the
+        final stretch of watching is never synced to the web.
+        """
+
+        if self._final_position_sent:
+            return
+        self._final_position_sent = True
+
+        if self._last_position > 0:
+            log(f"Flushing final position {int(self._last_position)}s for video {self.video_id}", xbmc.LOGINFO)
+            self._send_progress(self._last_position)
+
+    def onPlayBackStopped(self):
+        """Kodi callback - the user stopped playback"""
+        self._flush_final_position()
+
+    def onPlayBackEnded(self):
+        """Kodi callback - playback reached the end of the video"""
+        self._flush_final_position()
 
     def monitor_progress(self):
         """Monitor video progress and send updates to server with full exception protection"""
@@ -621,32 +682,26 @@ class ProgressMonitor(xbmc.Player):
                     continue
 
                 current_time = self.getTime()
+                if current_time > 0:
+                    self._last_position = current_time
 
                 # Only send updates if we have a valid time
-                if self.video_id and self.session and current_time > 0:
-                    # Send progress update to server
-                    log(f"Sending progress update for video {self.video_id} at position {int(current_time)}", xbmc.LOGINFO)
-                    response = self.session.get(
-                        'https://www.talktv.cz/srv/log-time',
-                        params={
-                            'vid': self.video_id,
-                            'p': int(current_time),
-                            't': int(time.time()),
-                            's': 30
-                        },
-                        timeout=10
-                    )
-
-                    if response.status_code == 200:
-                        log(f"Progress updated for video {self.video_id} at position {int(current_time)}", xbmc.LOGINFO)
-                    else:
-                        log(f"Failed to update progress: {response.status_code}", xbmc.LOGWARNING)
+                self._send_progress(current_time)
             except Exception as e:
                 log(f"Error in progress monitoring: {str(e)}", xbmc.LOGWARNING)
 
-            # Wait for 30 seconds before next update
+            # Wait 30 seconds before the next update, but keep polling the
+            # position every second so onPlayBackStopped() can flush an
+            # up-to-date value instead of one up to 30 seconds old
             for _ in range(30):
                 if self.monitor.waitForAbort(1) or self.stop_thread or not self.isPlaying():
+                    return
+                try:
+                    position = self.getTime()
+                    if position > 0:
+                        self._last_position = position
+                except Exception:
+                    # getTime() throws once playback is gone - stop polling
                     return
 
         log("Progress monitoring loop ended", xbmc.LOGINFO)
