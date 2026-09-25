@@ -5,6 +5,12 @@ import xbmcgui
 from .constants import _ADDON
 from .utils import log
 
+# The page used to verify a cookie, and the marker that only shows up on it
+# when the request is authenticated. Shared with webconfig.py's test handler so
+# a site change only has to be made here.
+LOGIN_CHECK_URL = 'https://www.talktv.cz/videa'
+LOGIN_CHECK_MARKER = 'popup-account__header-email'
+
 # Session caching
 _session_cache = {
     'session': None,
@@ -49,44 +55,35 @@ def get_session():
     # Retry once on network error (transient failures)
     for attempt in range(2):
         try:
-            response = session.get('https://www.talktv.cz/videa', timeout=10)
+            response = session.get(LOGIN_CHECK_URL, timeout=10)
 
-            if 'popup-account__header-email' in response.text:
+            if LOGIN_CHECK_MARKER in response.text:
                 log("Session cookie valid", xbmc.LOGINFO)
-                _session_cache['session'] = session
-                _session_cache['validated_at'] = current_time
-                _session_cache['failed_cookie'] = None
-                _session_cache['network_error'] = False
+                _session_cache.update({'session': session, 'validated_at': current_time,
+                                       'failed_cookie': None, 'network_error': False})
                 return session
-            else:
-                # Session invalid - mark cookie as failed
-                log("Session cookie invalid", xbmc.LOGWARNING)
-                _session_cache['failed_cookie'] = session_cookie
-                _session_cache['session'] = None
-                _session_cache['validated_at'] = 0
-                _session_cache['network_error'] = False
-                return None
+
+            # Session invalid - mark cookie as failed
+            log("Session cookie invalid", xbmc.LOGWARNING)
+            _session_cache.update({'session': None, 'validated_at': 0,
+                                   'failed_cookie': session_cookie, 'network_error': False})
+            return None
 
         except requests.exceptions.ConnectionError as e:
             if attempt == 0:
+                # waitForAbort instead of sleep so a Kodi shutdown isn't held up
                 log(f"Network error, retrying in 2s: {str(e)}", xbmc.LOGWARNING)
-                time.sleep(2)
+                xbmc.Monitor().waitForAbort(2)
                 continue
             log(f"Session validation failed (network error): {str(e)}", xbmc.LOGERROR)
-            _session_cache['session'] = None
-            _session_cache['validated_at'] = 0
-            _session_cache['network_error'] = True
+            _session_cache.update({'session': None, 'validated_at': 0, 'network_error': True})
             return None
 
         except Exception as e:
             log(f"Session validation failed: {str(e)}", xbmc.LOGERROR)
-            _session_cache['failed_cookie'] = session_cookie
-            _session_cache['session'] = None
-            _session_cache['validated_at'] = 0
-            _session_cache['network_error'] = False
+            _session_cache.update({'session': None, 'validated_at': 0,
+                                   'failed_cookie': session_cookie, 'network_error': False})
             return None
-
-    return None
 
 def require_session():
     """
@@ -118,7 +115,11 @@ def is_cookie_failed():
 
 def test_session():
     """
-    Test if the current session cookie is valid
+    Test if the current session cookie is valid.
+
+    Deliberately bypasses get_session()'s cache: this runs right after the user
+    pastes a new cookie, when a cached "valid" verdict for the old one would be
+    misleading.
     """
     
     # Get the session cookie
@@ -142,10 +143,10 @@ def test_session():
         session.cookies.set('PHPSESSID', session_cookie, domain='www.talktv.cz')
 
         # Test the session by requesting the videos page
-        response = session.get('https://www.talktv.cz/videa', timeout=10)
+        response = session.get(LOGIN_CHECK_URL, timeout=10)
 
         # Check if we're properly authenticated
-        if 'popup-account__header-email' in response.text:
+        if LOGIN_CHECK_MARKER in response.text:
             log("Session cookie is valid", xbmc.LOGINFO)
             xbmcgui.Dialog().ok('Test Session', 'Session cookie is valid! You are logged in.')
             return True

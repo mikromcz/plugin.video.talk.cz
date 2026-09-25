@@ -15,6 +15,23 @@ _API_HEADERS = {
     'Referer': 'https://www.talktv.cz/'
 }
 
+def _add_next_page_item(url):
+    """
+    Add the shared "next page" directory item pointing at the given URL.
+    Used by every paginated listing so the label and icon stay identical.
+
+    Args:
+        url (str): Plugin URL the item navigates to.
+    """
+
+    image_path = get_image_path('fa-folder-next-solid-full.png')
+    next_item = xbmcgui.ListItem(label='Další strana')
+    next_item.setArt({
+        'icon': image_path,
+        'thumb': image_path
+    })
+    xbmcplugin.addDirectoryItem(_HANDLE, url, next_item, isFolder=True)
+
 def _list_static_categories(categories, category_title, url_builder, context_menu_builder=None):
     """
     Build a simple folder listing from a static category list (constants.py).
@@ -115,7 +132,6 @@ def list_videos(category_url):
 
     try:
         log(f"Listing videos for category: {category_url}", xbmc.LOGINFO)
-        original_url = category_url
         is_paginated = 'page=' in category_url
 
         # Determine if we should show creator names
@@ -132,17 +148,15 @@ def list_videos(category_url):
 
         video_items = []
         has_next = False
-
-        # Extract current page number from URL if present
         page_number = 1
+
         if is_paginated:
+            # Extract current page number from the URL
             try:
-                page_param = category_url.split('page=')[1].split('&')[0]
-                page_number = int(page_param)
+                page_number = int(category_url.split('page=')[1].split('&')[0])
             except (IndexError, ValueError):
                 page_number = 1
 
-        if is_paginated:
             log(f"Processing paginated response for page {page_number}", xbmc.LOGDEBUG)
             try:
                 # Parse the JSON response for paginated content
@@ -182,21 +196,12 @@ def list_videos(category_url):
             has_next = False
 
         if has_next:
-            # Get base URL without any query parameters
-            base_url = original_url.split('?')[0]
-
-            # Calculate next page and construct clean URL
+            # Calculate next page and construct a clean URL (no query parameters)
             next_page = page_number + 1 if is_paginated else 1
-            next_url = f"{base_url}?page={next_page}"
+            next_url = f"{clean_url(category_url)}?page={next_page}"
 
             log(f"Adding next page item: page {next_page}", xbmc.LOGDEBUG)
-            next_item = xbmcgui.ListItem(label='Další strana')
-            next_item.setArt({
-                'icon': get_image_path('fa-folder-next-solid-full.png'),
-                'thumb': get_image_path('fa-folder-next-solid-full.png')
-            })
-
-            xbmcplugin.addDirectoryItem(_HANDLE, get_url(action='listing', category_url=next_url), next_item, isFolder=True)
+            _add_next_page_item(get_url(action='listing', category_url=next_url))
 
         # Set the content type and sort method for the directory
         xbmcplugin.setPluginCategory(_HANDLE, get_category_name(category_url))
@@ -263,13 +268,7 @@ def _list_home_section(section_key, category_title, auto_resume=False, paginate=
         add_video_directory_items(video_items, session, auto_resume=auto_resume)
 
         if has_next_page:  # Add next page only if there are more items available
-            next_page = page + 1
-            next_item = xbmcgui.ListItem(label='Další stránka')
-            next_item.setArt({
-                'icon': get_image_path('fa-folder-next-solid-full.png'),
-                'thumb': get_image_path('fa-folder-next-solid-full.png')
-            })
-            xbmcplugin.addDirectoryItem(_HANDLE, get_url(action='popular', page=next_page), next_item, True)
+            _add_next_page_item(get_url(action='popular', page=page + 1))
 
         # Set the plugin category and content type
         xbmcplugin.setPluginCategory(_HANDLE, category_title)
@@ -321,19 +320,17 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
         return None
 
     # Get coloring class from the media element itself
-    coloring_class = None
-    item_classes = item.get('class', [])
-    coloring_class = next((c for c in item_classes if 'coloring-' in c), None)
+    coloring_class = next((c for c in item.get('class', []) if 'coloring-' in c), None)
 
     # Get creator name from coloring class
     creator_name = get_creator_name_from_coloring(coloring_class)
+    creator_label = f"[COLOR limegreen]{creator_name}[/COLOR]"
 
     # Get basic video info
     raw_title = normalize_title(title_element.p.text)
-    full_title = f"[COLOR limegreen]{creator_name}[/COLOR] • {raw_title}" if creator_name else raw_title
 
-    # Use either full title with creator or raw title based on parameter
-    display_title = full_title if show_creator_in_title else raw_title
+    # Show the creator alongside the title only where the caller asked for it
+    display_title = f"{creator_label} • {raw_title}" if show_creator_in_title and creator_name else raw_title
 
     video_url = clean_url('https://www.talktv.cz' + item['href'])
 
@@ -346,11 +343,9 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
     list_item.setProperty('IsPlayable', 'true')
     list_item.setIsFolder(False)
 
-    # Set thumbnail
+    # Set thumbnail (lazy-loaded images keep the real URL in data-src)
     img_element = item.find('img')
-    thumbnail = img_element.get('data-src', '') if img_element else ''
-    if not thumbnail and img_element:
-        thumbnail = img_element.get('src', '')
+    thumbnail = (img_element.get('data-src') or img_element.get('src', '')) if img_element else ''
 
     # Set art for the list item
     list_item.setArt({
@@ -367,7 +362,7 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
     # Set video info
     info_tag = list_item.getVideoInfoTag()
     info_tag.setTitle(raw_title)
-    info_tag.setTvShowTitle(f"[COLOR limegreen]{creator_name}[/COLOR]")
+    info_tag.setTvShowTitle(creator_label)
     info_tag.setPlot(description)
     info_tag.setDuration(duration_seconds)
     info_tag.setMediaType('episode')
@@ -377,12 +372,11 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
     info_tag.setTags(['Czech', 'Interview', 'TALKTV', 'Bruntal'])
 
     # Extract year from date if available
-    if date:
+    parsed_date = parse_date(date) if date else ''
+    if parsed_date:
+        info_tag.setPremiered(parsed_date)
         try:
-            parsed_date = parse_date(date)
-            if parsed_date:
-                year = int(parsed_date.split('-')[0])
-                info_tag.setYear(year)
+            info_tag.setYear(int(parsed_date.split('-')[0]))
         except (ValueError, IndexError):
             pass
 
@@ -395,15 +389,12 @@ def process_video_item(item, session, show_creator_in_title=True, auto_resume=Fa
         except Exception as e:
             log(f"Error setting cast for {creator_name}: {str(e)}", xbmc.LOGERROR)
 
-    if date:
-        info_tag.setPremiered(parse_date(date))
-
     # Add useful properties for Kodi integration
     # Note: TotalTime is deprecated - using setResumePoint() instead
     if auto_resume and resume_position > 0:
         log(f"Auto-resume enabled: setting resume position to {resume_position}s for {video_url}", xbmc.LOGINFO)
-
     info_tag.setResumePoint(resume_position, duration_seconds)  # Resume from position, with total duration
+
     list_item.setProperty('Creator', creator_name)
     list_item.setProperty('Duration', duration_text)  # Original format like "1h42m"
 
@@ -458,7 +449,7 @@ def add_video_directory_items(video_items, session, show_creator_in_title=True, 
             log(f"Error processing video item: {str(e)}", xbmc.LOGERROR)
 
     with ThreadPoolExecutor(max_workers=min(6, len(video_items))) as executor:
-        list(executor.map(lambda args: _process(*args), enumerate(video_items)))
+        executor.map(_process, range(len(video_items)), video_items)
 
     for result in results:
         if result:

@@ -1,13 +1,12 @@
 import os
 import json
-import re
 import threading
 import time
 import xbmc
 import xbmcgui
 from bs4 import BeautifulSoup
 from .constants import _ADDON
-from .utils import log
+from .utils import find_player_value, log, parse_video_description
 
 # Guards the cache file against concurrent read-modify-write from parallel
 # video-detail fetches (see menu.add_video_directory_items)
@@ -116,41 +115,13 @@ def get_video_details(session, video_url, need_resume=False):
         video_response = session.get(video_url, timeout=10)
         video_soup = BeautifulSoup(video_response.text, 'html.parser')
 
-        # Get the main details info
-        details_element = video_soup.find('div', class_='details__info')
-        description = ''
-        date = ''
-
-        if details_element:
-            main_content = details_element.text.strip()
-            parts = main_content.split('                -', 1)
-
-            if len(parts) == 2:
-                date = parts[0].strip()
-                description = parts[1].strip()
-            else:
-                description = main_content
-
-        # Get additional description if available
-        description_element = video_soup.find('div', class_='details__description-text')
-        if description_element:
-            additional_description = description_element.text.strip()
-            if additional_description:
-
-                # Only add newline if we have both descriptions
-                if description:
-                    description += '\n' + additional_description
-                else:
-                    description = additional_description
+        date, description = parse_video_description(video_soup)
 
         resume_position = 0.0
         if need_resume:
-            for script in video_soup.find_all('script'):
-                if script.string and 'initPlayerComponent' in script.string:
-                    pos_match = re.search(r'"ssVideoPos":(\d+)', script.string)
-                    if pos_match:
-                        resume_position = float(pos_match.group(1))
-                    break
+            web_position = find_player_value(video_soup, 'ssVideoPos')
+            if web_position:
+                resume_position = float(web_position)
 
         # Save to cache if enabled
         if use_cache and (description or date):
