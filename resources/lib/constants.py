@@ -64,76 +64,6 @@ MENU_CATEGORIES = [
     }
 ]
 
-# Archive categories
-ARCHIVE_CATEGORIES = [
-    {
-        'name': '[COLOR limegreen]STANDASHOW[/COLOR] speciály',
-        'url': 'https://www.talktv.cz/seznam-videi/seznam-hejktqzt',
-        'description': 'Minutu po minutě. Den po dni. Důležité události a exkluzívní hosté ve speciálech [COLOR limegreen]STANDASHOW[/COLOR]. Unikátní formát, který kombinuje prvky podcastu, dokumentu a časové reality show.',
-        'image': 'archiv-standashow-specialy.jpg'
-    },
-    {
-        'name': 'IRL procházky z terénu',
-        'url': 'https://www.talktv.cz/seznam-videi/irl-prochazky-z-terenu',
-        'description': 'Kamera, baťoh, mikrofony, sim karta, power banky, hromadu kabelů... to jsou IRL streamy. Procházky z terénu. Živé vysílání skoro odkukoli. Mix podcastu, dokumentu a reality show.',
-        'image': 'archiv-irl-prochazky.jpg'
-    },
-    {
-        'name': 'Hodnocení hostů',
-        'url': 'https://www.talktv.cz/seznam-videi/hodnoceni-hostu',
-        'description': 'Nezapomenutelnou atmosféru a komornější povídání, jak na veřejném vysílání. Takový virtuální sraz [COLOR limegreen]STANDASHOW[/COLOR]. Většinou prozradíme spoustu zajímavostí z backstage.',
-        'image': 'archiv-hodnoceni-hostu.jpg'
-    },
-    {
-        'name': 'Duely [COLOR limegreen]STANDASHOW[/COLOR]',
-        'url': 'https://www.talktv.cz/seznam-videi/duely',
-        'description': 'Duelové rozhovory mezi duelisty [COLOR limegreen]STANDASHOW[/COLOR]. Gregorová, Stropnický, Roud, Kyša, Urza, Kicom a další. Politika, společnost, kontroverzní témata a názory z různých úhlů pohledu.',
-        'image': 'archiv-duely.jpg'
-    },
-    {
-        'name': 'Charita',
-        'url': 'https://www.talktv.cz/seznam-videi/charita',
-        'description': 'Pomáháme. Podcast má být především zábava, ale někde je třeba probrat i vážné téma. A díky skvělé komunitě, která se kolem [COLOR limegreen]STANDASHOW[/COLOR] vytvořila, můžeme pomoct dobré věci.',
-        'image': 'archiv-charita.jpg'
-    },
-    {
-        'name': 'Volby 2025',
-        'url': 'https://www.talktv.cz/seznam-videi/seznam-5jt5hlfg',
-        'description': '9 předvolebních hostů, každý z nich zastupuje jinou stranu. Jaké mají názory? Co zajímavého Standovi řekli? A jak jim vyšla volební kalkulačka? Přidáváme i 3 speciální předvolební streamy bez hostů. Příjemný poslech :)',
-        'image': 'archiv-volby-2025.jpg'
-    },
-    {
-        'name': 'Prezidentské volby 2023',
-        'url': 'https://www.talktv.cz/seznam-videi/seznam-bxmzs6zw',
-        'description': 'Volba prezidenta České republiky 2023. Pozvali jsme všechny kandidáty a takhle to dopadlo...',
-        'image': 'archiv-prezidentske-volby-2023.jpg'
-    },
-    {
-        'name': 'Nejmladší politici',
-        'url': 'https://www.talktv.cz/seznam-videi/nejmladsi-politici',
-        'description': 'Pozvali jsme si ty nejmladší politiky ze všech politických stran zastoupených v parlamentu. A tady je výsledek.',
-        'image': 'archiv-nejmladsi-politici.jpg'
-    },
-    {
-        'name': 'Volby 2021',
-        'url': 'https://www.talktv.cz/seznam-videi/volby-2021',
-        'description': '8 politických podcastů, více jak 13 hodin materiálu. V každém rozhovoru se probírají kontroverzní, ale také obyčejná lidská témata.',
-        'image': 'archiv-volby-2021.jpg'
-    },
-    {
-        'name': 'Zákulisí [COLOR limegreen]TALK[/COLOR]u',
-        'url': 'https://www.talktv.cz/seznam-videi/zakulisi-talk-tv',
-        'description': 'Toto jsme my. Váš/náš :D [COLOR limegreen]TALK[/COLOR]. A toto jsou všechna videa ze zákulisí.',
-        'image': 'archiv-zakulisi-talku.jpg'
-    },
-    {
-        'name': 'Ostatní',
-        'url': 'https://www.talktv.cz/videa?filter=ostatni',
-        'description': 'Kategorie ostatní na [COLOR limegreen]TALK[/COLOR]u.\n\nJaký je [COLOR limegreen]Standa[/COLOR] šéf?\nJaký je vysněný host?\nKteré pivo je nejlepší?\na další...',
-        'image': 'archiv-ostatni.jpg'
-    }
-]
-
 # Creator categories
 CREATOR_CATEGORIES = [
     {
@@ -233,4 +163,74 @@ CREATOR_CATEGORIES = [
             {'name': 'Naomi Adachi'}  # No image for those who left the show
         ]
     },
+]
+
+# Archive categories
+ARCHIVE_CATEGORIES = [
+    {
+        'name': '[COLOR limegreen]STANDASHOW[/COLOR] speciály',
+        'url': 'https://www.talktv.cz/seznam-videi/seznam-hejktqzt',
+        'description': 'Minutu po minutě. Den po dni. Důležité události a exkluzívní hosté ve speciálech [COLOR limegreen]STANDASHOW[/COLOR]. Unikátní formát, který kombinuje prvky podcastu, dokumentu a časové reality show.',
+        'image': 'archiv-standashow-specialy.jpg'
+    },
+    {
+        'name': 'IRL procházky z terénu',
+        'url': 'https://www.talktv.cz/seznam-videi/irl-prochazky-z-terenu',
+        'description': 'Kamera, baťoh, mikrofony, sim karta, power banky, hromadu kabelů... to jsou IRL streamy. Procházky z terénu. Živé vysílání skoro odkukoli. Mix podcastu, dokumentu a reality show.',
+        'image': 'archiv-irl-prochazky.jpg'
+    },
+    {
+        'name': 'Hodnocení hostů',
+        'url': 'https://www.talktv.cz/seznam-videi/hodnoceni-hostu',
+        'description': 'Nezapomenutelnou atmosféru a komornější povídání, jak na veřejném vysílání. Takový virtuální sraz [COLOR limegreen]STANDASHOW[/COLOR]. Většinou prozradíme spoustu zajímavostí z backstage.',
+        'image': 'archiv-hodnoceni-hostu.jpg'
+    },
+    {
+        'name': 'Duely [COLOR limegreen]STANDASHOW[/COLOR]',
+        'url': 'https://www.talktv.cz/seznam-videi/duely',
+        'description': 'Duelové rozhovory mezi duelisty [COLOR limegreen]STANDASHOW[/COLOR]. Gregorová, Stropnický, Roud, Kyša, Urza, Kicom a další. Politika, společnost, kontroverzní témata a názory z různých úhlů pohledu.',
+        'image': 'archiv-duely.jpg'
+    },
+    {
+        'name': 'Charita',
+        'url': 'https://www.talktv.cz/seznam-videi/charita',
+        'description': 'Pomáháme. Podcast má být především zábava, ale někde je třeba probrat i vážné téma. A díky skvělé komunitě, která se kolem [COLOR limegreen]STANDASHOW[/COLOR] vytvořila, můžeme pomoct dobré věci.',
+        'image': 'archiv-charita.jpg'
+    },
+    {
+        'name': 'Volby 2025',
+        'url': 'https://www.talktv.cz/seznam-videi/seznam-5jt5hlfg',
+        'description': '9 předvolebních hostů, každý z nich zastupuje jinou stranu. Jaké mají názory? Co zajímavého Standovi řekli? A jak jim vyšla volební kalkulačka? Přidáváme i 3 speciální předvolební streamy bez hostů. Příjemný poslech :)',
+        'image': 'archiv-volby-2025.jpg'
+    },
+    {
+        'name': 'Prezidentské volby 2023',
+        'url': 'https://www.talktv.cz/seznam-videi/seznam-bxmzs6zw',
+        'description': 'Volba prezidenta České republiky 2023. Pozvali jsme všechny kandidáty a takhle to dopadlo...',
+        'image': 'archiv-prezidentske-volby-2023.jpg'
+    },
+    {
+        'name': 'Nejmladší politici',
+        'url': 'https://www.talktv.cz/seznam-videi/nejmladsi-politici',
+        'description': 'Pozvali jsme si ty nejmladší politiky ze všech politických stran zastoupených v parlamentu. A tady je výsledek.',
+        'image': 'archiv-nejmladsi-politici.jpg'
+    },
+    {
+        'name': 'Volby 2021',
+        'url': 'https://www.talktv.cz/seznam-videi/volby-2021',
+        'description': '8 politických podcastů, více jak 13 hodin materiálu. V každém rozhovoru se probírají kontroverzní, ale také obyčejná lidská témata.',
+        'image': 'archiv-volby-2021.jpg'
+    },
+    {
+        'name': 'Zákulisí [COLOR limegreen]TALK[/COLOR]u',
+        'url': 'https://www.talktv.cz/seznam-videi/zakulisi-talk-tv',
+        'description': 'Toto jsme my. Váš/náš :D [COLOR limegreen]TALK[/COLOR]. A toto jsou všechna videa ze zákulisí.',
+        'image': 'archiv-zakulisi-talku.jpg'
+    },
+    {
+        'name': 'Ostatní',
+        'url': 'https://www.talktv.cz/videa?filter=ostatni',
+        'description': 'Kategorie ostatní na [COLOR limegreen]TALK[/COLOR]u.\n\nJaký je [COLOR limegreen]Standa[/COLOR] šéf?\nJaký je vysněný host?\nKteré pivo je nejlepší?\na další...',
+        'image': 'archiv-ostatni.jpg'
+    }
 ]
