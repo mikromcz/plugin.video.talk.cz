@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.talk.cz" name="TALK" provider-name="mikrom" version="1.8.0~alpha1">
+<addon id="plugin.video.talk.cz" name="TALK" provider-name="mikrom" version="1.9.0">
     <requires>
         <import addon="xbmc.python" version="3.0.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -29,6 +29,22 @@ Doplněk vyžaduje aktivní předplatné na TALK.cz.</description>
             <screenshot>resources/screenshot-4.png</screenshot>
         </assets>
         <news>[COLOR slategrey]Poznámka: Neumím programovat, a už vůbec ne v Pythonu. Drtivou většinu kódu vygeneroval Claude.AI. A leccos také GitHub Copilot :)[/COLOR]
+1.9.0 (2026-09-26)
+• Oprava: Kodi si opět pamatuje rozkoukaná videa - zobrazuje se půlměsíc a přehrávání pokračuje od uložené pozice (dříve začínalo vždy od začátku)
+• Oprava: při zastavení videa se na web odešle poslední pozice (dříve se ztratilo až 30 sekund sledování)
+• Oprava: konfigurační webserver se po 10 minutách skutečně vypne (dříve běžel dál až do dalšího požadavku)
+• Oprava: konfigurační webserver už neprozrazuje informace o souborech v adresáři Kodi
+• Oprava: tlačítko "Resetovat TALKNEWS monitor" nyní skutečně resetuje
+• Oprava: seznamy v archivu a prázdné seznamy už nenabízí prázdnou "Další stranu"
+• Oprava: po změně cookie se už nepoužívá dříve uložená session
+• Oprava: po zavření článku TALKNEWS se Kodi už nezasekne na načítání
+• Oprava: "Živě" se nezasekne na načítání, když chybí doplněk YouTube
+• Vylepšení: česká hlášení místo anglických textů a technických chybových zpráv
+• Vylepšení: "Vymazat mezipaměť" potvrdí akci i tehdy, když je mezipaměť prázdná
+• Výkon: mezipaměť metadat se průběžně čistí a při načítání seznamu se čte jen jednou
+• Přidání: nové clearlogo STANDASHOW
+• Refaktoring: sjednocení duplicitní logiky napříč doplňkem
+
 1.8.0 (2026-09-15)
 • Oprava: "Pokračovat od pozice na webu" a "Přeskočit YouTube část" nyní skutečně spustí video od zadaného času (dříve se přehrávání vždy spustilo od začátku)
 • Oprava: přehrávání videa nyní správně hlásí Kodi chybu při selhání načtení (dříve mohlo zůstat "viset")
